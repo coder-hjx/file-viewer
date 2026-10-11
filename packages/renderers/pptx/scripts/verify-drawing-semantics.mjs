@@ -6,7 +6,7 @@ import JSZip from 'jszip';
 import { build } from 'esbuild';
 import { chromium } from 'playwright';
 import { getDrawingTextRuns, getFirstSlideNumber, getPictureEffects } from '../src/engine/support/drawing-semantics.js';
-import { makePresentation } from '../../../../test/compatibility-review/fixtures.mjs';
+import { makePresentation } from './chart-fixture.mjs';
 
 const root = path.resolve(import.meta.dirname, '../../../..');
 const output = path.resolve(process.env.PPTX_DRAWING_OUTPUT || 'output/pptx-drawing-semantics');
@@ -27,7 +27,9 @@ const triangle = '<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l
 const picture = (id, x, amt, attrs = '', geometry = '', crop = '', y = 430, resource = 'rIdPicture') => `<p:pic><p:nvPicPr><p:cNvPr id="${id}" name="Picture ${id}"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="${resource}">${amt == null ? '' : (Array.isArray(amt) ? amt : [amt]).map(a => `<a:alphaModFix amt="${a}"/>`).join('')}</a:blip>${crop}<a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr>${xfrm(x,y,100,100,attrs)}${geometry||'<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'}</p:spPr></p:pic>`;
 async function fixture(first = 0) {
   const zip = await JSZip.loadAsync(await makePresentation(JSZip));
-  const presentation = await zip.file('ppt/presentation.xml').async('string');
+  // The drawing oracle places authored content throughout a 1280 x 720 slide.
+  // Keep that physical canvas explicit rather than inheriting the chart fixture size.
+  const presentation = (await zip.file('ppt/presentation.xml').async('string')).replace(/<p:sldSz[^>]*\/>/, '<p:sldSz cx="12192000" cy="6858000"/>');
   zip.file('ppt/presentation.xml', first == null ? presentation : presentation.replace('<p:presentation ', `<p:presentation firstSlideNum="${first}" `));
   const photo = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><path fill="red" d="M0 0H50V100H0Z"/><path fill="blue" d="M50 0H100V100H50Z"/></svg>';
   zip.file('ppt/media/picture.svg', photo);
@@ -96,6 +98,7 @@ try {
   await check('Field-only paragraphs preserve every field',()=>assert.deepEqual(texts.map(t=>t[1]),['00','11','22']));
   await check('Display numbering does not change navigation indices',()=>assert.deepEqual(slides.map(s=>s.number),[1,2,3]));
   await check('Two consecutive authored breaks survive',async()=>assert.equal(await page.locator('.slide').first().locator('.line-break-br').count(),2));
+  await check('Authored drawing canvas is exactly 1280 by 720 CSS pixels',async()=>{const bounds=await page.locator('.slide').first().boundingBox();assert.equal(bounds.width,1280);assert.equal(bounds.height,720);});
   const screenshot=await page.screenshot({path:path.join(output,'generated.png')});
   const pixels=await page.evaluate(async base=>{const i=new Image();i.src='data:image/png;base64,'+base;await i.decode();const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const ctx=c.getContext('2d');ctx.drawImage(i,0,0);return [[30,440],[160,440],[290,480],[370,440],[420,440],[550,440],[1020,470],[720,440],[680,520],[30,580],[160,580],[290,580],[420,580],[420,650],[1180,470]].map(([x,y])=>[...ctx.getImageData(x,y,1,1).data]);},screenshot.toString('base64'));
   const near=(actual,expected)=>expected.forEach((x,i)=>assert.ok(Math.abs(actual[i]-x)<=3,JSON.stringify({actual,expected})));

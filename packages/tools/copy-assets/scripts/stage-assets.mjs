@@ -4,6 +4,8 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { stageInstalledPptRuntime } from '../../../components/web-full/scripts/stage-ppt-runtime.mjs'
 import { stagePreparedDesignRuntime } from '../../../build-support/stage-design-runtime.mjs'
+import { stageInstalledCadRuntime } from '../../../build-support/stage-cad-runtime.mjs'
+import { sanitizeOfflineViewerAssetTree } from '../../../components/web-full/scripts/offline-asset-sanitize.mjs'
 
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 const packageDir = resolve(scriptDir, '..')
@@ -40,17 +42,21 @@ if (existsSync(manifestPath)) {
 }
 
 const declaredAssets = rendererAssetManifests
-  .flatMap(renderer => renderer.assets)
-  .filter(asset => asset.target === 'public' && asset.defaultPath)
-const relativePaths = new Set(declaredAssets.map(asset => asset.defaultPath))
+  .flatMap((renderer) => renderer.assets)
+  .filter((asset) => asset.target === 'public' && asset.defaultPath)
+const relativePaths = new Set(declaredAssets.map((asset) => asset.defaultPath))
 
 await rm(targetDir, { recursive: true, force: true })
 await mkdir(targetDir, { recursive: true })
+await stageInstalledCadRuntime(targetDir)
 
 const validationAssets = []
 for (const asset of declaredAssets) {
   const relativePath = asset.defaultPath
-  const sourcePath = resolve(sourceDir, relativePath)
+  const sourcePath = resolve(
+    asset.rendererId === 'cad' && !asset.id.startsWith('cad-compat-') ? targetDir : sourceDir,
+    relativePath
+  )
   if (!existsSync(sourcePath)) {
     validationAssets.push({
       id: asset.id,
@@ -69,11 +75,14 @@ for (const asset of declaredAssets) {
   }
   const targetPath = resolve(targetDir, relativePath)
   await mkdir(dirname(targetPath), { recursive: true })
-  await cp(sourcePath, targetPath, { recursive: true, force: true })
+  if (sourcePath !== targetPath) {
+    await cp(sourcePath, targetPath, { recursive: true, force: true })
+  }
   const pathStat = await stat(targetPath)
-  const exists = asset.kind === 'directory' || asset.kind === 'wasm-directory'
-    ? pathStat.isDirectory()
-    : pathStat.isFile()
+  const exists =
+    asset.kind === 'directory' || asset.kind === 'wasm-directory'
+      ? pathStat.isDirectory()
+      : pathStat.isFile()
   validationAssets.push({
     id: asset.id,
     rendererId: asset.rendererId,
@@ -88,36 +97,43 @@ for (const asset of declaredAssets) {
 
 await stageInstalledPptRuntime(resolve(targetDir, 'vendor/ppt'))
 await stagePreparedDesignRuntime(targetDir)
-const missingRequired = validationAssets.filter(asset => asset.required && !asset.exists)
-const missingOptional = validationAssets.filter(asset => !asset.required && !asset.exists)
+await sanitizeOfflineViewerAssetTree(targetDir)
+const missingRequired = validationAssets.filter((asset) => asset.required && !asset.exists)
+const missingOptional = validationAssets.filter((asset) => !asset.required && !asset.exists)
 const generatedAt = new Date().toISOString()
 await writeFile(
   resolve(targetDir, manifestFilename),
-  `${JSON.stringify({
-    schemaVersion: 1,
-    generatedAt,
-    rendererAssetManifests,
-    validation: {
-      valid: missingRequired.length === 0,
-      checkedAt: generatedAt,
-      assets: validationAssets,
-      missingRequired,
-      missingOptional
-    }
-  }, null, 2)}\n`,
+  `${JSON.stringify(
+    {
+      schemaVersion: 1,
+      generatedAt,
+      rendererAssetManifests,
+      validation: {
+        valid: missingRequired.length === 0,
+        checkedAt: generatedAt,
+        assets: validationAssets,
+        missingRequired,
+        missingOptional
+      }
+    },
+    null,
+    2
+  )}\n`,
   'utf8'
 )
 await writeFile(
   resolve(targetDir, 'flyfish-viewer-manifest.json'),
-  `${JSON.stringify({
-    name: packageManifest.name,
-    version: packageManifest.version,
-    kind: 'viewer-assets',
-    assets: manifestFilename
-  }, null, 2)}\n`,
+  `${JSON.stringify(
+    {
+      name: packageManifest.name,
+      version: packageManifest.version,
+      kind: 'viewer-assets',
+      assets: manifestFilename
+    },
+    null,
+    2
+  )}\n`,
   'utf8'
 )
 
-console.log(
-  `[file-viewer-copy-assets] staged ${relativePaths.size} asset roots from ${sourceDir}`
-)
+console.log(`[file-viewer-copy-assets] staged ${relativePaths.size} asset roots from ${sourceDir}`)

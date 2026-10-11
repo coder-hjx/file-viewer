@@ -5,7 +5,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
-import { makeEngineDocument } from '../../../../test/docx-engine-compatibility/fixtures.mjs';
+import { makeEngineDocument } from '../test/engine-fixtures.mjs';
 
 const root = path.resolve(import.meta.dirname, '../../../..');
 const require = createRequire(path.join(root, 'packages/renderers/word/package.json'));

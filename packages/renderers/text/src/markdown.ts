@@ -123,6 +123,13 @@ const highlightMarkdownCode = async (article: HTMLElement, context?: FileRenderC
       if (context?.signal?.aborted) throw error
       // Highlighting is optional decoration; loading errors keep the source readable.
       code.textContent = source
+      try {
+        context?.options?.onDiagnostic?.({
+          code: 'markdown-highlight-unavailable',
+          level: 'warning',
+          message: 'Markdown code blocks kept as plain text because local highlighting could not load.'
+        })
+      } catch {}
     }
   }
 }

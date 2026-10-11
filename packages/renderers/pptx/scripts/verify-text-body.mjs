@@ -6,7 +6,7 @@ import {createHash} from 'node:crypto';
 import {build} from 'esbuild';
 import {chromium} from 'playwright';
 import JSZip from 'jszip';
-import {makePresentation} from '../../../../test/compatibility-review/fixtures.mjs';
+import {makePresentation} from './chart-fixture.mjs';
 import {getTextBodyMetrics} from '../src/engine/support/text-body.js';
 const root=path.resolve(import.meta.dirname,'../../../..');
 const pkg=path.join(root,'packages/renderers/pptx');

@@ -30,7 +30,7 @@ export const DEFAULT_FILE_VIEWER_DOCX_WORKER_JSZIP_PATH = 'vendor/docx/jszip.min
 export const DEFAULT_FILE_VIEWER_DOCX_RUNTIME_VERSION = '0.3.34';
 export const DEFAULT_FILE_VIEWER_PRESENTATION_WORKER_PATH = 'vendor/pptx/pptx.worker.js';
 export const DEFAULT_FILE_VIEWER_PPT_RUNTIME_PATH = 'vendor/ppt';
-export const DEFAULT_FILE_VIEWER_PPT_RUNTIME_VERSION = '0.3.4+compat.20261006.http';
+export const DEFAULT_FILE_VIEWER_PPT_RUNTIME_VERSION = '0.3.6';
 export const DEFAULT_FILE_VIEWER_PPT_MODULE_PATH = `${DEFAULT_FILE_VIEWER_PPT_RUNTIME_PATH}/index.mjs`;
 export const DEFAULT_FILE_VIEWER_PPT_WORKER_PATH = `${DEFAULT_FILE_VIEWER_PPT_RUNTIME_PATH}/worker.mjs`;
 export const DEFAULT_FILE_VIEWER_PPT_FRAME_CACHE_PATH = `${DEFAULT_FILE_VIEWER_PPT_RUNTIME_PATH}/frame-cache.mjs`;
@@ -54,7 +54,7 @@ export const DEFAULT_FILE_VIEWER_PDF_STANDARD_FONT_PATH = 'vendor/pdf/standard_f
 export const DEFAULT_FILE_VIEWER_PDF_CJK_FONT_FALLBACK_PATH = 'vendor/pdf/fonts/';
 export const DEFAULT_FILE_VIEWER_DRAWIO_VIEWER_SCRIPT_PATH = 'vendor/drawio/viewer-static.min.js';
 export const DEFAULT_FILE_VIEWER_DRAWIO_ASSET_PATH = 'vendor/drawio/';
-export const DEFAULT_FILE_VIEWER_CAD_RUNTIME_VERSION = '0.8.2';
+export const DEFAULT_FILE_VIEWER_CAD_RUNTIME_VERSION = '0.8.3';
 export const COMPATIBILITY_FILE_VIEWER_CAD_RUNTIME_VERSION = '0.8.0';
 export const DEFAULT_FILE_VIEWER_CAD_WASM_PATH =
   `wasm/cad/${DEFAULT_FILE_VIEWER_CAD_RUNTIME_VERSION}/`;
@@ -791,6 +791,24 @@ export const DEFAULT_FILE_VIEWER_RENDERER_ASSET_MANIFESTS: readonly FileViewerRe
         required: true,
         defaultPath: DEFAULT_FILE_VIEWER_CAD_LIBREDWG_WASM_PATH,
         description: 'LibreDWG WebAssembly runtime loaded by the CAD DWG worker for offline parsing.',
+      },
+      {
+        id: 'cad-license',
+        rendererId: 'cad',
+        kind: 'license',
+        target: 'public',
+        required: true,
+        defaultPath: `${DEFAULT_FILE_VIEWER_CAD_WASM_PATH}LICENSE`,
+        description: 'The installed CAD runtime redistribution license.',
+      },
+      {
+        id: 'cad-notice',
+        rendererId: 'cad',
+        kind: 'license',
+        target: 'public',
+        required: true,
+        defaultPath: `${DEFAULT_FILE_VIEWER_CAD_WASM_PATH}NOTICE`,
+        description: 'The installed CAD runtime third-party attribution notice.',
       },
       {
         id: 'cad-compat-0-8-0-wasm-directory',

@@ -16,6 +16,7 @@ const pnpm = pnpmInvocation()
 const packageDir = join(sourceRoot, 'packages/renderers/dicom')
 const ledgerPath = join(packageDir, 'THIRD_PARTY_LICENSES.json')
 const noticesPath = join(packageDir, 'THIRD_PARTY_NOTICES.md')
+const capabilityPath = join(packageDir, 'file-viewer.capability.json')
 const write = process.argv.includes('--write')
 const nativeProvenance = JSON.parse(
   readFileSync(join(packageDir, 'third-party/native-codecs/PROVENANCE.json'), 'utf8')
@@ -365,7 +366,11 @@ function visit(node, nameHint, state) {
     })
   }
   for (const [dependencyName, child] of Object.entries(node?.optionalDependencies || {})) {
-    visit(child, dependencyName, { direct: state.root, root: false, optional: true })
+    visit(child, dependencyName, {
+      direct: state.root,
+      root: false,
+      optional: true
+    })
   }
 }
 
@@ -527,10 +532,34 @@ for (const license of [...grouped.keys()].sort()) {
 }
 const noticesText = `${noticeLines.join('\n').trimEnd()}\n`
 
+const capability = JSON.parse(readFileSync(capabilityPath, 'utf8'))
+capability.license = {
+  spdx: packageManifest.license,
+  policy: 'permissive',
+  notices: [
+    ...thirdPartyPackages.map((entry) => ({
+      packageName: entry.name,
+      spdx: entry.license,
+      notice: `Reviewed runtime/SDK source ${entry.name}@${entry.version}; repository ${entry.repository || 'recorded in THIRD_PARTY_LICENSES.json'}; complete license and notice filenames are recorded in THIRD_PARTY_LICENSES.json.`
+    })),
+    ...nativeCodecComponents.map((component) => ({
+      packageName: `${component.name} native codec`,
+      spdx: component.license,
+      notice: `Source ${component.sourceSha}; wrapper ${component.wrapperPackage}; linked target ${component.linkedTarget}; exact texts: ${component.files.map((file) => file.path).join(', ')}.${component.name === 'libjpeg-turbo' ? ' This software is based in part on the work of the Independent JPEG Group.' : ''}`
+    }))
+  ]
+}
+const capabilityText = `${JSON.stringify(capability, null, 2)}\n`
+
 if (write) {
   writeFileSync(ledgerPath, ledgerText)
   writeFileSync(noticesPath, noticesText)
+  writeFileSync(capabilityPath, capabilityText)
 } else {
+  assert(
+    readFileSync(capabilityPath, 'utf8') === capabilityText,
+    'DICOM capability license metadata is stale; run verifier with --write'
+  )
   assert(existsSync(ledgerPath), `Missing ${relative(sourceRoot, ledgerPath)}; run with --write`)
   assert(existsSync(noticesPath), `Missing ${relative(sourceRoot, noticesPath)}; run with --write`)
   assert(

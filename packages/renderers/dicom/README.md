@@ -6,9 +6,9 @@
 
 ## 当前源码的构建与验证
 
-当前源码通过正常构建，将 Cornerstone 5.8.2、实际使用的 SDK 模块和 codec Worker 打入包内；应用安装时不再解析 Cornerstone 的整套 npm 依赖。Worker 的动态解码模块随 Worker 一起构建，四份原生 WASM 按已核验的 SHA-256 嵌入。构建产物 `dist/bundled-runtime.json` 记录锁文件、输入文件、包版本与许可文本、输出文件和 WASM 的哈希；`dist/THIRD_PARTY_LICENSES.txt` 保留实际打入产物的完整第三方许可。
+当前源码通过正常构建，将 Cornerstone 5.11.6、实际使用的 SDK 模块和 codec Worker 打入包内；应用安装时不再解析 Cornerstone 的整套 npm 依赖。Worker 的动态解码模块随 Worker 一起构建，五份原生 WASM 按已核验的 SHA-256 嵌入。构建产物 `dist/bundled-runtime.json` 记录锁文件、输入文件、包版本与许可文本、输出文件和 WASM 的哈希；`dist/THIRD_PARTY_LICENSES.txt` 保留实际打入产物的完整第三方许可。
 
-`pnpm --filter @file-viewer/renderer-dicom verify:packed-browser` 在独立消费项目中，用空 npm 缓存安装源码打包产物，不配置依赖安全 overrides，并核验实际安装的文件及完整、生产依赖审计。Chromium 与 WebKit 检查八个有界样例，覆盖下述六种传输语法、真实 PNG 像素、多帧切换、离线请求边界和销毁清理。macOS 检查已通过；Linux 的严格截图检查由 Public CI 执行。JSON 报告、命令日志和可用截图保留七天。
+`pnpm --filter @file-viewer/renderer-dicom verify:packed-browser` 在独立消费项目中，用空 npm 缓存安装源码打包产物，不配置依赖安全 overrides，并核验实际安装的文件及完整、生产依赖审计。Chromium 与 WebKit 检查八个有界样例，覆盖下述六种传输语法、真实 PNG 像素、多帧切换、离线请求边界和销毁清理。macOS 检查已通过；Linux 的严格截图检查由 Public CI 执行。JSON 报告和截图保存在本地证据目录；CI 将报告摘要与校验值写入运行日志。
 
 这些结果对应当前源码候选，不代表 npm 上已发布的 3.1.2 已更新，也不代表所有 DICOM 文件均已覆盖。发布前仍须通过目标平台的同一检查。
 

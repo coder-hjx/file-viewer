@@ -31,6 +31,7 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@file-viewer/docx@0.3.34'
   - '@file-viewer/ppt@0.3.6'
+  - '@flyfish-dev/cad-viewer@0.8.3'
   - 'styled-exceljs@0.21.6'
 
 overrides:

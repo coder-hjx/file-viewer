@@ -24,7 +24,7 @@ test('existing authored CJK aliases retain their order and override fixed-pitch 
   for (const [name, expected] of [
     ['新宋体', ['SimSun', 'Songti SC', 'Noto Serif CJK SC', 'serif']],
     ['仿宋_GB2312', ['FangSong', 'STFangsong', 'Songti SC', 'Noto Serif CJK SC', 'serif']],
-    ['楷体_GB2312', ['KaiTi', 'STKaiti', 'Kaiti SC', 'Songti SC', 'serif']],
+    ['楷体_GB2312', ['KaiTi', 'STKaiti', 'Kaiti SC', 'Songti SC', 'Noto Serif CJK SC', 'serif']],
     ['黑体', ['SimHei', 'Heiti SC', 'Noto Sans CJK SC', 'sans-serif']],
     ['微软雅黑', ['Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', 'sans-serif']],
   ]) assert.deepEqual(msDocFontFallbacks(name, { ffid: 52 }), expected);

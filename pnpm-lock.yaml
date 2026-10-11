@@ -1397,8 +1397,8 @@ importers:
         specifier: workspace:3.1.2
         version: link:../../core
       '@flyfish-dev/cad-viewer':
-        specifier: 0.8.2
-        version: 0.8.2(three@0.186.1)
+        specifier: 0.8.3
+        version: 0.8.3(three@0.186.1)
     devDependencies:
       typescript:
         specifier: ^6.0.3
@@ -2716,8 +2716,8 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
-  '@flyfish-dev/cad-viewer@0.8.2':
-    resolution: {integrity: sha512-GWOFPC741e4BEGWjWN2AuYxA6MJb0LFrRIw51BZPuZ1nv8O4GwHC+hDZ0Vm284QqJNLnfGm1LVEazTC8lY1BAw==}
+  '@flyfish-dev/cad-viewer@0.8.3':
+    resolution: {integrity: sha512-HR2+Rt3Pb17QpmzOwz5lG87vamwoYcRrKaeRT+CBvJgK350z3qAV9VtAe2kt0XZjrTLTKYAglGBTjGY0IgDDPg==}
     engines: {node: '>=20.19.0'}
 
   '@fontsource-variable/noto-sans-sc@5.3.0':
@@ -7586,7 +7586,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@flyfish-dev/cad-viewer@0.8.2(three@0.186.1)':
+  '@flyfish-dev/cad-viewer@0.8.3(three@0.186.1)':
     dependencies:
       '@mlightcad/libredwg-web': 0.7.9
       '@mlightcad/shx-parser': 1.4.5

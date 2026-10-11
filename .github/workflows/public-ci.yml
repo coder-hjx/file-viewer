@@ -295,6 +295,19 @@ jobs:
           pnpm --filter @file-viewer/renderer-pdf verify:hand-tool
           pnpm --filter @file-viewer/doc verify:font-table-browser
 
+      - name: Verify migrated Word and PPTX generated regression fixtures
+        if: steps.impact.outputs.runtime != 'false'
+        run: |
+          node packages/renderers/word/scripts/verify-explicit-tabs.mjs
+          node packages/renderers/word/scripts/verify-merged-borders.mjs
+          node packages/renderers/word/scripts/verify-vml-text-layout.mjs
+          node packages/renderers/word/scripts/verify-paragraph-export.mjs
+          node packages/renderers/pptx/scripts/verify-diagram-text.mjs
+          node packages/renderers/pptx/scripts/verify-drawing-semantics.mjs
+          node packages/renderers/pptx/scripts/verify-paragraph-numbering.mjs
+          node packages/renderers/pptx/scripts/verify-text-body.mjs
+          node packages/renderers/text/test/issue-325-markdown.browser.mjs
+
       - name: Retain intermediate renderer browser evidence
         if: always() && steps.impact.outputs.runtime != 'false'
         run: node .github/scripts/report-ci-evidence.mjs output/vite-github-311 output/vite-lite-consumer output/pdf-hand-tool output/doc-font-table output/text-single-byte-encodings output/maplibre-browser output/pptx-chart-families

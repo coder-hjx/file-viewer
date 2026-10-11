@@ -148,8 +148,33 @@ export async function build(options) {
     "const manifests = JSON.parse(readFileSync(new URL('./assets.json', import.meta.url), 'utf8'))",
     'export function listFileViewerRendererAssetManifests() { return manifests }'
   ].join('\n') + '\n')
+  await cp(
+    join(packageDir, '../../build-support/stage-cad-runtime.mjs'),
+    join(support, 'stage-cad-runtime.mjs')
+  )
+  const cadOwner = join(root, 'packages/renderers/cad')
+  const installedCad = join(cadOwner, 'node_modules/@flyfish-dev/cad-viewer')
+  await mkdir(join(installedCad, 'dist/wasm'), { recursive: true })
+  await writeFile(join(cadOwner, 'package.json'), JSON.stringify({
+    name: '@file-viewer/renderer-cad', dependencies: { '@flyfish-dev/cad-viewer': '0.8.3' }
+  }))
+  await writeFile(join(installedCad, 'package.json'), JSON.stringify({
+    name: '@flyfish-dev/cad-viewer', version: '0.8.3', exports: { './package.json': './package.json' }
+  }))
+  for (const filename of ['dwg-worker.js', 'dwfv-render.wasm', 'libredwg-web.js', 'libredwg-web.wasm']) {
+    await writeFile(join(installedCad, 'dist/wasm', filename), `installed CAD:${filename}\n`)
+  }
+  for (const filename of ['LICENSE', 'NOTICE']) {
+    await writeFile(join(installedCad, filename), `installed CAD:${filename}\n`)
+  }
+  const cadCore = join(cadOwner, 'node_modules/@file-viewer/core')
+  await mkdir(cadCore, { recursive: true })
+  await writeFile(join(cadCore, 'package.json'), JSON.stringify({
+    name: '@file-viewer/core', type: 'module', exports: { './assets': './assets.js' }
+  }))
+  await writeFile(join(cadCore, 'assets.js'), "export const DEFAULT_FILE_VIEWER_CAD_RUNTIME_VERSION = '0.8.3'\n")
   return {
-    root, source, dist, targetPackage, installedPpt, designOwner,
+    root, source, dist, targetPackage, installedPpt, designOwner, installedCad,
     run: () => {
       const env = { ...process.env }
       delete env.NODE_PATH
@@ -241,6 +266,37 @@ test('a stale PPT bootstrap is replaced with the installed official runtime', as
     )
   }
   await assert.rejects(readFile(join(f.dist, 'vendor/ppt/stale-only.js')), { code: 'ENOENT' })
+})
+
+test('CAD bootstrap bytes are replaced by the installed runtime and its exact notices', async t => {
+  const f = await fixture(t)
+  const oldCad = join(f.source, 'wasm/cad/0.8.0/dwg-worker.js')
+  const originalLegacy = await readFile(oldCad)
+  const built = f.run()
+  assert.equal(built.status, 0, built.stderr)
+  for (const filename of ['dwg-worker.js', 'dwfv-render.wasm', 'libredwg-web.js', 'libredwg-web.wasm', 'LICENSE', 'NOTICE']) {
+    const installed = join(f.installedCad, ['LICENSE', 'NOTICE'].includes(filename) ? filename : `dist/wasm/${filename}`)
+    assert.deepEqual(await readFile(join(f.dist, 'wasm/cad/0.8.3', filename)), await readFile(installed))
+  }
+  assert.deepEqual(await readFile(join(f.dist, 'wasm/cad/0.8.0/dwg-worker.js')), originalLegacy)
+})
+
+test('a missing installed CAD Worker cannot be hidden by current bootstrap bytes', async t => {
+  const f = await fixture(t)
+  await rm(join(f.installedCad, 'dist/wasm/dwg-worker.js'))
+  const built = f.run()
+  assert.notEqual(built.status, 0)
+  assert.match(built.stderr, /dwg-worker\.js/)
+})
+
+test('an installed CAD version mismatch cannot be hidden by bootstrap assets', async t => {
+  const f = await fixture(t)
+  await writeFile(join(f.installedCad, 'package.json'), JSON.stringify({
+    name: '@flyfish-dev/cad-viewer', version: '0.8.2', exports: { './package.json': './package.json' }
+  }))
+  const built = f.run()
+  assert.notEqual(built.status, 0)
+  assert.match(built.stderr, /Installed CAD version differs from its owner/)
 })
 
 test('an old installed PPT version fails even when bootstrap assets are current', async t => {
