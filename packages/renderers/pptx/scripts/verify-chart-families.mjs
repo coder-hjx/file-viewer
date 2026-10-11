@@ -7,7 +7,7 @@ import JSZip from 'jszip';
 import { build } from 'esbuild';
 import { chromium } from 'playwright';
 import { extractChartOptions } from '../src/engine/support/chart-options.js';
-import { makePresentation } from '../../../../test/compatibility-review/fixtures.mjs';
+import { makePresentation } from './chart-fixture.mjs';
 const root = path.resolve(import.meta.dirname, '../../../..');
 const packageDir = path.join(root, 'packages/renderers/pptx');
 const output = path.resolve(process.env.PPTX_CHART_OUTPUT || path.join(root, 'output/pptx-chart-families'));
@@ -46,7 +46,8 @@ await check('Malformed chart metadata cannot create CSS or unbounded point alloc
   const result=extractChartOptions({'c:holeSize':val(-1),'c:firstSliceAng':val('NaN'),'c:grouping':val('stacked;bad'),'c:ser':{'c:dPt':{'c:idx':val('__proto__'),'c:spPr':{'a:solidFill':{}}}}},{},()=> 'red;bad');
   assert.equal(result.holeSize,50);assert.equal(result.firstSliceAngle,0);assert.equal(result.grouping,undefined);assert.deepEqual(result.series[0].points,{});assert.equal(result.legend.show,false);
 });
-const compiled=await build({stdin:{resolveDir:packageDir,contents:`
+const sourceAliases = { '@file-viewer/core': path.join(root, 'packages/core/src/index.ts') };
+const compiled=await build({alias:sourceAliases,stdin:{resolveDir:packageDir,contents:`
  import process from './src/engine/process.js';
  import {registerPptxChartLibraryLoader,renderPptxPostProcessing} from './src/chart.ts';
  import {createDefaultPptxOptions} from './src/options.ts';
@@ -62,7 +63,7 @@ const compiled=await build({stdin:{resolveDir:packageDir,contents:`
  window.review={process,renderPptxPostProcessing,createDefaultPptxOptions,pptxViewerCss,sanitizePptxMarkup,sanitizePptxCss,PptxViewer};
 `},bundle:true,platform:'browser',format:'iife',write:false,logLevel:'warning'});
 const workerPath=process.env.PPTX_CHART_WORKER_FILE;
-const workerSource=workerPath?await readFile(path.resolve(workerPath),'utf8'):(await build({entryPoints:[path.join(packageDir,'src/worker-entry.ts')],bundle:true,format:'iife',write:false,platform:'browser',logLevel:'warning'})).outputFiles[0].text;
+const workerSource=workerPath?await readFile(path.resolve(workerPath),'utf8'):(await build({alias:sourceAliases,entryPoints:[path.join(packageDir,'src/worker-entry.ts')],bundle:true,format:'iife',write:false,platform:'browser',logLevel:'warning'})).outputFiles[0].text;
 const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH||undefined,headless:true});
 try {
   for(const dpr of [1,2]) {
@@ -124,6 +125,29 @@ try {
     });
     await check(`DPR ${dpr}: chart rendering preserves the authored outer positioning`,()=>{
       for(const item of data)assert.deepEqual(item.frame,{position:'absolute',left:'40px',top:'30px'});
+    });
+    await check(`DPR ${dpr}: stacked chart hover retains its tooltip and grid focus`,async()=>{
+      const errorCount=errors.length;
+      const slide=page.locator('.slide').nth(1);
+      await slide.scrollIntoViewIfNeeded();
+      await slide.locator('.bb-event-rect').first().hover();
+      await page.waitForTimeout(100);
+      const state=await page.evaluate(()=>{
+        const target=calls[1].options.bindto;
+        const tooltip=target.querySelector('.bb-tooltip-container');
+        const focus=target.querySelector('.bb-xgrid-focus');
+        const line=focus?.querySelector('line');
+        return {tooltip:tooltip?.textContent,tooltipVisible:!!tooltip&&getComputedStyle(tooltip).visibility!=='hidden',focusPresent:!!focus,focusVisibility:focus?getComputedStyle(focus).visibility:null,lineHeight:line?.getBoundingClientRect().height,lineStroke:line?getComputedStyle(line).stroke:null};
+      });
+      if(dpr===1)await page.locator('.slide').nth(1).screenshot({path:path.join(output,'interaction.png')});
+      assert.match(state.tooltip||'',/Same/);
+      assert.equal(state.tooltipVisible,true);
+      assert.equal(state.focusPresent,true,'modular grid focus must be registered');
+      assert.equal(state.focusVisibility,'visible');
+      assert.ok(state.lineHeight>0,'focus line must occupy the chart height');
+      assert.notEqual(state.lineStroke,'none','focus line must have a visible stroke');
+      assert.equal(errors.length,errorCount,'hover must not raise a library error');
+      await page.mouse.move(1190,0);
     });
     await page.evaluate(()=>{const target=calls[0].options.bindto.parentElement;target.style.width='280px';target.style.height='240px';calls[0].instance.resize({width:280,height:240});});
     await page.waitForTimeout(100);const resized=await geometry();
