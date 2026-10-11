@@ -55,12 +55,14 @@ async function expectations(page,data){const zip=await JSZip.loadAsync(data);con
     }
   }return result
 },{parts,W,V})}
+// The source engine normalizes VML text/text references to column/paragraph.
+// Measure those engine-owned anchors against the unchanged authored XML offsets.
 async function geometry(page){return page.evaluate(()=>{
  const n=v=>parseFloat(v)||0
  const text=[...host.querySelectorAll('section.docx>article')].map(x=>x.textContent).join('')
  return {text,pages:host.querySelectorAll('section.docx').length,tables:host.querySelectorAll('article table').length,rows:host.querySelectorAll('article tr').length,cells:host.querySelectorAll('article td').length,
  images:[...host.querySelectorAll('article img')].map(i=>({w:i.naturalWidth,h:i.naturalHeight})),
- shapes:[...host.querySelectorAll('svg[data-docx-anchor-horizontal="text"][data-docx-anchor-vertical="text"]')].filter(s=>!s.ownerSVGElement).map(svg=>{
+ shapes:[...host.querySelectorAll('svg[data-docx-vml="true"][data-docx-anchor-horizontal="column"][data-docx-anchor-vertical="paragraph"]')].filter(s=>!s.ownerSVGElement).map(svg=>{
   const section=svg.closest('section.docx'),story=svg.closest('article,header,footer'),p=svg.closest('p'),s=getComputedStyle(story),r=svg.getBoundingClientRect(),pr=p.getBoundingClientRect(),sr=story.getBoundingClientRect(),sc=section.getBoundingClientRect().width/section.offsetWidth
   const fo=svg.querySelector('foreignObject'),mr=fo?.getScreenCTM(),fr=fo?.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(fo?.firstElementChild||svg);const tr=range.getBoundingClientRect();
   return {part:story.localName==='article'?'word/document.xml':story.localName==='header'?'word/header1.xml':'word/footer1.xml',left:(r.left-sr.left)/sc-n(s.borderLeftWidth)-n(s.paddingLeft),top:(r.top-pr.top)/sc-n(getComputedStyle(p).borderTopWidth),width:r.width/sc,height:r.height/sc,text:fo?.textContent||'',fontScale:mr?[Math.hypot(mr.a,mr.b)/sc,Math.hypot(mr.c,mr.d)/sc]:null,textFits:!fo||(tr.right<=fr.right+.2*sc&&tr.bottom<=fr.bottom+.2*sc),style:svg.getAttribute('style'),viewport:fo?{width:fo.getAttribute('width'),transform:fo.getAttribute('transform')}:null}
@@ -77,6 +79,7 @@ try{
    await page.evaluate(async base=>{const b=Uint8Array.from(atob(base),c=>c.charCodeAt(0));window.handle=await review.renderFileViewerWordDoc(b.buffer,host,'docx',{filename:'document.docx',registerExportAdapter:adapter=>window.exportAdapter=adapter,options:{docx:{worker:false,visualPagination:true}}})},data.toString('base64'))
    await page.waitForFunction(()=>host.querySelector('.docx-wrapper')?.dataset.docxPaginated==='true',null,{timeout:60000})
    await page.evaluate(async()=>{await document.fonts.ready;await Promise.all([...host.querySelectorAll('img')].map(i=>i.decode()))})
+   if(id==='generated')await writeFile(path.join(output,`generated-DPR-${dpr}.html`),await page.locator('#host').innerHTML())
    const initial=await geometry(page)
    const expectedShapes=[...expected.shapes].sort((a,b)=>(a.part.includes('header')?0:1)-(b.part.includes('header')?0:1))
    await check(`${id} DPR ${dpr}: original text and VML shapes are retained without invented content`,()=>{assert.equal(sha(initial.text),sha(expected.text),'Body text identity');assert.equal(initial.shapes.length,expectedShapes.length);assert.ok(initial.images.every(i=>i.w>0&&i.h>0));if(id==='C037'){assert.equal(initial.text.length,6034);assert.equal(initial.images.length,5);assert.equal(expectedShapes.length,3)}})
@@ -89,10 +92,10 @@ try{
    if(id==='generated'&&dpr===1)await page.screenshot({path:path.join(output,'generated.png')})
    await check(`${id} DPR ${dpr}: export preserves resolved origins, viewport units and content`,async()=>{
     const result=await page.evaluate(async()=>{
-     const html=await exportAdapter.toHtml();const clone=document.createElement('div');clone.innerHTML=html;clone.style.cssText='position:absolute;left:1200px;top:0';document.body.append(clone);const svg=clone.querySelector('svg[data-docx-anchor-horizontal="text"]');const box=svg?.querySelector('foreignObject');const text=[...clone.querySelectorAll('section.docx>article')].map(x=>x.textContent).join('');const result={text,left:svg?.style.left,top:svg?.style.top,transform:box?.getAttribute('transform'),fontScale:box?Math.hypot(box.getScreenCTM().a,box.getScreenCTM().b):null};clone.remove();return result
-    });assert.equal(sha(result.text),sha(expected.text),'Export text identity');assert.ok(result.left);assert.ok(result.top);assert.match(result.transform||'',/^scale\(/);assert.ok(Math.abs(result.fontScale-1)<.002,'Unscaled export preserves physical font units')
+     const html=await exportAdapter.toHtml();const clone=document.createElement('div');clone.innerHTML=html;clone.style.cssText='position:absolute;left:1200px;top:0';document.body.append(clone);const svg=clone.querySelector('svg[data-docx-vml="true"][data-docx-anchor-horizontal="column"]');const box=svg?.querySelector('foreignObject');const text=[...clone.querySelectorAll('section.docx>article')].map(x=>x.textContent).join('');const result={text,left:svg?.style.left,top:svg?.style.top,transform:box?.getAttribute('transform'),viewBoxWidth:svg?.viewBox.baseVal.width,physicalWidth:svg?parseFloat(getComputedStyle(svg).width):null,viewportWidth:box?parseFloat(box.getAttribute('width')):null,fontScale:box?Math.hypot(box.getScreenCTM().a,box.getScreenCTM().b):null};clone.remove();return result
+    });assert.equal(sha(result.text),sha(expected.text),'Export text identity');assert.ok(result.left);assert.ok(result.top);if(result.transform)assert.match(result.transform,/^scale\(/);assert.ok(result.viewportWidth>0);assert.ok(Math.abs(result.viewportWidth-result.viewBoxWidth)<.002,'Exported text viewport retains the engine CSS-pixel bounds');assert.ok(Math.abs(result.physicalWidth-result.viewBoxWidth)<.002,'Engine viewport uses physical CSS pixels');assert.ok(Math.abs(result.fontScale-1)<.002,'Unscaled export preserves physical font units')
    })
-   await check(`${id} DPR ${dpr}: actual Worker returns parsed data and preserves repaired VML geometry`,async()=>{
+   await check(`${id} DPR ${dpr}: actual Worker returns parsed data and preserves engine-owned VML geometry`,async()=>{
     const messages=await page.evaluate(async({base,worker,zip})=>{
      handle.unmount();window.workerMessages=[];
      window.zipUrl=URL.createObjectURL(new Blob([zip],{type:'application/javascript'}));

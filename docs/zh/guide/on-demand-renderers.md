@@ -68,7 +68,7 @@
 流式地理数据可显式装配 `@file-viewer/renderer-3d/geo3d`，支持 LAS/LAZ/COPC、GeoTIFF/COG、CityJSON、3D Tiles 和 3TZ；默认 3D renderer 和 Full preset 不会加载它。普通 TIFF 继续走图片链路，检测到地理标签后才切换。URL 或本地 File 输入保留随机读取；3TZ 解压有大小、数量和路径边界。
 
 ```bash
-npm install @file-viewer/renderer-3d @giro3d/giro3d@2.0.4
+npm install @file-viewer/renderer-3d @giro3d/giro3d@2.0.5
 # 需要 3TZ 时再安装
 npm install jszip@3.10.2
 npx file-viewer-geo3d-assets public/file-viewer/vendor/geo3d

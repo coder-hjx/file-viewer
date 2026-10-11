@@ -5,7 +5,7 @@ import path from 'node:path';
 import { build } from 'esbuild';
 import { chromium } from 'playwright';
 import JSZip from 'jszip';
-import { makePresentation } from '../../../../test/compatibility-review/fixtures.mjs';
+import { makePresentation } from './chart-fixture.mjs';
 
 const root = path.resolve(import.meta.dirname, '../../../..');
 const output = path.resolve(process.env.PPTX_PARAGRAPH_EVIDENCE_DIR || 'output/pptx-paragraph-numbering');

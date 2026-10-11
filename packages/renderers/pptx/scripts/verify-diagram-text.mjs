@@ -7,7 +7,7 @@ import JSZip from 'jszip';
 import {build} from 'esbuild';
 import {chromium} from 'playwright';
 import {resolveDiagramTextFrames,effectiveTextTransform} from '../src/engine/support/diagram-text.js';
-import {makePresentation} from '../../../../test/compatibility-review/fixtures.mjs';
+import {makePresentation} from './chart-fixture.mjs';
 const root=path.resolve(import.meta.dirname,'../../../..'),pkg=path.join(root,'packages/renderers/pptx');
 const out=path.resolve(process.env.PPTX_DIAGRAM_OUTPUT||'output/pptx-diagram-text');await fs.mkdir(out,{recursive:true});
 const checks=[],originals=[],errors=[];let completed=false;

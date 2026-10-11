@@ -2200,6 +2200,17 @@ async function copyKnownRendererAssets(targetRoot: string, rendererIds: readonly
       : undefined
   )
 
+  for (const [id, filename] of [['cad-license', 'LICENSE'], ['cad-notice', 'NOTICE']] as const) {
+    await push('cad', id, join(targetRoot, 'wasm/cad', cadRuntimeVersion || '', filename), () =>
+      copyFileIfPresent(
+        cadRoot ? join(cadRoot, filename) : null,
+        join(targetRoot, 'wasm/cad', cadRuntimeVersion || '', filename)
+      ),
+      undefined,
+      cadRoot ? { sourcePackage: '@flyfish-dev/cad-viewer', sourceVersion: cadRuntimeVersion || undefined } : undefined
+    )
+  }
+
   const modelDependencyAnchors = [
     '@file-viewer/renderer-3d',
     '@file-viewer/geometry-engine'

@@ -12,7 +12,7 @@ function cjkFontFallbacks(family: string): readonly string[] | undefined {
     case '仿宋': case '仿宋gb2312': case 'fangsong': case 'fangsonggb2312':
       return ['FangSong', 'STFangsong', 'Songti SC', 'Noto Serif CJK SC', 'serif'];
     case '楷体': case '楷体gb2312': case 'kaiti': case 'kaitigb2312':
-      return ['KaiTi', 'STKaiti', 'Kaiti SC', 'Songti SC', 'serif'];
+      return ['KaiTi', 'STKaiti', 'Kaiti SC', 'Songti SC', 'Noto Serif CJK SC', 'serif'];
     case '黑体': case 'simhei':
       return ['SimHei', 'Heiti SC', 'Noto Sans CJK SC', 'sans-serif'];
     case '微软雅黑': case 'microsoftyahei':
