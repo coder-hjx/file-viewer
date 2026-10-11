@@ -77,3 +77,13 @@ The browser harness exercises actual rendered content and search navigation.
 Node/JSDOM and type checks do not establish a browser pass; browser evidence
 must come from an environment that can launch the browser. The adaptation
 preserves the newer Markdown highlighting, anchors, and shared gestures.
+
+## Original visual contribution
+
+The following before/after image was contributed by
+[4gray in PR #326](https://github.com/flyfish-dev/file-viewer/pull/326), at
+commit `b957c2be56e753a05889fbb3828e950cc4277d1d`. The original image bytes are
+preserved here; this historical comparison does not replace the current
+browser regression checks.
+
+![Original comparison of GB18030 fallback and Windows-1252 text decoding](./text-single-byte-encodings/original-before-after.png)

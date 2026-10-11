@@ -43,7 +43,7 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 24
-          cache: pnpm
+          package-manager-cache: false
       - name: Install frozen workspace
         id: install
         run: pnpm install --frozen-lockfile
@@ -86,13 +86,4 @@ jobs:
         run: pnpm verify:github-governance 2>&1 | tee output/geo3d-focused/governance.log
       - name: Retain focused evidence even when a check fails
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: geo3d-focused-${{ github.sha }}
-          path: |
-            output/geo3d-focused/
-            output/geo3d-validation/engine-ownership.json
-            output/geo3d-browser/report.json
-            output/geo3d-browser/*.png
-          if-no-files-found: error
-          retention-days: 14
+        run: node .github/scripts/report-ci-evidence.mjs --require-files output/geo3d-focused output/geo3d-validation output/geo3d-browser

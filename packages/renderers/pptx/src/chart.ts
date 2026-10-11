@@ -323,6 +323,11 @@ const renderChart = async (message: ChartMessage, root: ParentNode) => {
   const { billboard, d3Format } = await chartLibraryLoader();
   const bb = billboard.default || billboard;
   const { area, bar, line, pie, donut, scatter } = billboard;
+  // Billboard 4 exposes grid focus as a separately registered ESM module.
+  // Bundled or custom loaders may already provide it without this export.
+  if (typeof billboard.grid === 'function') {
+    billboard.grid();
+  }
   const chart: Record<string, any> = {
     // A selector makes Billboard query the main document. That misses chart
     // placeholders inside the viewer Shadow DOM and makes it fall back to body.
