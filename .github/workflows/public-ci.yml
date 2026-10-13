@@ -300,6 +300,7 @@ jobs:
         run: |
           node packages/renderers/word/scripts/verify-explicit-tabs.mjs
           node packages/renderers/word/scripts/verify-merged-borders.mjs
+          node packages/renderers/word/scripts/verify-table-header-repeat.mjs
           node packages/renderers/word/scripts/verify-vml-text-layout.mjs
           node packages/renderers/word/scripts/verify-paragraph-export.mjs
           node packages/renderers/pptx/scripts/verify-diagram-text.mjs

@@ -14572,7 +14572,7 @@
 	                    row.className = values.classNameOfCnfStyle(c);
 	                    break;
 	                case "tblHeader":
-	                    row.isHeader = globalXmlParser.boolAttr(c, "val");
+	                    row.isHeader = globalXmlParser.boolAttr(c, "val", true);
 	                    break;
 	                case "gridBefore":
 	                    row.gridBefore = globalXmlParser.intAttr(c, "val");
