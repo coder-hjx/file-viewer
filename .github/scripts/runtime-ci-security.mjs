@@ -2,10 +2,12 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { createRequire } from 'node:module'
 import { command, verifyFrozenArtifacts } from './runtime-ci-artifacts.mjs'
 import { consumerFrameworks } from './runtime-ci-consumers.mjs'
 import { startFrozenValidationRegistry } from './frozen-validation-registry.mjs'
 import { assessRuntimeAudit } from './runtime-audit-policy.mjs'
+const { resolvedAuditScope } = createRequire(import.meta.url)('./runtime-audit-scope.cjs')
 
 // Disclosure must be approved before creating any audit payload or contacting its endpoint.
 assert.equal(
@@ -55,6 +57,10 @@ try {
   const cli = verified.find((item) => item.packageName === '@file-viewer/cli')
   assert(cli)
   const { spawnSync } = await import('node:child_process')
+  const globalRoot = (await command('npm', ['root', '-g'])).trim()
+  const npmRequire = createRequire(join(globalRoot, 'npm/package.json'))
+  const Arborist = npmRequire('@npmcli/arborist')
+  const AuditReport = npmRequire('@npmcli/arborist/lib/audit-report.js')
   const extracted = spawnSync(
     'tar',
     ['-xOf', join(directory, cli.tarball), 'package/catalog/catalog.json'],
@@ -96,6 +102,11 @@ try {
       )
       const caseId = `${framework}-${profile}`
       assert.ok(/^[a-f0-9]{64}$/.test(approvedAuditDigests[caseId] || ''))
+      // Resolve the normal virtual lock offline before any authorized audit disclosure.
+      const virtual = await new Arborist({ path: project, audit: false }).loadVirtual()
+      const payload = new AuditReport(virtual, { omit: ['dev'] }).prepareBulkData()
+      const scope = resolvedAuditScope(payload, approvedAuditDigests[caseId], process.env.RUNTIME_AUDIT_DISCLOSURE_APPROVED)
+      console.log(JSON.stringify({ caseId, auditScope: scope }))
       const auditHome = join(project, '.audit-home')
       await mkdir(auditHome)
       await writeFile(join(auditHome, 'user.npmrc'), '')
@@ -113,7 +124,7 @@ try {
         NPM_CONFIG_USERCONFIG: join(auditHome, 'user.npmrc'),
         NPM_CONFIG_GLOBALCONFIG: join(auditHome, 'global.npmrc'),
         NODE_OPTIONS: `--require=${join(import.meta.dirname, 'runtime-audit-preload.cjs')}`,
-        FILE_VIEWER_AUDIT_EXPECTED_PAYLOAD_SHA256: approvedAuditDigests[caseId]
+        FILE_VIEWER_AUDIT_EXPECTED_PAYLOAD_SHA256: scope.actualSha256
       })
       const audit = spawnSync(
         'npm',
@@ -129,8 +140,10 @@ try {
       )
       await writeFile(join(project, 'normal-npm-audit.json'), audit.stdout || '')
       assert.ok([0, 1].includes(audit.status), 'Normal npm audit could not complete')
+      const auditReport = JSON.parse(audit.stdout)
+      assert.ok(!auditReport.error, JSON.stringify({ caseId, error: auditReport.error, stderr: audit.stderr }))
       const lock = JSON.parse(await readFile(join(project, 'package-lock.json'), 'utf8'))
-      const policy = assessRuntimeAudit(JSON.parse(audit.stdout), {
+      const policy = assessRuntimeAudit(auditReport, {
         framework,
         vueVersion: lock.packages?.['node_modules/vue']?.version
       })
