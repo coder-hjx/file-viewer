@@ -49,29 +49,8 @@ jobs:
       - name: Audit every standard and full production closure
         run: node .github/scripts/runtime-ci-security.mjs "$GITHUB_WORKSPACE" "$RUNNER_TEMP/runtime-security-candidate"
 
-  codeql:
-    name: CodeQL publishing and validation controls
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - name: Verify the existing default CodeQL scanner
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          node --input-type=module -e '
-            import assert from "node:assert/strict";
-            import { execFileSync } from "node:child_process";
-            const config = JSON.parse(execFileSync("gh", ["api", `repos/${process.env.GITHUB_REPOSITORY}/code-scanning/default-setup`], { encoding: "utf8" }));
-            assert.equal(config.state, "configured");
-            assert.ok(config.languages.some(language => /javascript|typescript/.test(language)));
-            console.log("Existing GitHub default CodeQL scanning remains enabled for the public controls.");
-          '
+  # GitHub's existing default CodeQL setup scans Actions and JavaScript controls.
+  # Do not submit an incompatible advanced SARIF configuration or require admin API access.
 
   dependency-review:
     if: github.event_name == 'pull_request'

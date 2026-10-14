@@ -165,7 +165,7 @@
       "path": ".github/workflows/security.yml",
       "role": "workflow",
       "mode": 33188,
-      "sha256": "e6e7e01ea804fcb131523ae1ffb0c74950f97f7d34a86f616ee7db51e3336257"
+      "sha256": "0a85289b4b25c659ce001a3818dd841c45c79bc128d1516ece2465cf56d3ab9d"
     },
     {
       "path": ".github/workflows/pr-governance.yml",
@@ -231,7 +231,7 @@
       "path": ".github/scripts/frozen-validation-registry.mjs",
       "role": "consumer",
       "mode": 33188,
-      "sha256": "4c0d78eb2bd5419588310326d2c7bc795ac185c429eac3d3717a569356e98cff"
+      "sha256": "5f2623ad59c9c05f2d6e2c0a0c1f12c66bfb000e695d600aab91c007abc791e7"
     },
     {
       "path": ".github/workflows/npm-publish.yml",

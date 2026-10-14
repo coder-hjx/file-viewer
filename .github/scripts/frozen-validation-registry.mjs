@@ -12,6 +12,24 @@ const digest = (bytes) => createHash('sha256').update(bytes).digest('hex')
 export const registryMetadataAccept = (version) =>
   version ? 'application/json' : 'application/vnd.npm.install-v1+json'
 
+export function officialRegistryUrl(value) {
+  const input = new URL(value)
+  assert.equal(input.origin, 'https://registry.npmjs.org')
+  assert.equal(input.username + input.password + input.search + input.hash, '')
+  const target = new URL('https://registry.npmjs.org/')
+  target.pathname = input.pathname
+  return target
+}
+
+export function registryMetadataUrl(rawPath) {
+  const path = decodeURIComponent(rawPath)
+  const match = /^\/((?:@[a-z0-9._-]+\/)?[a-z0-9._-]+)(?:\/(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?))?$/.exec(path)
+  assert.ok(match, 'Only npm package metadata paths may be proxied')
+  const target = new URL('https://registry.npmjs.org/')
+  target.pathname = `/${encodeURIComponent(match[1])}${match[2] ? '/' + match[2] : ''}`
+  return target
+}
+
 export async function verifyFrozenArchive(path, expected) {
   const info = await lstat(path)
   assert(info.isFile() && !info.isSymbolicLink(), 'Frozen archive must be a regular file')
@@ -75,7 +93,7 @@ export async function startFrozenValidationRegistry({ archives, cacheDirectory }
       downloads.set(
         url,
         (async () => {
-          const response = await fetch(url, { signal: AbortSignal.timeout(60_000) })
+          const response = await fetch(officialRegistryUrl(url), { redirect: 'error', signal: AbortSignal.timeout(60_000) })
           assert(response.ok, `Registry tarball returned ${response.status}`)
           const temporary = `${path}.${process.pid}.partial`
           try {
@@ -218,7 +236,8 @@ export async function startFrozenValidationRegistry({ archives, cacheDirectory }
             raw,
             (async () => {
               requests.upstreamMetadata++
-              const result = await fetch(`${upstream}${raw}`, {
+              const result = await fetch(registryMetadataUrl(raw), {
+                redirect: 'error',
                 headers: { accept: registryMetadataAccept(version) },
                 signal: AbortSignal.timeout(60_000)
               })
