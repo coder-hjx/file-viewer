@@ -47,7 +47,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
@@ -60,8 +60,8 @@ jobs:
             test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           fi
 
-      - name: Verify publisher failure and resume behavior
-        run: node --test .github/scripts/npm-release-batch.test.mjs .github/scripts/publish-release-assets.test.mjs .github/scripts/npm-publish-workflow.test.mjs
+      - name: Verify the frozen runtime distribution
+        run: node .github/scripts/verify-runtime-distribution.mjs
 
       - name: Download the immutable Release assets
         env:
@@ -77,6 +77,9 @@ jobs:
             --dir "$RUNNER_TEMP/file-viewer-release" \
             --clobber
           cmp artifacts/npm-release-manifest.json "$RUNNER_TEMP/file-viewer-release/npm-release-manifest.json"
+
+      - name: Verify immutable runtime archive identities and boundaries
+        run: node .github/scripts/runtime-ci-artifacts.mjs --verify "$GITHUB_WORKSPACE" "$RUNNER_TEMP/file-viewer-release"
 
       - name: Rehearse the immutable package set
         env:

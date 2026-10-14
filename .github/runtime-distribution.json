@@ -1,0 +1,261 @@
+{
+  "schemaVersion": 1,
+  "mode": "runtime-only",
+  "status": "reviewed",
+  "version": "3.2.0",
+  "sourceCommit": "c4087cc6a3911cfaa9818b0db25893be21bc3be1",
+  "privateReceiptSha256": "27a98c131d849f4f1c203c8e88b37f8cb73f022b4f1307184a8deea61af4933b",
+  "packageNames": [
+    "@file-viewer/core",
+    "@file-viewer/asset-installer",
+    "@file-viewer/assets-cad",
+    "@file-viewer/assets-typst",
+    "@file-viewer/assets-model",
+    "@file-viewer/assets-drawing",
+    "@file-viewer/assets-iwork",
+    "@file-viewer/assets-ppt",
+    "@file-viewer/assets-hangul",
+    "@file-viewer/assets-wordperfect",
+    "@file-viewer/assets-chm",
+    "@file-viewer/assets-data",
+    "@file-viewer/assets-design",
+    "@file-viewer/thumbnail",
+    "file-viewer-copy-assets",
+    "@file-viewer/assets-standard",
+    "@file-viewer/cli",
+    "@file-viewer/renderer-pdf",
+    "@file-viewer/capability-pdf-identity-repair",
+    "@file-viewer/renderer-ofd",
+    "@file-viewer/renderer-ppt",
+    "@file-viewer/doc",
+    "@file-viewer/renderer-word",
+    "@file-viewer/capability-rtf",
+    "@file-viewer/renderer-spreadsheet",
+    "@file-viewer/renderer-iwork",
+    "@file-viewer/renderer-wordperfect",
+    "@file-viewer/renderer-hangul",
+    "@file-viewer/renderer-mindmap",
+    "@file-viewer/renderer-cad",
+    "@file-viewer/renderer-typst",
+    "@file-viewer/renderer-archive",
+    "@file-viewer/renderer-chm",
+    "@file-viewer/renderer-email",
+    "@file-viewer/renderer-epub",
+    "@file-viewer/renderer-text",
+    "@file-viewer/capability-mermaid",
+    "@file-viewer/capability-text-tools",
+    "@file-viewer/renderer-drawing",
+    "@file-viewer/capability-drawio-official",
+    "@file-viewer/renderer-image",
+    "@file-viewer/renderer-dicom",
+    "@file-viewer/renderer-signature",
+    "@file-viewer/renderer-media",
+    "@file-viewer/capability-midi",
+    "@file-viewer/capability-streaming-media",
+    "@file-viewer/renderer-geo",
+    "@file-viewer/renderer-data",
+    "@file-viewer/renderer-design",
+    "@file-viewer/renderer-binary",
+    "@file-viewer/eda-layout",
+    "@file-viewer/eda-orcad",
+    "@file-viewer/geometry-engine",
+    "@file-viewer/renderer-3d",
+    "@file-viewer/renderer-eda",
+    "@file-viewer/pptx",
+    "@file-viewer/capability-pptx-charts",
+    "@file-viewer/renderer-pptx",
+    "@file-viewer/renderer-presentation",
+    "@file-viewer/preset-all",
+    "@file-viewer/preset-lite",
+    "@file-viewer/preset-standard",
+    "@file-viewer/preset-office",
+    "@file-viewer/preset-engineering",
+    "@file-viewer/vite-plugin",
+    "msdoc-viewer",
+    "create-file-viewer",
+    "file-viewer-cli",
+    "@file-viewer/web",
+    "@flyfish-group/file-viewer-web",
+    "@file-viewer/web-full",
+    "@file-viewer/vue3",
+    "@flyfish-group/file-viewer3",
+    "file-viewer3",
+    "@file-viewer/vue3-full",
+    "@file-viewer/vue2.7",
+    "@flyfish-group/file-viewer",
+    "@file-viewer/vue2.7-full",
+    "@file-viewer/vue2.6",
+    "@file-viewer/vue2.6-full",
+    "@file-viewer/react",
+    "@flyfish-group/file-viewer-react",
+    "@file-viewer/react-full",
+    "@file-viewer/react-legacy",
+    "@file-viewer/react-legacy-full",
+    "@file-viewer/jquery",
+    "@file-viewer/jquery-full",
+    "@file-viewer/svelte",
+    "@file-viewer/svelte-full"
+  ],
+  "manifest": {
+    "path": "artifacts/npm-release-manifest.json",
+    "sha256": "7577bfce91462fdb4fb8540500788bbd1e623429d0a2384387c05f24d66a9017"
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "role": "documentation",
+      "mode": 33188,
+      "sha256": "6656963b81d3253835e668cf5d2cec086e28aa8111c8a82df85e0e161acd092c"
+    },
+    {
+      "path": "README.en.md",
+      "role": "documentation",
+      "mode": 33188,
+      "sha256": "6656963b81d3253835e668cf5d2cec086e28aa8111c8a82df85e0e161acd092c"
+    },
+    {
+      "path": "README.zh-CN.md",
+      "role": "documentation",
+      "mode": 33188,
+      "sha256": "ae6147b7d184f4a90c14dadad53106afa923865ca9bbdf3a79a3afd465285e05"
+    },
+    {
+      "path": "LICENSE",
+      "role": "legal",
+      "mode": 33188,
+      "sha256": "55ce5d9fb8138a058b60c431cb9e68e13dd3f90691f73a757e38f06fed81e69b"
+    },
+    {
+      "path": ".github/npm-trusted-publisher.json",
+      "role": "governance",
+      "mode": 33188,
+      "sha256": "18cddd7c6edb9b4933441b70d57261a13ef0514b2ca8e1beaa6f045c4e3d1998"
+    },
+    {
+      "path": ".github/scripts/npm-release-batch.mjs",
+      "role": "publisher",
+      "mode": 33188,
+      "sha256": "af381782347f6c683446889e6d6618b2776c65692837491acba17614ce6154c5"
+    },
+    {
+      "path": ".github/scripts/publish-release-assets.mjs",
+      "role": "publisher",
+      "mode": 33188,
+      "sha256": "a40463c967e3ade4991d0305e04fddd39969891b8e23ad50804980d9d7b8fb48"
+    },
+    {
+      "path": ".github/scripts/runtime-only-projection.mjs",
+      "role": "publisher",
+      "mode": 33188,
+      "sha256": "715846c29a47802223c4099cd2d5707575e0c06035549613229ef467b77a0e8b"
+    },
+    {
+      "path": ".github/scripts/verify-runtime-distribution.mjs",
+      "role": "consumer",
+      "mode": 33188,
+      "sha256": "30053a36371c95d06104da8695593f40c77a198eb61ea6f9572b5b714967a5c4"
+    },
+    {
+      "path": ".github/workflows/public-ci.yml",
+      "role": "workflow",
+      "mode": 33188,
+      "sha256": "64d5df93f55668e0df8ddce84ad5ab42baabdfbddb24524484f8ca28f324afbe"
+    },
+    {
+      "path": ".github/workflows/security.yml",
+      "role": "workflow",
+      "mode": 33188,
+      "sha256": "04f32a5f61ff2fc8afce1ae02cb57baab1235218797f9fa292ffb736a82d6257"
+    },
+    {
+      "path": ".github/workflows/pr-governance.yml",
+      "role": "workflow",
+      "mode": 33188,
+      "sha256": "1353158c800bc3fda494835ba93d635b5e123ff2aef93f4a801ef1e67eeb5627"
+    },
+    {
+      "path": ".github/scripts/governance.mjs",
+      "role": "governance",
+      "mode": 33188,
+      "sha256": "e0c1f88c11211415f518d2f509e12535f41f8d545624286728ebf609e220b205"
+    },
+    {
+      "path": ".github/scripts/run-gitleaks.sh",
+      "role": "governance",
+      "mode": 33188,
+      "sha256": "bbbac01847715509f135f0f315d3e1b819a5d11aadcde879745995ff45cf23cc"
+    },
+    {
+      "path": ".gitleaks.toml",
+      "role": "governance",
+      "mode": 33188,
+      "sha256": "19aaa45aba51df1e4afca2bec12a8de2ed15dd1fa35fcd6e2ae3aec1dc95234b"
+    },
+    {
+      "path": ".github/scripts/runtime-ci-artifacts.mjs",
+      "role": "consumer",
+      "mode": 33188,
+      "sha256": "b54eb111b674237f83704db725ccdff98211392c9f699b447dd0afbbd3cc5307"
+    },
+    {
+      "path": ".github/scripts/runtime-ci-consumers.mjs",
+      "role": "consumer",
+      "mode": 33188,
+      "sha256": "45f6a5b7dcf36c426bc8df60debeb90018dd3eb35c4a7bc91ded5418a56d89aa"
+    },
+    {
+      "path": ".github/scripts/runtime-ci-security.mjs",
+      "role": "consumer",
+      "mode": 33188,
+      "sha256": "ad75347086b1aa95a38d8fe1de8db5b06e71c57e0ff87112c9ebce7a36b91e71"
+    },
+    {
+      "path": ".github/scripts/runtime-audit-policy.mjs",
+      "role": "consumer",
+      "mode": 33188,
+      "sha256": "6de301ed7dba365dbb54ff554a77b226694c7e57b77fd1b6daafb581a060381f"
+    },
+    {
+      "path": ".github/scripts/runtime-audit-scope.cjs",
+      "role": "consumer",
+      "mode": 33188,
+      "sha256": "48196def5521651c91c82903f99c1483d3cd1406b5e11f7207e7707de4caed44"
+    },
+    {
+      "path": ".github/scripts/runtime-audit-preload.cjs",
+      "role": "consumer",
+      "mode": 33188,
+      "sha256": "d2f49c4d704eda402135d708a2af6b6b604fa215fd9b97f2bf0df5552f9605c9"
+    },
+    {
+      "path": ".github/scripts/frozen-validation-registry.mjs",
+      "role": "consumer",
+      "mode": 33188,
+      "sha256": "4c0d78eb2bd5419588310326d2c7bc795ac185c429eac3d3717a569356e98cff"
+    },
+    {
+      "path": ".github/workflows/npm-publish.yml",
+      "role": "workflow",
+      "mode": 33188,
+      "sha256": "3c1936ae901aab869b4e45ad550e2337b62a76fdb88006563a13a1fb75979b9d"
+    },
+    {
+      "path": "package.json",
+      "role": "governance",
+      "mode": 33188,
+      "sha256": "3f2374478c5d982e110a462554fe2852e4ab8c956ec3ca6f3e28499adbca060d"
+    },
+    {
+      "path": "artifacts/npm-release-manifest.json",
+      "role": "manifest",
+      "mode": 33188,
+      "sha256": "7577bfce91462fdb4fb8540500788bbd1e623429d0a2384387c05f24d66a9017"
+    },
+    {
+      "path": "artifacts/runtime-ci-candidate.json",
+      "role": "manifest",
+      "mode": 33188,
+      "sha256": "d6a94f77e1cccfc35a60e1e5f03d7776913ec41e87ea67d6decb7789458222a6"
+    }
+  ]
+}
