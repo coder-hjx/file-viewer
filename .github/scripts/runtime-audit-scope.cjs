@@ -13,7 +13,7 @@ function auditPayloadSha256(value) {
     assert.ok(
       Array.isArray(versions) &&
         versions.length &&
-        versions.every((version) => typeof version === 'string')
+        versions.every((version) => typeof version === 'string' && /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version))
     )
   }
   const canonical = JSON.stringify(
@@ -24,6 +24,14 @@ function auditPayloadSha256(value) {
     )
   )
   return createHash('sha256').update(canonical).digest('hex')
+}
+
+function resolvedAuditScope(body, referenceSha256, standingApproval) {
+  assert.match(referenceSha256, /^[a-f0-9]{64}$/)
+  const actualSha256 = auditPayloadSha256(body)
+  assert.ok(actualSha256 === referenceSha256 || standingApproval === 'true', 'Resolved audit differences are not authorized')
+  return { referenceSha256, actualSha256, matchesReference: actualSha256 === referenceSha256,
+    names: Object.keys(body).length, pairs: Object.values(body).reduce((sum, versions) => sum + new Set(versions).size, 0) }
 }
 
 function verifyAuditRequest(target, method, headers, body, expectedSha256) {
@@ -168,4 +176,4 @@ function installAuditScopeGuard(expectedSha256) {
   syncBuiltinESMExports()
 }
 
-module.exports = { auditPayloadSha256, verifyAuditRequest, installAuditScopeGuard }
+module.exports = { auditPayloadSha256, resolvedAuditScope, verifyAuditRequest, installAuditScopeGuard }

@@ -39,7 +39,9 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: 24
+          node-version: 24.20.0
+      - name: Use the qualified npm toolchain
+        run: npm install --global npm@11.19.0 --ignore-scripts --registry=https://registry.npmjs.org
       - name: Fail closed before unapproved audit disclosure
         run: test "$RUNTIME_AUDIT_DISCLOSURE_APPROVED" = true
       - run: node .github/scripts/verify-runtime-distribution.mjs
@@ -58,11 +60,18 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: github/codeql-action/init@f3c49fd1ef3281abc41069b3dd22807a60c963f6
-        with:
-          languages: javascript-typescript
-          build-mode: none
-      - uses: github/codeql-action/analyze@f3c49fd1ef3281abc41069b3dd22807a60c963f6
+      - name: Verify the existing default CodeQL scanner
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module -e '
+            import assert from "node:assert/strict";
+            import { execFileSync } from "node:child_process";
+            const config = JSON.parse(execFileSync("gh", ["api", `repos/${process.env.GITHUB_REPOSITORY}/code-scanning/default-setup`], { encoding: "utf8" }));
+            assert.equal(config.state, "configured");
+            assert.ok(config.languages.some(language => /javascript|typescript/.test(language)));
+            console.log("Existing GitHub default CodeQL scanning remains enabled for the public controls.");
+          '
 
   dependency-review:
     if: github.event_name == 'pull_request'
