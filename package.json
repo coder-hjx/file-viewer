@@ -1,7 +1,7 @@
 {
   "name": "@flyfish-dev/file-viewer-runtime-distribution",
   "private": true,
-  "version": "3.2.0",
+  "version": "3.2.1",
   "scripts": {
     "verify": "node .github/scripts/verify-runtime-distribution.mjs"
   }
