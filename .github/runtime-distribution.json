@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "mode": "runtime-only",
   "status": "reviewed",
-  "version": "3.2.0",
-  "sourceCommit": "c4087cc6a3911cfaa9818b0db25893be21bc3be1",
-  "privateReceiptSha256": "27a98c131d849f4f1c203c8e88b37f8cb73f022b4f1307184a8deea61af4933b",
+  "version": "3.2.1",
+  "sourceCommit": "8cf8e2795300ada3bb27a090c786bdf2d0211ae4",
+  "privateReceiptSha256": "2c701dc831653e014ec222621f14cfd5bb48fba91a3df74d37d9efd81a10ec59",
   "packageNames": [
     "@file-viewer/core",
     "@file-viewer/asset-installer",
@@ -98,26 +98,26 @@
   ],
   "manifest": {
     "path": "artifacts/npm-release-manifest.json",
-    "sha256": "7577bfce91462fdb4fb8540500788bbd1e623429d0a2384387c05f24d66a9017"
+    "sha256": "759717dac3c87ba10354d21507dbb19a0d72af2bb6577326c2435105fbc7d4bb"
   },
   "files": [
     {
       "path": "README.md",
       "role": "documentation",
       "mode": 33188,
-      "sha256": "6656963b81d3253835e668cf5d2cec086e28aa8111c8a82df85e0e161acd092c"
+      "sha256": "b297df39a3db6b8e48faedabb1f386598acb6e7d3cf5800550122029132e374a"
     },
     {
       "path": "README.en.md",
       "role": "documentation",
       "mode": 33188,
-      "sha256": "6656963b81d3253835e668cf5d2cec086e28aa8111c8a82df85e0e161acd092c"
+      "sha256": "b297df39a3db6b8e48faedabb1f386598acb6e7d3cf5800550122029132e374a"
     },
     {
       "path": "README.zh-CN.md",
       "role": "documentation",
       "mode": 33188,
-      "sha256": "ae6147b7d184f4a90c14dadad53106afa923865ca9bbdf3a79a3afd465285e05"
+      "sha256": "b843ec0280ecc51f9d1076e17eec9a09af61be4c5e913d9852c10319e3d7ed84"
     },
     {
       "path": "LICENSE",
@@ -243,19 +243,19 @@
       "path": "package.json",
       "role": "governance",
       "mode": 33188,
-      "sha256": "3f2374478c5d982e110a462554fe2852e4ab8c956ec3ca6f3e28499adbca060d"
+      "sha256": "fbc8f742b59565696bc594ff6f75ff545cd2e5d2b56cf5c1b42ccc4b7e1fe64b"
     },
     {
       "path": "artifacts/npm-release-manifest.json",
       "role": "manifest",
       "mode": 33188,
-      "sha256": "7577bfce91462fdb4fb8540500788bbd1e623429d0a2384387c05f24d66a9017"
+      "sha256": "759717dac3c87ba10354d21507dbb19a0d72af2bb6577326c2435105fbc7d4bb"
     },
     {
       "path": "artifacts/runtime-ci-candidate.json",
       "role": "manifest",
       "mode": 33188,
-      "sha256": "d6a94f77e1cccfc35a60e1e5f03d7776913ec41e87ea67d6decb7789458222a6"
+      "sha256": "e421c03d5b253668a2812efedcf4a41ec05056f1567e0367a0e3e5f3108ced31"
     }
   ]
 }
