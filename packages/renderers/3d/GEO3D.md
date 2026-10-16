@@ -35,7 +35,7 @@ glTF resources and textures remain relative to the dataset.
 Giro3D is an optional peer, matching the IFC specialist entry:
 
 ```sh
-npm install @file-viewer/renderer-3d @giro3d/giro3d@2.0.4
+npm install @file-viewer/renderer-3d @giro3d/giro3d@2.0.5
 # Only required when 3TZ archives are enabled:
 npm install jszip@3.10.2
 
@@ -51,7 +51,7 @@ npm install --save-dev @types/three@0.185.0
 
 The NodeNext and Bundler consumer checks keep `strict: true` and
 `skipLibCheck: false`, and exercise the real Giro3D classes and format-narrowed
-hooks. Giro3D 2.0.4 requires the Three 0.180 runtime; the renderer retains its own
+hooks. Giro3D 2.0.5 requires the Three 0.180 runtime; the renderer retains its own
 Three 0.186 dependency. Three type host 0.186 adds a `dispose` event that conflicts
 with Giro3D's published `LayerNodeEventMap` and `TileMeshEventMap` declarations.
 That upstream combination is not supported by the strict optional-entry check.
@@ -271,7 +271,7 @@ cases run against both workspace output and physical installed tarballs.
 
 ### Pinned engine maintenance boundary
 
-The ownership adapters deliberately depend on reviewed Giro3D 2.0.4 source.
+The ownership adapters deliberately depend on reviewed Giro3D 2.0.5 source.
 Besides source-local pool injection, the PointCloud subclass overrides the
 engine's internal loading method to link node and viewer cancellation. Source
 initialization uses protected readiness fields. These are not an assertion of
@@ -307,6 +307,15 @@ Remote COPC uses strict byte ranges: HTTP 206, exposed and matching
 `Content-Range`, expected body length and identity encoding are checked. Local
 COPC uses `File.slice()`. Plain LAS/LAZ uses the derived Giro3D `LASSource` with a
 bounded whole-file read controlled by `maxLasBytes`; it is not progressive.
+
+COPC initialization still reads the hierarchy metadata before the first point
+frame. Adjacent declared hierarchy pages share a request, with merged spans
+limited to 512 KiB and at most eight group reads per source. Gaps are not
+prefetched; an isolated larger page retains its original range. Point payloads
+remain selected by the engine's LOD. This does not guarantee a fixed startup
+time on high-latency data origins. Point clouds without a Color attribute can
+select Intensity or Z through the public post-load hook and set the attribute
+color-map bounds to the data range.
 
 The point-cloud scene CRS must match the dataset CRS. An incompatible scene is
 rejected before application hooks; no runtime point-cloud reprojection is
