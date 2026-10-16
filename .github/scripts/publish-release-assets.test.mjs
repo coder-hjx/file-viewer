@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { chmod, copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -63,6 +63,7 @@ import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 const root = process.env.MOCK_ROOT
 const args = process.argv.slice(2)
+appendFileSync(join(root, 'npm-commands.txt'), args[0] + '\\n')
 const data = JSON.parse(readFileSync(join(root, 'metadata.json'), 'utf8'))
 const state = name => join(root, name + '.published.json')
 if (args[0] === 'view') {
@@ -86,8 +87,35 @@ if (process.env.MOCK_SCENARIO === 'conflict') { console.error('npm error EPUBLIS
 `
   await writeFile(join(bin, 'npm'), mock)
   await chmod(join(bin, 'npm'), 0o755)
+  const scripts = join(root, '.github/scripts')
+  await mkdir(scripts, { recursive: true })
+  for (const name of [
+    'publish-release-assets.mjs',
+    'npm-release-batch.mjs',
+    'release-source-repair.mjs'
+  ]) {
+    await copyFile(join(dirname(publisher), name), join(scripts, name))
+  }
+  const fixturePublisher = join(scripts, 'publish-release-assets.mjs')
+  if (scenario.startsWith('source-repair')) {
+    await mkdir(join(root, 'artifacts'))
+    await writeFile(
+      join(root, 'artifacts/release-source-repair.json'),
+      JSON.stringify({
+        schemaVersion: 1,
+        mode: 'github-source-repair',
+        version: '3.0.3',
+        originalSourceCommit: 'a'.repeat(40),
+        manifestSha256:
+          scenario === 'source-repair-mismatch'
+            ? '0'.repeat(64)
+            : createHash('sha256').update(JSON.stringify(manifest)).digest('hex'),
+        npmPublication: 'forbidden'
+      })
+    )
+  }
   const run = (extra = {}) =>
-    captureCommand(process.execPath, [publisher], {
+    captureCommand(process.execPath, [fixturePublisher], {
       env: {
         ...process.env,
         PATH: `${bin}:${process.env.PATH}`,
@@ -177,5 +205,25 @@ test('dry run never waits for simulated uploads to become published', async (t) 
 test('real publishing outside Actions is rejected before any write', async (t) => {
   const f = await fixture(t)
   assert.match((await f.run({ GITHUB_ACTIONS: 'false' })).stderr, /restricted to GitHub Actions/)
+  assert.deepEqual(await f.calls(), [])
+})
+
+test('source-only Release repair skips npm even when historical versions appear missing', async (t) => {
+  const f = await fixture(t, 'source-repair')
+  const outcome = await f.run()
+  assert.equal(outcome.status, 0, outcome.stderr)
+  assert.deepEqual(await f.calls(), [])
+  assert.equal(await readFile(join(f.root, 'npm-commands.txt'), 'utf8').catch(() => ''), '')
+  const report = JSON.parse(await readFile(join(f.assets, 'npm-publish-report.json'), 'utf8'))
+  assert.equal(report.status, 'github-source-repair-no-upload')
+  assert.equal(report.npmPublication, 'forbidden')
+  assert.equal(report.expectedPackages, 3)
+})
+
+test('source repair refuses a changed frozen manifest before any npm upload', async (t) => {
+  const f = await fixture(t, 'source-repair-mismatch')
+  const outcome = await f.run()
+  assert.notEqual(outcome.status, 0)
+  assert.match(outcome.stderr, /Source repair frozen manifest changed/)
   assert.deepEqual(await f.calls(), [])
 })

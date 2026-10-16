@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { lstat, readFile, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { readReleaseSourceRepair } from './release-source-repair.mjs'
 import {
   captureCommand,
   mapLimit,
@@ -57,7 +59,8 @@ if (!trustedRepositoryUrl) throw new Error('A trusted repository URL is required
 
 const assetsDir = resolve(assetsDirValue)
 const reportPath = join(assetsDir, 'npm-publish-report.json')
-const manifest = JSON.parse(await readFile(join(assetsDir, 'npm-release-manifest.json'), 'utf8'))
+const manifestBytes = await readFile(join(assetsDir, 'npm-release-manifest.json'))
+const manifest = JSON.parse(manifestBytes)
 if (manifest.version !== releaseTag.slice(1)) {
   throw new Error(`Release manifest version ${manifest.version} does not match ${releaseTag}`)
 }
@@ -75,6 +78,22 @@ const report = {
 }
 const log = (message) => console.log(`[npm-trusted-publish] ${message}`)
 const saveReport = () => writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`)
+
+const sourceRepair = await readReleaseSourceRepair(
+  fileURLToPath(new URL('../../', import.meta.url)),
+  releaseTag,
+  manifestBytes
+)
+if (sourceRepair) {
+  report.status = 'github-source-repair-no-upload'
+  report.expectedPackages = manifest.packageCount
+  report.npmPublication = 'forbidden'
+  report.originalSourceCommit = sourceRepair.originalSourceCommit
+  report.finishedAt = new Date().toISOString()
+  await saveReport()
+  log('GitHub source repair: npm registry queries and uploads are disabled for this snapshot')
+  process.exit(0)
+}
 
 async function verifyAsset(entry) {
   const { packageName, version } = entry

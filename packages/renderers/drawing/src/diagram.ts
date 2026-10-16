@@ -5,7 +5,8 @@ import {
   type FileViewerOptions,
   type FileViewerThemeMode
 } from '@file-viewer/core'
-import Panzoom, { type PanzoomObject } from '@panzoom/panzoom'
+import Panzoom from '@panzoom/panzoom/dist/panzoom.es.js'
+import type { PanzoomObject } from '@panzoom/panzoom'
 import { sanitizeDrawingSvg, sanitizeGeneratedMermaidSvg } from './sanitize.js'
 
 export type DiagramKind = 'mermaid' | 'plantuml'

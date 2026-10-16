@@ -4,6 +4,21 @@ The explicit `@file-viewer/renderer-3d/geo3d` entry follows the same opt-in
 specialist pattern as IFC. It is not imported by `@file-viewer/renderer-3d`
 and is not added to Full or engineering presets.
 
+The `/geo3d` entry exposes the real Giro3D classes in its options, hooks and
+returned viewer, so importing its declarations requires the Giro3D peer as well
+as enabling its runtime. The ordinary package entry has no Giro3D type imports.
+For dataset detection before choosing whether to enable the engine, use the
+separate SDK-free inspection entry:
+
+```ts
+import { inspectGeo3dDataset, isCopcLasBuffer } from '@file-viewer/renderer-3d/geo3d/inspect'
+```
+
+This entry exports the dataset probes and their input/result types without
+loading or referencing Giro3D declarations. It does not export renderer options,
+SDK hooks or viewer instances. Import `/geo3d` after installing the supported
+SDK when those APIs are required.
+
 The integration previews LAS/LAZ, COPC, CityJSON, GeoTIFF/COG, 3D Tiles and
 bounded 3TZ archives. Point clouds and rasters use source-owned decoder Workers
 by default. The browser acceptance suite checks rendering, repeated teardown,
@@ -20,12 +35,26 @@ glTF resources and textures remain relative to the dataset.
 Giro3D is an optional peer, matching the IFC specialist entry:
 
 ```sh
-npm install @file-viewer/renderer-3d @giro3d/giro3d@2.0.5
+npm install @file-viewer/renderer-3d @giro3d/giro3d@2.0.4
 # Only required when 3TZ archives are enabled:
 npm install jszip@3.10.2
 
 npx file-viewer-geo3d-assets public/file-viewer/vendor/geo3d
 ```
+
+For strict TypeScript 6 consumers of this optional entry, install the compatible
+Three type host as an ordinary development dependency:
+
+```sh
+npm install --save-dev @types/three@0.185.0
+```
+
+The NodeNext and Bundler consumer checks keep `strict: true` and
+`skipLibCheck: false`, and exercise the real Giro3D classes and format-narrowed
+hooks. Giro3D 2.0.4 requires the Three 0.180 runtime; the renderer retains its own
+Three 0.186 dependency. Three type host 0.186 adds a `dispose` event that conflicts
+with Giro3D's published `LayerNodeEventMap` and `TileMeshEventMap` declarations.
+That upstream combination is not supported by the strict optional-entry check.
 
 The asset command copies the static module Workers `workers/las-worker.js`,
 `workers/geotiff-worker.js` and `workers/texture-worker.js`, laz-perf WASM,
@@ -242,7 +271,7 @@ cases run against both workspace output and physical installed tarballs.
 
 ### Pinned engine maintenance boundary
 
-The ownership adapters deliberately depend on reviewed Giro3D 2.0.5 source.
+The ownership adapters deliberately depend on reviewed Giro3D 2.0.4 source.
 Besides source-local pool injection, the PointCloud subclass overrides the
 engine's internal loading method to link node and viewer cancellation. Source
 initialization uses protected readiness fields. These are not an assertion of

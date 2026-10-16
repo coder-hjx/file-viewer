@@ -8,7 +8,7 @@ import { preview } from 'vite'
 const siteRoot = fileURLToPath(new URL('..', import.meta.url))
 const externalUrl = process.env.OFFICIAL_SITE_LAYOUT_BASE_URL
 const screenshotDir = process.env.OFFICIAL_SITE_LAYOUT_SCREENSHOTS
-const widths = [320, 390, 768, 1024, 1280, 1920, 2560, 3440]
+const widths = [320, 390, 768, 1024, 1120, 1121, 1280, 1920, 2560, 3440, 5120]
 const server = externalUrl
   ? null
   : await preview({
@@ -38,8 +38,19 @@ async function assertLayout(page, label) {
         return bounds.left < shell.left - 1 || bounds.right > shell.right + 1
       })
       .map((element) => element.className)
+    const escapedColumns = ['#solutions', '#ecosystem'].flatMap((selector) => {
+      const column = document.querySelector(selector)
+      const bounds = column.getBoundingClientRect()
+      return [...column.querySelectorAll('h2, h3, p, .quickstart-tabs, .quickstart-workbench')]
+        .filter((element) => {
+          const child = element.getBoundingClientRect()
+          return child.left < bounds.left - 1 || child.right > bounds.right + 1
+        })
+        .map((element) => `${selector} ${element.className || element.tagName}`)
+    })
     return {
       contained,
+      escapedColumns,
       headerEmptySpace: headerCopy.bottom - headerTitle.bottom,
       separated: solutions.right <= ecosystem.left - 16 || solutions.bottom <= ecosystem.top - 16,
       pageOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
@@ -51,6 +62,7 @@ async function assertLayout(page, label) {
     }
   })
   assert.deepEqual(result.contained, [], `${label}: content escapes its page column`)
+  assert.deepEqual(result.escapedColumns, [], `${label}: content overlaps a neighboring column`)
   assert.ok(result.headerEmptySpace <= 2, `${label}: example header has artificial empty space`)
   assert.ok(result.separated, `${label}: use cases and code examples overlap`)
   assert.ok(!result.pageOverflow, `${label}: page scrolls horizontally`)
@@ -143,7 +155,7 @@ try {
     }
   }
   console.log(
-    '[site-responsive] Chromium/WebKit passed at 320-3440px, both languages, dark theme, 200% text, and all 10 examples.'
+    '[site-responsive] Chromium/WebKit passed at 320-5120px, both languages, dark theme, 200% text, and all 10 examples.'
   )
 } finally {
   if (server) await new Promise((done) => server.httpServer.close(done))

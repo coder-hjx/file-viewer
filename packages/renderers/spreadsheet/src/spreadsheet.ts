@@ -25,6 +25,7 @@ import {
 } from '@file-viewer/core';
 import { renderSpreadsheetChart } from './spreadsheet/chartRenderer.js';
 import { createSpreadsheetImageSourceResolver } from './spreadsheet/imageSource.js';
+import { shouldFillSpreadsheetViewport, SpreadsheetViewportFill } from './spreadsheet/viewport.js';
 import type { SheetCellMetadata, SheetChart, SheetDefinition, SheetImage, SheetModel } from './spreadsheet/worker/type.js';
 import {
   buildRows,
@@ -948,6 +949,12 @@ const renderFileViewerSpreadsheet = async (
   });
   const resizableColumns = context?.options?.spreadsheet?.resizableColumns === true;
   const resizableRows = context?.options?.spreadsheet?.resizableRows === true;
+  const fillViewport = shouldFillSpreadsheetViewport(
+    context?.options?.spreadsheet?.fillViewport,
+    type || context?.filename?.split('.').pop()
+  );
+  const viewportFill = new SpreadsheetViewportFill();
+  let renderedRows: unknown[] = [];
 
   const controller = createFileViewerWorkerController(
     createSpreadsheetWorkerFactory(target, buffer.byteLength, context),
@@ -1506,20 +1513,26 @@ const renderFileViewerSpreadsheet = async (
     });
   };
 
-  const buildTableView = () => ({
-    config: createTableConfig({
-      hostHeight: getHostHeight(),
-      darkMode,
-      resizableColumns,
-      resizableRows,
-      copySelection: copySpreadsheetSelection,
-      searchCell: getSearchCell,
-      sheetDefaults,
-      virtualState,
-      zoomScale: zoom,
-    }),
-    columns: getDisplayColumns(virtualState.columns, zoom),
-  });
+  const buildTableView = () => {
+    const display = fillViewport && virtualState.active
+      ? viewportFill.build(virtualState, tableHost.clientWidth, Math.max(getHostHeight(), 240), zoom)
+      : { columns: virtualState.columns, rows: virtualState.rows };
+    return {
+      config: createTableConfig({
+        hostHeight: getHostHeight(),
+        darkMode,
+        resizableColumns,
+        resizableRows,
+        copySelection: copySpreadsheetSelection,
+        searchCell: getSearchCell,
+        sheetDefaults,
+        virtualState,
+        zoomScale: zoom,
+      }),
+      columns: getDisplayColumns(display.columns, zoom),
+      rows: display.rows,
+    };
+  };
 
   const resetViewportTracking = () => {
     viewportRange = { start: 0, end: 0 };
@@ -1596,28 +1609,14 @@ const renderFileViewerSpreadsheet = async (
 
   const renderTable = (
     instance: EVirtTableInstance,
-    columns = virtualState.columns,
-    rows = virtualState.rows,
     resetScroll = false
   ) => {
-    const view = {
-      config: createTableConfig({
-        hostHeight: getHostHeight(),
-        darkMode,
-        resizableColumns,
-        resizableRows,
-        copySelection: copySpreadsheetSelection,
-        searchCell: getSearchCell,
-        sheetDefaults,
-        virtualState,
-        zoomScale: zoom,
-      }),
-      columns: getDisplayColumns(columns, zoom),
-    };
+    const view = buildTableView();
 
     instance.loadConfig(view.config);
     instance.loadColumns(view.columns);
-    instance.loadData(rows);
+    instance.loadData(view.rows);
+    renderedRows = view.rows;
     instance.draw();
     syncImageViewport();
 
@@ -1636,10 +1635,14 @@ const renderFileViewerSpreadsheet = async (
 
   function syncTableLayout() {
     const instance = ensureTable();
-    const { config, columns } = buildTableView();
+    const { config, columns, rows } = buildTableView();
     instance.loadConfig(config);
     if (virtualState.active && columns.length) {
       instance.loadColumns(columns);
+    }
+    if (fillViewport && virtualState.active && rows !== renderedRows) {
+      instance.loadData(rows);
+      renderedRows = rows;
     }
     instance.doLayout();
     instance.draw();
@@ -1779,6 +1782,11 @@ const renderFileViewerSpreadsheet = async (
 
     const row = virtualState.rows[rowIndex];
     if (!row) {
+      if (fillViewport && renderedRows[rowIndex]) {
+        queueMicrotask(() => {
+          if (!disposed && table) syncTableLayout();
+        });
+      }
       return;
     }
 
@@ -2028,7 +2036,7 @@ const renderFileViewerSpreadsheet = async (
     }
 
     if (isFirstWindow) {
-      renderTable(ensureTable(), virtualState.columns, virtualState.rows, true);
+      renderTable(ensureTable(), true);
     } else {
       table?.draw();
     }
@@ -2069,6 +2077,7 @@ const renderFileViewerSpreadsheet = async (
     }
     table.loadColumns([]);
     table.loadData([]);
+    renderedRows = [];
     table.scrollTo(0, 0);
     table.draw();
   };
@@ -2109,7 +2118,7 @@ const renderFileViewerSpreadsheet = async (
       if (virtualState !== cached || sheetId !== getActiveSheetId()) {
         return;
       }
-      renderTable(ensureTable(), cached.columns, cached.rows);
+      renderTable(ensureTable());
       syncImageViewport();
       scheduleStableFirstPaintRefresh();
     });
@@ -2312,6 +2321,7 @@ const renderFileViewerSpreadsheet = async (
       fileType: type,
       filename: context?.filename,
       textEncoding: context?.options?.spreadsheet?.textEncoding,
+      includeEmptySheets: fillViewport,
     });
   };
 

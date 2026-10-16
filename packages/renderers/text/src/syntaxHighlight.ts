@@ -102,46 +102,46 @@ const languageMap: Record<string, string> = {
   yml: 'yaml'
 }
 
-const languageLoaders: Record<string, () => Promise<{ default: LanguageFn }>> = {
-  c: () => import('highlight.js/lib/languages/c'),
-  less: () => import('highlight.js/lib/languages/less'),
-  lua: () => import('highlight.js/lib/languages/lua'),
-  makefile: () => import('highlight.js/lib/languages/makefile'),
-  perl: () => import('highlight.js/lib/languages/perl'),
-  objectivec: () => import('highlight.js/lib/languages/objectivec'),
-  'php-template': () => import('highlight.js/lib/languages/php-template'),
-  'python-repl': () => import('highlight.js/lib/languages/python-repl'),
-  r: () => import('highlight.js/lib/languages/r'),
-  scss: () => import('highlight.js/lib/languages/scss'),
-  shell: () => import('highlight.js/lib/languages/shell'),
-  vbnet: () => import('highlight.js/lib/languages/vbnet'),
-  wasm: () => import('highlight.js/lib/languages/wasm'),
-  bash: () => import('highlight.js/lib/languages/bash'),
-  cpp: () => import('highlight.js/lib/languages/cpp'),
-  csharp: () => import('highlight.js/lib/languages/csharp'),
-  css: () => import('highlight.js/lib/languages/css'),
-  diff: () => import('highlight.js/lib/languages/diff'),
-  go: () => import('highlight.js/lib/languages/go'),
-  graphql: () => import('highlight.js/lib/languages/graphql'),
-  http: () => import('highlight.js/lib/languages/http'),
-  ini: () => import('highlight.js/lib/languages/ini'),
-  java: () => import('highlight.js/lib/languages/java'),
-  javascript: () => import('highlight.js/lib/languages/javascript'),
-  json: () => import('highlight.js/lib/languages/json'),
-  kotlin: () => import('highlight.js/lib/languages/kotlin'),
-  latex: () => import('highlight.js/lib/languages/latex'),
-  markdown: () => import('highlight.js/lib/languages/markdown'),
-  php: () => import('highlight.js/lib/languages/php'),
-  protobuf: () => import('highlight.js/lib/languages/protobuf'),
-  python: () => import('highlight.js/lib/languages/python'),
-  ruby: () => import('highlight.js/lib/languages/ruby'),
-  rust: () => import('highlight.js/lib/languages/rust'),
-  sql: () => import('highlight.js/lib/languages/sql'),
-  swift: () => import('highlight.js/lib/languages/swift'),
-  typescript: () => import('highlight.js/lib/languages/typescript'),
-  xml: () => import('highlight.js/lib/languages/xml'),
-  yaml: () => import('highlight.js/lib/languages/yaml')
+type GrammarFamily = {
+  names: string[]
+  load: () => Promise<{ default: Record<string, LanguageFn> }>
 }
+
+// Defer by language family without turning every small grammar into a request.
+const grammarFamilies: GrammarFamily[] = [
+  {
+    names: ['c', 'cpp', 'objectivec', 'rust', 'swift', 'go', 'wasm'],
+    load: () => import('./syntaxGrammars/native.js')
+  },
+  {
+    names: ['java', 'kotlin', 'csharp', 'vbnet'],
+    load: () => import('./syntaxGrammars/managed.js')
+  },
+  {
+    names: ['javascript', 'typescript', 'css', 'less', 'scss'],
+    load: () => import('./syntaxGrammars/web.js')
+  },
+  {
+    names: ['python', 'python-repl', 'ruby', 'perl', 'lua', 'r'],
+    load: () => import('./syntaxGrammars/scripting.js')
+  },
+  {
+    names: ['bash', 'shell', 'makefile', 'ini', 'diff'],
+    load: () => import('./syntaxGrammars/tooling.js')
+  },
+  {
+    names: ['json', 'yaml', 'xml', 'http', 'protobuf', 'graphql', 'sql'],
+    load: () => import('./syntaxGrammars/data.js')
+  },
+  { names: ['php', 'php-template'], load: () => import('./syntaxGrammars/php.js') },
+  { names: ['markdown', 'latex'], load: () => import('./syntaxGrammars/documents.js') }
+]
+
+const languageLoaders: Record<string, () => Promise<{ default: LanguageFn }>> = Object.fromEntries(
+  grammarFamilies.flatMap(({ names, load }) =>
+    names.map((name) => [name, async () => ({ default: (await load()).default[name] })])
+  )
+)
 
 let highlighterPromise: Promise<HLJSApi> | null = null
 const registeredLanguages = new Set<string>()

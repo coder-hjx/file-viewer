@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs'
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
-import { dirname, join, relative, resolve } from 'node:path'
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'vite'
 import { sanitizeOfflineViewerAssetTree } from './offline-asset-sanitize.mjs'
@@ -11,6 +11,11 @@ import { stageInstalledCadRuntime } from '../../../build-support/stage-cad-runti
 import { isolateAmd, writeAmdEntry } from '../../web/scripts/amd-entry.mjs'
 import * as webNode from '@file-viewer/web/node'
 import { assertFullAssetDependencies } from './full-asset-dependencies.mjs'
+import { writeBundleNotices } from '../../../build-support/bundle-notices.mjs'
+import { appendCadIntegrationSourceNotice } from '../../../build-support/cad-source-offer.mjs'
+import { writeBundleInventory } from '../../../build-support/bundle-inventory.mjs'
+import { stageRetainedAssetNotices, withRetainedAssetNoticeManifests, withRetainedAssetNoticeValidation } from '../../../build-support/retained-asset-notices.mjs'
+import { stableAssetManifest } from '../../../build-support/stable-asset-manifest.mjs'
 
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageManifest = JSON.parse(await readFile(resolve(packageDir, 'package.json'), 'utf8'))
@@ -38,9 +43,24 @@ const prettierIifeAliases = Object.fromEntries(
   ].map((specifier) => [specifier, prettierIifeStub])
 )
 const outDir = join(packageDir, 'dist')
+const previousAssetManifestPath = join(outDir, webNode.VIEWER_ASSET_MANIFEST_FILENAME)
+const previousAssetManifest = existsSync(previousAssetManifestPath)
+  ? JSON.parse(await readFile(previousAssetManifestPath, 'utf8')) : null
 const fileName = 'flyfish-file-viewer-web-full.iife.js'
 const rendererOutDir = join(outDir, 'renderers')
 const generatedDir = join(packageDir, '.generated-iife-renderers')
+const bundledInputs = new Set()
+const bundleInventoryPlugin = () => ({
+  name: 'file-viewer-full-bundle-input-inventory',
+  generateBundle(_options, bundle) {
+    for (const output of Object.values(bundle)) {
+      if (output.type !== 'chunk') continue
+      for (const id of Object.keys(output.modules)) {
+        if (isAbsolute(id) && !id.startsWith('\0')) bundledInputs.add(id.split('?')[0])
+      }
+    }
+  }
+})
 
 const rendererBuilds = [
   { key: 'word', packageName: '@file-viewer/renderer-word', exportName: 'wordRenderer', globalName: 'FlyfishFileViewerWebFullRendererWord' },
@@ -86,6 +106,8 @@ await build({
   configFile: false,
   publicDir: false,
   logLevel: 'warn',
+  plugins: [bundleInventoryPlugin()],
+  worker: { plugins: () => [bundleInventoryPlugin()] },
   define: {
     '__FILE_VIEWER_WEB_FULL_VERSION__': JSON.stringify(packageManifest.version),
     'process.env.NODE_ENV': JSON.stringify('production'),
@@ -146,6 +168,8 @@ bucket[renderer.id] = renderer
     configFile: false,
     publicDir: false,
     logLevel: 'warn',
+    plugins: [bundleInventoryPlugin()],
+    worker: { plugins: () => [bundleInventoryPlugin()] },
     define: {
       'process.env.NODE_ENV': JSON.stringify('production'),
       'process.env': JSON.stringify({ NODE_ENV: 'production' }),
@@ -181,6 +205,14 @@ bucket[renderer.id] = renderer
     }
   })
 }
+
+await writeBundleInventory([...bundledInputs], join(packageDir, '.build/iife-inputs.json'))
+await writeBundleNotices(
+  { inputs: Object.fromEntries([...bundledInputs].map(id => [id, {}])) },
+  join(outDir, 'THIRD_PARTY_LICENSES.txt'),
+  { readmeLicensePackages: ['@ljheee/xmind-parser'], includeWorkspacePackages: ['@file-viewer/doc'], includePrebundledSdkPackages: ['@file-viewer/capability-mermaid'] }
+)
+await appendCadIntegrationSourceNotice(join(outDir, 'THIRD_PARTY_LICENSES.txt'), packageManifest.version)
 
 await rm(generatedDir, { recursive: true, force: true })
 
@@ -220,14 +252,32 @@ const sanitization = await sanitizeOfflineViewerAssetTree(outDir)
 await verifyPptRuntimeDistributionRoot(outDir, {
   unbundledJavaScriptPath: 'renderers/presentation.iife.js'
 })
-const validation = await webNode.validateViewerAssets({ sourceDir: outDir })
+await assertFullAssetDependencies(packageManifest, resolve(packageDir, 'package.json'))
+await stageRetainedAssetNotices(outDir, {
+  externalAssetOwners: [
+    { prefix: 'vendor/drawio/', packageName: '@file-viewer/assets-drawing', version: packageManifest.version, inventoryPath: 'viewer/THIRD_PARTY_LICENSES.assets.json' },
+    { prefix: 'wasm/cad/', packageName: '@file-viewer/assets-cad', version: packageManifest.version, inventoryPath: 'viewer/THIRD_PARTY_LICENSES.assets.json' },
+  ],
+})
+const initialValidation = await webNode.validateViewerAssets({ sourceDir: outDir })
+const viewerAssetManifest = webNode.buildViewerAssetManifest(initialValidation)
+viewerAssetManifest.rendererAssetManifests = withRetainedAssetNoticeManifests(viewerAssetManifest.rendererAssetManifests)
+const validation = await withRetainedAssetNoticeValidation(initialValidation, viewerAssetManifest.rendererAssetManifests)
 if (!validation.valid) {
   const missing = validation.missingRequired
     .map(asset => `${asset.rendererId}:${asset.relativePath}`)
     .join(', ')
   throw new Error(`[web-full-iife] Viewer static assets are missing required resources: ${missing}`)
 }
-await webNode.writeViewerAssetManifest(outDir, webNode.buildViewerAssetManifest(validation))
+viewerAssetManifest.validation = webNode.toViewerAssetManifestValidation(validation)
+const privateEvidenceDir = join(packageDir, '.build')
+await mkdir(privateEvidenceDir, { recursive: true })
+await writeFile(join(privateEvidenceDir, 'full-assets-validation.json'), `${JSON.stringify({
+  checkedAt: validation.checkedAt,
+  reusedPublicTimestamps: stableAssetManifest(previousAssetManifest, viewerAssetManifest) === previousAssetManifest,
+  validation: viewerAssetManifest.validation
+}, null, 2)}\n`)
+await webNode.writeViewerAssetManifest(outDir, stableAssetManifest(previousAssetManifest, viewerAssetManifest))
 // Keep the complete local dist for self-hosted release assets. The ordinary npm
 // archive carries these two groups through exact-version asset dependencies.
 await assertFullAssetDependencies(packageManifest, resolve(packageDir, 'package.json'))

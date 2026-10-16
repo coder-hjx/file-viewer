@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "packageName": "@file-viewer/renderer-dicom",
-    "packageVersion": "3.1.2",
+    "packageVersion": "3.2.0",
     "packageManager": "pnpm",
     "command": "pnpm --filter @file-viewer/renderer-dicom list --depth Infinity --json; direct runtime and three bundled Cornerstone SDK roots only"
   },
@@ -516,7 +516,7 @@
     },
     {
       "name": "@file-viewer/core",
-      "version": "3.1.2",
+      "version": "3.2.0",
       "license": "Apache-2.0",
       "direct": true,
       "optional": false,
@@ -528,7 +528,7 @@
     },
     {
       "name": "@file-viewer/renderer-dicom",
-      "version": "3.1.2",
+      "version": "3.2.0",
       "license": "Apache-2.0",
       "direct": false,
       "optional": false,
@@ -682,7 +682,7 @@
     },
     {
       "name": "autoprefixer",
-      "version": "10.6.1",
+      "version": "10.5.4",
       "license": "MIT",
       "direct": false,
       "optional": false,
@@ -710,7 +710,7 @@
     },
     {
       "name": "baseline-browser-mapping",
-      "version": "2.11.28",
+      "version": "2.11.19",
       "license": "Apache-2.0",
       "direct": false,
       "optional": false,
@@ -752,7 +752,7 @@
     },
     {
       "name": "caniuse-lite",
-      "version": "1.0.30001815",
+      "version": "1.0.30001810",
       "license": "CC-BY-4.0",
       "direct": false,
       "optional": false,
@@ -964,7 +964,7 @@
     },
     {
       "name": "electron-to-chromium",
-      "version": "1.5.451",
+      "version": "1.5.414",
       "license": "ISC",
       "direct": false,
       "optional": false,
@@ -1118,7 +1118,7 @@
     },
     {
       "name": "glob",
-      "version": "7.2.3",
+      "version": "7.2.0",
       "license": "ISC",
       "direct": false,
       "optional": false,
@@ -1230,7 +1230,7 @@
     },
     {
       "name": "is-core-module",
-      "version": "2.17.0",
+      "version": "2.16.2",
       "license": "MIT",
       "direct": false,
       "optional": false,
@@ -1328,7 +1328,7 @@
     },
     {
       "name": "node-releases",
-      "version": "2.0.58",
+      "version": "2.0.53",
       "license": "MIT",
       "direct": false,
       "optional": false,
@@ -1356,7 +1356,7 @@
     },
     {
       "name": "pako",
-      "version": "1.0.5",
+      "version": "1.0.11",
       "license": "(MIT AND Zlib)",
       "direct": false,
       "optional": false,
@@ -1482,7 +1482,7 @@
     },
     {
       "name": "resolve",
-      "version": "1.22.13",
+      "version": "1.22.12",
       "license": "MIT",
       "direct": false,
       "optional": false,
@@ -1578,7 +1578,7 @@
     },
     {
       "name": "update-browserslist-db",
-      "version": "1.3.4",
+      "version": "1.3.1",
       "license": "MIT",
       "direct": false,
       "optional": false,

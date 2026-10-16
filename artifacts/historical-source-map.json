@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "version": "3.2.0",
+  "mode": "complete-historical-source",
+  "originalSourceCommit": "d20dc22c19a9101647a8198f46dc4037277da7cc",
+  "publicHistoryBaseline": "c4087cc6a3911cfaa9818b0db25893be21bc3be1",
+  "originalManifestSha256": "7577bfce91462fdb4fb8540500788bbd1e623429d0a2384387c05f24d66a9017",
+  "legacyManifestSourceCommit": "c4087cc6a3911cfaa9818b0db25893be21bc3be1",
+  "originalPrivateManifestCompactSha256": "27a98c131d849f4f1c203c8e88b37f8cb73f022b4f1307184a8deea61af4933b",
+  "originalRuntimeArchiveBytesPreserved": true,
+  "packageCount": 89,
+  "npmPublication": "forbidden",
+  "currentUnreleasedFixesIncluded": false,
+  "privateMaintenanceFilesIncluded": false,
+  "sourceCodePolicy": "All historical project implementation source is present in the tagged tree; private maintenance history is not published."
+}

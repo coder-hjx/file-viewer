@@ -1,6 +1,6 @@
 {
   "name": "@file-viewer/renderer-design",
-  "version": "3.1.2",
+  "version": "3.2.0",
   "private": false,
   "type": "module",
   "description": "Offline-first Adobe design renderer for Photoshop, native PGF and PDF-compatible Illustrator, InDesign, XD, modern XFL-based Animate FLA, and bounded design-resource previews.",
@@ -74,6 +74,7 @@
     "./worker/postscript.worker.js": "./dist/postscript.worker.js",
     "./wasm/postscript.wasm": "./runtime/postscript/stet_wasm_bg.wasm",
     "./licenses/MPL-2.0.txt": "./LICENSES/MPL-2.0.txt",
+    "./licenses/Introspect_NATIVE_THIRD_PARTY_LICENSES.json": "./LICENSES/Introspect_NATIVE_THIRD_PARTY_LICENSES.json",
     "./licenses/Stet-Apache-2.0.txt": "./LICENSES/Stet-Apache-2.0.txt",
     "./licenses/Stet-MIT.txt": "./LICENSES/Stet-MIT.txt",
     "./licenses/Carlito-OFL-1.1.txt": "./LICENSES/Carlito-OFL-1.1.txt",
@@ -90,7 +91,8 @@
     "./licenses/illustrator-pgf-MIT.txt": "./LICENSES/illustrator-pgf-MIT.txt",
     "./licenses/fzstd-MIT.txt": "./LICENSES/fzstd-MIT.txt",
     "./third-party-notices": "./THIRD_PARTY_NOTICES.md",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./licenses/Stet_NATIVE_THIRD_PARTY_LICENSES.json": "./LICENSES/Stet_NATIVE_THIRD_PARTY_LICENSES.json"
   },
   "files": [
     "dist",
@@ -105,12 +107,11 @@
   ],
   "scripts": {
     "build": "tsc -b tsconfig.json --force && node scripts/build-worker.mjs",
-    "type-check": "tsc -b tsconfig.json",
-    "verify:idml-installed": "node scripts/verify-idml-installed.mjs"
+    "type-check": "tsc -b tsconfig.json"
   },
   "dependencies": {
-    "@file-viewer/core": "workspace:3.1.2",
-    "@file-viewer/renderer-data": "workspace:3.1.2",
+    "@file-viewer/core": "workspace:3.2.0",
+    "@file-viewer/renderer-data": "workspace:3.2.0",
     "@paged-media/introspect-wasm": "0.70.2",
     "@webtoon/psd": "0.4.0",
     "@xmldom/xmldom": "0.9.12",

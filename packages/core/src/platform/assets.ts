@@ -1105,11 +1105,40 @@ export const DEFAULT_FILE_VIEWER_RENDERER_ASSET_MANIFESTS: readonly FileViewerRe
         packagePath: DEFAULT_FILE_VIEWER_WORDPERFECT_MODULE_PACKAGE_PATH,
         description: 'Emscripten ES module loader for the MPL-2.0 libwpd/librevenge WebAssembly runtime.',
       },
+      {
+        id: 'wordperfect-third-party-notices',
+        rendererId: 'office-wordperfect',
+        kind: 'license',
+        target: 'public',
+        required: true,
+        defaultPath: 'vendor/wordperfect/THIRD_PARTY_NOTICES.md',
+        packagePath: '@file-viewer/renderer-wordperfect/third-party-notices',
+        description: 'Matching source availability and third-party notices for the WordPerfect native runtime.',
+      },
+      {
+        id: 'wordperfect-native-licenses',
+        rendererId: 'office-wordperfect',
+        kind: 'directory',
+        target: 'public',
+        required: true,
+        defaultPath: 'vendor/wordperfect/licenses',
+        description: 'Complete parser and linked toolchain licenses and native provenance.',
+      },
     ],
   },
   {
     rendererId: 'typst',
     assets: [
+      {
+        id: 'typst-native-third-party-licenses',
+        rendererId: 'typst',
+        kind: 'license',
+        target: 'public',
+        required: true,
+        defaultPath: 'wasm/typst/NATIVE_THIRD_PARTY_LICENSES.json',
+        packagePath: '@file-viewer/renderer-typst/native-third-party-licenses',
+        description: 'Complete collected native dependency license texts and matching Typst WASM provenance.',
+      },
       {
         id: 'typst-compiler-wasm',
         rendererId: 'typst',
@@ -1394,6 +1423,16 @@ export const DEFAULT_FILE_VIEWER_RENDERER_ASSET_MANIFESTS: readonly FileViewerRe
     rendererId: 'indesign-idml-design',
     assets: [
       ...createDesignThirdPartyAssets('indesign-idml-design'),
+      {
+        id: 'indesign-idml-native-third-party-licenses',
+        rendererId: 'indesign-idml-design',
+        kind: 'license',
+        target: 'public',
+        required: true,
+        defaultPath: 'vendor/design/Introspect_NATIVE_THIRD_PARTY_LICENSES.json',
+        packagePath: '@file-viewer/renderer-design/licenses/Introspect_NATIVE_THIRD_PARTY_LICENSES.json',
+        description: 'Complete collected native dependency license texts and matching Introspect WASM provenance.',
+      },
       {
         id: 'indesign-idml-worker',
         rendererId: 'indesign-idml-design',

@@ -1,3 +1,4 @@
+import { writeBundleInventory } from '../../../build-support/bundle-inventory.mjs'
 /** Build source-local adapters; never edits the installed engine or its singletons. */
 import { createHash } from 'node:crypto'
 import { realpathSync } from 'node:fs'
@@ -162,7 +163,7 @@ export async function buildPointAdapters() {
   if (hash(await readFile(worker)) !== SOURCE_HASHES.worker) throw new Error('Unreviewed LAS worker source.')
   const out = join(root, 'dist'), workers = join(out, 'geo3d-workers')
   await mkdir(workers, { recursive: true })
-  const options = { bundle: true, platform: 'browser', format: 'esm', target: 'es2022', minify: false, metafile: true, logLevel: 'warning' }
+  const options = { bundle: true, platform: 'browser', format: 'esm', target: 'es2022', minify: process.env.FILE_VIEWER_DISTRIBUTION_MODE === 'runtime-only', metafile: true, logLevel: 'warning' }
   const entry = [
     "import PointCloud from '@giro3d/giro3d/entities/PointCloud.js';",
     createPointCloudWithCancellation.toString(),
@@ -190,6 +191,7 @@ export async function buildPointAdapters() {
     } }]
   })
   const decoder = await build({ ...options, entryPoints: [worker], outfile: join(workers, 'las-worker.js') })
+  await writeBundleInventory([...Object.keys(factories.metafile.inputs), ...Object.keys(decoder.metafile.inputs)], join(root, '.build/geo3d-point-inputs.json'), { extraInputs: Object.values(paths) })
   const packages = new Map([[giro.folder, giro]])
   for (const input of [...Object.keys(factories.metafile.inputs), ...Object.keys(decoder.metafile.inputs)]) {
     if (!input.includes('node_modules') || input.startsWith('owned-point-source:')) continue

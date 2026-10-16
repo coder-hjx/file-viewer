@@ -233,25 +233,31 @@ async function collectTextFiles(root, files = []) {
   return files
 }
 
+export function sanitizeOfflineAssetText(original, file) {
+  let text = original
+  let replacementCount = 0
+  for (const item of replacements) {
+    if (item.skipFile?.(file)) continue
+    text = text.replace(item.pattern, (...arguments_) => {
+      const offset = arguments_.at(-2)
+      if (item.skipMatch?.(text, offset)) return arguments_[0]
+      replacementCount += 1
+      return item.replacement.replace(/\$(\d+)/g, (_, group) => arguments_[Number(group)] || '')
+    })
+  }
+  return { output: text, replacementCount }
+}
+
 export async function sanitizeOfflineViewerAssetTree(root) {
   const files = await collectTextFiles(root)
   const touchedFiles = []
   let replacementCount = 0
 
   for (const file of files) {
-    let text = await readFile(file, 'utf8')
-    const original = text
-    for (const item of replacements) {
-      if (item.skipFile?.(file)) {
-        continue
-      }
-      text = text.replace(item.pattern, (...arguments_) => {
-        const offset = arguments_.at(-2)
-        if (item.skipMatch?.(text, offset)) return arguments_[0]
-        replacementCount += 1
-        return item.replacement.replace(/\$(\d+)/g, (_, group) => arguments_[Number(group)] || '')
-      })
-    }
+    const original = await readFile(file, 'utf8')
+    const sanitized = sanitizeOfflineAssetText(original, file)
+    const text = sanitized.output
+    replacementCount += sanitized.replacementCount
     if (text !== original) {
       await writeFile(file, text, 'utf8')
       touchedFiles.push(file)

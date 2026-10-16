@@ -7,7 +7,7 @@ The DICOM renderer is not part of any standard/full package or preset. The bundl
 ## Required attribution
 
 - `caniuse-lite@1.0.30001810` data is by Ben Briggs and contributors, from <https://github.com/browserslist/caniuse-lite>, licensed under CC-BY-4.0. The renderer does not modify that upstream data. The complete CC-BY-4.0 text is retained as `caniuse-lite/LICENSE` in the installed dependency.
-`pako@1.0.5`, `pako@2.1.0`, `pako@2.2.0` contain zlib-derived code by Jean-loup Gailly and Mark Adler under `(MIT AND Zlib)`; their installed source retains the zlib notices and license terms.
+`pako@1.0.11`, `pako@2.1.0`, `pako@2.2.0` contain zlib-derived code by Jean-loup Gailly and Mark Adler under `(MIT AND Zlib)`; their installed source retains the zlib notices and license terms.
 - `spark-md5@3.0.2` is available under `(WTFPL OR MIT)` as declared by the package. Its installed package retains the upstream license file.
 - `argparse@2.0.1` is licensed under Python-2.0 and retains the complete Python Software Foundation license in its installed `LICENSE` file.
 `dompurify@3.4.16` is dual-licensed as `(MPL-2.0 OR Apache-2.0)`. File Viewer elects Apache-2.0, and the installed `LICENSE` file retains the complete Apache-2.0 text.
@@ -41,7 +41,7 @@ None of the Apache-2.0 dependencies in this closure publishes a top-level `NOTIC
 
 ### (MIT AND Zlib)
 
-- `pako@1.0.5` — https://github.com/nodeca/pako
+- `pako@1.0.11` — https://github.com/nodeca/pako
 - `pako@2.1.0` — https://github.com/nodeca/pako
 - `pako@2.2.0` — https://github.com/nodeca/pako
 
@@ -51,7 +51,7 @@ None of the Apache-2.0 dependencies in this closure publishes a top-level `NOTIC
 
 ### Apache-2.0
 
-- `baseline-browser-mapping@2.11.28` — https://github.com/web-platform-dx/baseline-browser-mapping
+- `baseline-browser-mapping@2.11.19` — https://github.com/web-platform-dx/baseline-browser-mapping
 - `comlink@4.4.2` — https://github.com/GoogleChromeLabs/comlink
 - `dompurify@3.4.16` — https://github.com/cure53/DOMPurify
 - `typescript@6.0.3` — https://github.com/microsoft/TypeScript
@@ -66,7 +66,7 @@ None of the Apache-2.0 dependencies in this closure publishes a top-level `NOTIC
 
 ### CC-BY-4.0
 
-- `caniuse-lite@1.0.30001815` — https://github.com/browserslist/caniuse-lite
+- `caniuse-lite@1.0.30001810` — https://github.com/browserslist/caniuse-lite
 
 ### ISC
 
@@ -79,9 +79,9 @@ None of the Apache-2.0 dependencies in this closure publishes a top-level `NOTIC
 - `d3-scale@4.0.2` — https://github.com/d3/d3-scale
 - `d3-time@3.1.0` — https://github.com/d3/d3-time
 - `d3-time-format@4.1.0` — https://github.com/d3/d3-time-format
-- `electron-to-chromium@1.5.451` — https://github.com/Kilian/electron-to-chromium
+- `electron-to-chromium@1.5.414` — https://github.com/Kilian/electron-to-chromium
 - `fs.realpath@1.0.0` — https://github.com/isaacs/fs.realpath
-- `glob@7.2.3` — https://github.com/isaacs/node-glob
+- `glob@7.2.0` — https://github.com/isaacs/node-glob
 - `inflight@1.0.6` — https://github.com/npm/inflight
 - `inherits@2.0.4` — https://github.com/isaacs/inherits
 - `internmap@2.0.3` — https://github.com/mbostock/internmap
@@ -109,7 +109,7 @@ None of the Apache-2.0 dependencies in this closure publishes a top-level `NOTIC
 - `@types/trusted-types@2.0.7` (optional) — https://github.com/DefinitelyTyped/DefinitelyTyped
 - `@types/webxr@0.5.5` — https://github.com/DefinitelyTyped/DefinitelyTyped
 - `adm-zip@0.6.1` — https://github.com/cthackers/adm-zip
-- `autoprefixer@10.6.1` — https://github.com/postcss/autoprefixer
+- `autoprefixer@10.5.4` — https://github.com/postcss/autoprefixer
 - `balanced-match@1.0.0` — https://github.com/juliangruber/balanced-match
 - `brace-expansion@1.1.21` — https://github.com/juliangruber/brace-expansion
 - `browserslist@4.28.7` — https://github.com/browserslist/browserslist
@@ -131,22 +131,22 @@ None of the Apache-2.0 dependencies in this closure publishes a top-level `NOTIC
 - `interpret@1.4.0` — https://github.com/gulpjs/interpret
 - `iota-array@1.0.0` — https://github.com/mikolalysenko/iota-array
 - `is-buffer@1.1.6` — https://github.com/feross/is-buffer
-- `is-core-module@2.17.0` — https://github.com/inspect-js/is-core-module
+- `is-core-module@2.16.2` — https://github.com/inspect-js/is-core-module
 - `js-yaml@4.3.2` — https://github.com/nodeca/js-yaml
 - `lodash.clonedeep@4.5.0` — https://github.com/lodash/lodash
 - `loglevel@1.9.2` — https://github.com/pimterry/loglevel
 - `nanoid@3.3.18` — https://github.com/ai/nanoid
 - `ndarray@1.0.19` — https://github.com/mikolalysenko/ndarray
-- `node-releases@2.0.58` — https://github.com/chicoxyzzy/node-releases
+- `node-releases@2.0.53` — https://github.com/chicoxyzzy/node-releases
 - `path-is-absolute@1.0.1` — https://github.com/sindresorhus/path-is-absolute
 - `path-parse@1.0.7` — https://github.com/jbgutierrez/path-parse
 - `postcss@8.5.29` — https://github.com/postcss/postcss
 - `postcss-value-parser@4.2.0` — https://github.com/TrySound/postcss-value-parser
 - `rechoir@0.6.2` — https://github.com/tkellen/node-rechoir
-- `resolve@1.22.13` — https://github.com/browserify/resolve
+- `resolve@1.22.12` — https://github.com/browserify/resolve
 - `seedrandom@3.0.5` — https://github.com/davidbau/seedrandom
 - `supports-preserve-symlinks-flag@1.0.0` — https://github.com/inspect-js/node-supports-preserve-symlinks-flag
-- `update-browserslist-db@1.3.4` — https://github.com/browserslist/update-db
+- `update-browserslist-db@1.3.1` — https://github.com/browserslist/update-db
 - `utif@3.1.0` — https://github.com/photopea/UTIF.js
 - `uuid@11.1.1` — https://github.com/uuidjs/uuid
 - `webworker-promise@0.5.0` — https://github.com/kwolfy/webworker-promise

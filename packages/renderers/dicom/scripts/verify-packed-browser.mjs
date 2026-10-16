@@ -31,6 +31,35 @@ const script = fileURLToPath(import.meta.url)
 const sha256 = (path) => createHash('sha256').update(readFileSync(path)).digest('hex')
 const writeJson = (path, value) => writeFileSync(path, JSON.stringify(value, null, 2) + '\n')
 
+export function collectInstalledCodecWasmHashes(runtimePath, files) {
+  const hashes = new Set()
+  const collect = bytes => {
+    assert.ok(WebAssembly.validate(bytes), 'Installed codec payload is not valid WebAssembly')
+    hashes.add(createHash('sha256').update(bytes).digest('hex'))
+  }
+  for (const name of Object.keys(files)) {
+    if (!/\.(?:wasm|js)$/.test(name)) continue
+    const bytes = readFileSync(containedPath(runtimePath, join(runtimePath, name)))
+    if (name.endsWith('.wasm')) collect(bytes)
+    else for (const match of bytes.toString().matchAll(/data:application\/wasm;base64,([A-Za-z0-9+/=]+)/g))
+      collect(Buffer.from(match[1], 'base64'))
+  }
+  return [...hashes]
+}
+
+export function assertReviewedCodecWasmSet(bundled, provenance, installedHashes) {
+  const expected = provenance.wrapperArtifacts.map(artifact => {
+    const decoders = artifact.files.filter(file => /(?:_decode|openjphjs)\.wasm$/.test(file.path))
+    assert.equal(decoders.length, 1, `Expected one reviewed decoder for ${artifact.name}`)
+    assert.match(decoders[0].sha256, /^[a-f0-9]{64}$/)
+    return decoders[0].sha256
+  }).sort()
+  assert.ok(expected.length > 0, 'The reviewed decoder inventory must not be empty')
+  assert.equal(new Set(expected).size, expected.length, 'Reviewed decoders must have distinct hashes')
+  assert.deepEqual([...bundled.reviewedWasmHashes].sort(), expected, 'Bundled decoder claims differ from the reviewed provenance')
+  assert.deepEqual([...installedHashes].sort(), expected, 'Installed decoder bytes differ from the complete reviewed set')
+}
+
 // Start a new Node process with these values removed: clearing process.env after
 // startup cannot undo NODE_OPTIONS preloads or Node's initialized search paths.
 export function cleanEnvironment(environment) {
@@ -82,20 +111,13 @@ export function containedPath(directory, path) {
 export function installedPackage(consumer, name, version) {
   const require = createRequire(join(consumer, 'package.json'))
   let resolved
-  try {
-    resolved = require.resolve(name)
-  } catch (error) {
+  try { resolved = require.resolve(name) }
+  catch (error) {
     if (error.code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED') throw error
-    const manifestPath = containedPath(
-      join(consumer, 'node_modules'),
-      require.resolve(`${name}/package.json`)
-    )
+    const manifestPath = containedPath(join(consumer, 'node_modules'), require.resolve(`${name}/package.json`))
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
     const exported = manifest.exports?.['.']?.import
-    assert.ok(
-      typeof exported === 'string' && exported.startsWith('./'),
-      `Missing ESM package entry: ${name}`
-    )
+    assert.ok(typeof exported === 'string' && exported.startsWith('./'), `Missing ESM package entry: ${name}`)
     resolved = resolve(dirname(manifestPath), exported)
   }
   const entry = containedPath(join(consumer, 'node_modules'), resolved)
@@ -350,90 +372,33 @@ async function verifyPackedBrowser(output) {
         'The ordinary consumer must have zero audit findings'
       )
     }
-    const deflatedSource = buildPart10({
-      frames: 1,
-      instanceSuffix: 98,
-      transferSyntax: '1.2.840.10008.1.2.1.99'
-    })
-    const metaLength = new DataView(
-      deflatedSource.buffer,
-      deflatedSource.byteOffset,
-      deflatedSource.byteLength
-    ).getUint32(140, true)
+    const deflatedSource = buildPart10({ frames: 1, instanceSuffix: 98, transferSyntax: '1.2.840.10008.1.2.1.99' })
+    const metaLength = new DataView(deflatedSource.buffer, deflatedSource.byteOffset, deflatedSource.byteLength).getUint32(140, true)
     const dataSetOffset = 144 + metaLength
     const deflatedPath = join(output, 'deflated-explicit-vr-le.dcm')
-    writeFileSync(
-      deflatedPath,
-      Buffer.concat([
-        deflatedSource.subarray(0, dataSetOffset),
-        deflateRawSync(deflatedSource.subarray(dataSetOffset))
-      ])
-    )
+    writeFileSync(deflatedPath, Buffer.concat([deflatedSource.subarray(0, dataSetOffset), deflateRawSync(deflatedSource.subarray(dataSetOffset))]))
     const fixturePaths = [
       ['ct-small.dcm', join(root, 'apps/viewer-demo/public/example/ct-small.dcm')],
       ['deflated-explicit-vr-le.dcm', deflatedPath],
-      ...[
-        'single-frame.dcm',
-        'multiframe.dcm',
-        'implicit-vr-little-endian.dcm',
-        'jpeg-lossless-process-14-sv1.dcm',
-        'pydicom-693-jpeg2000-lossless.dcm',
-        'pydicom-jpegls-lossless.dcm'
-      ].map((name) => [name, join(root, 'test/fixtures/dicom', name)])
+      ...['single-frame.dcm', 'multiframe.dcm', 'implicit-vr-little-endian.dcm',
+        'jpeg-lossless-process-14-sv1.dcm', 'pydicom-693-jpeg2000-lossless.dcm',
+        'pydicom-jpegls-lossless.dcm'].map(name => [name, join(root, 'test/fixtures/dicom', name)])
     ]
-    report.fixtures = Object.fromEntries(
-      fixturePaths.map(([name, path]) => [
-        name,
-        {
-          sha256: sha256(path),
-          bytes: statSync(path).size
-        }
-      ])
-    )
+    report.fixtures = Object.fromEntries(fixturePaths.map(([name, path]) => [name, {
+      sha256: sha256(path), bytes: statSync(path).size
+    }]))
     for (const [name, path] of fixturePaths) copyFileSync(path, join(consumer, 'public', name))
     const runtimePath = join(consumer, 'node_modules/@file-viewer/renderer-dicom/dist')
     const bundled = JSON.parse(readFileSync(join(runtimePath, 'bundled-runtime.json'), 'utf8'))
     assert.equal(bundled.packageVersion, versions['renderer-dicom'])
     for (const [name, record] of Object.entries(bundled.files)) {
-      assert.equal(
-        sha256(join(runtimePath, name)),
-        record.sha256,
-        `Installed runtime bytes changed: ${name}`
-      )
+      assert.equal(sha256(join(runtimePath, name)), record.sha256, `Installed runtime bytes changed: ${name}`)
     }
-    const installedProvenance = JSON.parse(
-      readFileSync(join(runtimePath, '../third-party/native-codecs/PROVENANCE.json'), 'utf8')
-    )
-    assert.equal(
-      installedProvenance.wrapperArtifacts.length,
-      5,
-      'Exactly five reviewed codecs are required'
-    )
-    const expectedWasmHashes = installedProvenance.wrapperArtifacts.map((artifact) => {
-      const wasm = artifact.files.filter((file) => /(?:_decode|openjphjs)\.wasm$/.test(file.path))
-      assert.equal(wasm.length, 1, 'Each reviewed codec must identify one decoder WASM')
-      return wasm[0].sha256
-    })
-    assert.deepEqual(
-      [...bundled.reviewedWasmHashes].sort(),
-      expectedWasmHashes.sort(),
-      'Every reviewed decoder WASM must match the actual bundled byte proof'
-    )
-    assert.ok(
-      bundled.packages.every(
-        (p) =>
-          p.license &&
-          /^[a-f0-9]{64}$/.test(p.packageJsonSha256) &&
-          Object.keys(p.licenseFiles).length > 0
-      ),
-      'Every bundled input must record its declared license and actual license text hash'
-    )
-    report.bundledRuntime = {
-      manifestSha256: sha256(join(runtimePath, 'bundled-runtime.json')),
-      packages: bundled.packages,
-      reviewedWasmHashes: bundled.reviewedWasmHashes,
-      filesVerified: Object.keys(bundled.files).length
-    }
+    assertReviewedCodecWasmSet(bundled,
+      JSON.parse(readFileSync(join(root, 'packages/renderers/dicom/third-party/native-codecs/PROVENANCE.json'), 'utf8')),
+      collectInstalledCodecWasmHashes(runtimePath, bundled.files))
+    assert.ok(bundled.packages.every(p => p.license && /^[a-f0-9]{64}$/.test(p.packageJsonSha256) && Object.keys(p.licenseFiles).length > 0), 'Every bundled input must record its declared license and actual license text hash')
+    report.bundledRuntime = { manifestSha256: sha256(join(runtimePath, 'bundled-runtime.json')), packages: bundled.packages, reviewedWasmHashes: bundled.reviewedWasmHashes, filesVerified: Object.keys(bundled.files).length }
     writeFileSync(
       join(consumer, 'index.html'),
       '<!doctype html><html><body><div id="viewer" style="width:480px;height:560px"></div><script type="module" src="/main.js"></script></body></html>'
@@ -529,41 +494,26 @@ window.dicomPacked = {
             result.fixtures.push(proof)
             page = await browser.newPage()
             page.setDefaultTimeout(30_000)
-            page.on('pageerror', (error) => result.errors.push(error.message))
-            page.on('console', (message) => {
-              if (message.type() === 'error' && message.text() !== 'Invalid vr type ox - using OW')
-                result.errors.push(message.text())
+            page.on('pageerror', error => result.errors.push(error.message))
+            page.on('console', message => {
+              if (message.type() === 'error' && message.text() !== 'Invalid vr type ox - using OW') result.errors.push(message.text())
             })
             await page.goto(`http://127.0.0.1:${server.address().port}`)
             await page.waitForFunction(() => Boolean(window.dicomPacked))
-            await page.evaluate((fixture) => window.dicomPacked.render(fixture), fixture)
+            await page.evaluate(fixture => window.dicomPacked.render(fixture), fixture)
             await retainRenderedPixels(page, proof)
-            await retainRenderedScreenshot(
-              page,
-              proof,
-              join(output, fixture === 'ct-small.dcm' ? `${name}.png` : `${name}-${fixture}.png`)
-            )
+            await retainRenderedScreenshot(page, proof, join(output, fixture === 'ct-small.dcm' ? `${name}.png` : `${name}-${fixture}.png`))
             if (fixture === 'ct-small.dcm') {
               result.pixels = proof.pixels
               result.screenshot = proof.screenshot
             }
             if (['multiframe.dcm', 'jpeg-lossless-process-14-sv1.dcm'].includes(fixture)) {
               await page.locator('#viewer button[aria-label="Next frame"]').click()
-              await page.waitForFunction(
-                () => document.querySelector('#viewer .dicom-viewer')?.dataset.currentFrame === '2'
-              )
+              await page.waitForFunction(() => document.querySelector('#viewer .dicom-viewer')?.dataset.currentFrame === '2')
               const next = {}
               await retainRenderedPixels(page, next)
-              await retainRenderedScreenshot(
-                page,
-                next,
-                join(output, `${name}-${fixture}-frame2.png`)
-              )
-              assert.notEqual(
-                next.screenshot.imageSha256,
-                proof.screenshot.imageSha256,
-                `${fixture} navigation must change captured image pixels`
-              )
+              await retainRenderedScreenshot(page, next, join(output, `${name}-${fixture}-frame2.png`))
+              assert.notEqual(next.screenshot.imageSha256, proof.screenshot.imageSha256, `${fixture} navigation must change captured image pixels`)
               proof.nextFrame = next
             }
             assert.equal(await page.evaluate(() => window.dicomPacked.destroy()), true)

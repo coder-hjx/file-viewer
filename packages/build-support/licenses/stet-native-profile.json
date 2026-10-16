@@ -1,0 +1,229 @@
+{
+  "profile": "stet-conservative-lock",
+  "lock": "packages/renderers/design/source/postscript/Cargo.lock",
+  "output": "packages/renderers/design/LICENSES/Stet_NATIVE_THIRD_PARTY_LICENSES.json",
+  "runtimeFiles": [
+    "packages/renderers/design/runtime/postscript/stet_wasm_bg.wasm"
+  ],
+  "source": {
+    "repository": "https://github.com/AndyCappDev/stet",
+    "commit": "3aaf0a76ebd0f9129a715dfa10614d8871d8e965",
+    "includesCoveredModifications": false,
+    "scope": "Public original Stet/fork grants and exact locked public crate profile; browser integration modifications are privately maintained."
+  },
+  "localPublicPackages": [
+    {
+      "name": "stet-core",
+      "version": "0.7.0",
+      "declaredLicense": "Apache-2.0 OR MIT",
+      "sourceCommit": "3aaf0a76ebd0f9129a715dfa10614d8871d8e965",
+      "source": "https://github.com/AndyCappDev/stet/tree/3aaf0a76ebd0f9129a715dfa10614d8871d8e965/crates/stet-core",
+      "legalFiles": [
+        {
+          "name": "LICENSE-APACHE",
+          "path": "packages/build-support/licenses/native/crates__stet-core__LICENSE-APACHE",
+          "sha256": "281755c6f4d045a464a29eb720c3e7586175c621352675dce144ca74bd1228cb"
+        },
+        {
+          "name": "LICENSE-MIT",
+          "path": "packages/build-support/licenses/native/crates__stet-core__LICENSE-MIT",
+          "sha256": "4e27c8bbd00f817fb6fb96e8ca8eada8f0983a50a38fe3114ba8f977d31f654b"
+        }
+      ]
+    },
+    {
+      "name": "stet-engine",
+      "version": "0.7.0",
+      "declaredLicense": "Apache-2.0 OR MIT",
+      "sourceCommit": "3aaf0a76ebd0f9129a715dfa10614d8871d8e965",
+      "source": "https://github.com/AndyCappDev/stet/tree/3aaf0a76ebd0f9129a715dfa10614d8871d8e965/crates/stet-engine",
+      "legalFiles": [
+        {
+          "name": "LICENSE-APACHE",
+          "path": "packages/build-support/licenses/native/crates__stet-engine__LICENSE-APACHE",
+          "sha256": "281755c6f4d045a464a29eb720c3e7586175c621352675dce144ca74bd1228cb"
+        },
+        {
+          "name": "LICENSE-MIT",
+          "path": "packages/build-support/licenses/native/crates__stet-engine__LICENSE-MIT",
+          "sha256": "4e27c8bbd00f817fb6fb96e8ca8eada8f0983a50a38fe3114ba8f977d31f654b"
+        }
+      ]
+    },
+    {
+      "name": "stet-fonts",
+      "version": "0.7.0",
+      "declaredLicense": "Apache-2.0 OR MIT",
+      "sourceCommit": "3aaf0a76ebd0f9129a715dfa10614d8871d8e965",
+      "source": "https://github.com/AndyCappDev/stet/tree/3aaf0a76ebd0f9129a715dfa10614d8871d8e965/crates/stet-fonts",
+      "legalFiles": [
+        {
+          "name": "LICENSE-APACHE",
+          "path": "packages/build-support/licenses/native/crates__stet-fonts__LICENSE-APACHE",
+          "sha256": "281755c6f4d045a464a29eb720c3e7586175c621352675dce144ca74bd1228cb"
+        },
+        {
+          "name": "LICENSE-MIT",
+          "path": "packages/build-support/licenses/native/crates__stet-fonts__LICENSE-MIT",
+          "sha256": "4e27c8bbd00f817fb6fb96e8ca8eada8f0983a50a38fe3114ba8f977d31f654b"
+        }
+      ]
+    },
+    {
+      "name": "stet-graphics",
+      "version": "0.7.0",
+      "declaredLicense": "Apache-2.0 OR MIT",
+      "sourceCommit": "3aaf0a76ebd0f9129a715dfa10614d8871d8e965",
+      "source": "https://github.com/AndyCappDev/stet/tree/3aaf0a76ebd0f9129a715dfa10614d8871d8e965/crates/stet-graphics",
+      "legalFiles": [
+        {
+          "name": "LICENSE-APACHE",
+          "path": "packages/build-support/licenses/native/crates__stet-graphics__LICENSE-APACHE",
+          "sha256": "281755c6f4d045a464a29eb720c3e7586175c621352675dce144ca74bd1228cb"
+        },
+        {
+          "name": "LICENSE-MIT",
+          "path": "packages/build-support/licenses/native/crates__stet-graphics__LICENSE-MIT",
+          "sha256": "4e27c8bbd00f817fb6fb96e8ca8eada8f0983a50a38fe3114ba8f977d31f654b"
+        }
+      ]
+    },
+    {
+      "name": "stet-ops",
+      "version": "0.7.0",
+      "declaredLicense": "Apache-2.0 OR MIT",
+      "sourceCommit": "3aaf0a76ebd0f9129a715dfa10614d8871d8e965",
+      "source": "https://github.com/AndyCappDev/stet/tree/3aaf0a76ebd0f9129a715dfa10614d8871d8e965/crates/stet-ops",
+      "legalFiles": [
+        {
+          "name": "LICENSE-APACHE",
+          "path": "packages/build-support/licenses/native/crates__stet-ops__LICENSE-APACHE",
+          "sha256": "281755c6f4d045a464a29eb720c3e7586175c621352675dce144ca74bd1228cb"
+        },
+        {
+          "name": "LICENSE-MIT",
+          "path": "packages/build-support/licenses/native/crates__stet-ops__LICENSE-MIT",
+          "sha256": "4e27c8bbd00f817fb6fb96e8ca8eada8f0983a50a38fe3114ba8f977d31f654b"
+        }
+      ]
+    },
+    {
+      "name": "stet-pdf-reader",
+      "version": "0.7.0",
+      "declaredLicense": "Apache-2.0 OR MIT",
+      "sourceCommit": "3aaf0a76ebd0f9129a715dfa10614d8871d8e965",
+      "source": "https://github.com/AndyCappDev/stet/tree/3aaf0a76ebd0f9129a715dfa10614d8871d8e965/crates/stet-pdf-reader",
+      "legalFiles": [
+        {
+          "name": "LICENSE-APACHE",
+          "path": "packages/build-support/licenses/native/crates__stet-pdf-reader__LICENSE-APACHE",
+          "sha256": "281755c6f4d045a464a29eb720c3e7586175c621352675dce144ca74bd1228cb"
+        },
+        {
+          "name": "LICENSE-MIT",
+          "path": "packages/build-support/licenses/native/crates__stet-pdf-reader__LICENSE-MIT",
+          "sha256": "4e27c8bbd00f817fb6fb96e8ca8eada8f0983a50a38fe3114ba8f977d31f654b"
+        }
+      ]
+    },
+    {
+      "name": "stet-render",
+      "version": "0.7.0",
+      "declaredLicense": "Apache-2.0 OR MIT",
+      "sourceCommit": "3aaf0a76ebd0f9129a715dfa10614d8871d8e965",
+      "source": "https://github.com/AndyCappDev/stet/tree/3aaf0a76ebd0f9129a715dfa10614d8871d8e965/crates/stet-render",
+      "legalFiles": [
+        {
+          "name": "LICENSE-APACHE",
+          "path": "packages/build-support/licenses/native/crates__stet-render__LICENSE-APACHE",
+          "sha256": "281755c6f4d045a464a29eb720c3e7586175c621352675dce144ca74bd1228cb"
+        },
+        {
+          "name": "LICENSE-MIT",
+          "path": "packages/build-support/licenses/native/crates__stet-render__LICENSE-MIT",
+          "sha256": "4e27c8bbd00f817fb6fb96e8ca8eada8f0983a50a38fe3114ba8f977d31f654b"
+        }
+      ]
+    },
+    {
+      "name": "stet-tiny-skia",
+      "version": "0.11.4",
+      "declaredLicense": "BSD-3-Clause",
+      "sourceCommit": "3aaf0a76ebd0f9129a715dfa10614d8871d8e965",
+      "source": "https://github.com/AndyCappDev/stet/tree/3aaf0a76ebd0f9129a715dfa10614d8871d8e965/crates/stet-tiny-skia",
+      "legalFiles": [
+        {
+          "name": "LICENSE",
+          "path": "packages/build-support/licenses/native/crates__stet-tiny-skia__LICENSE",
+          "sha256": "6d41e05f1d54fe726997cb0334ec539f1dff50600b1d5d90462ec2b392770ced"
+        }
+      ]
+    },
+    {
+      "name": "stet-tiny-skia-path",
+      "version": "0.11.4",
+      "declaredLicense": "BSD-3-Clause",
+      "sourceCommit": "3aaf0a76ebd0f9129a715dfa10614d8871d8e965",
+      "source": "https://github.com/AndyCappDev/stet/tree/3aaf0a76ebd0f9129a715dfa10614d8871d8e965/crates/stet-tiny-skia-path",
+      "legalFiles": [
+        {
+          "name": "LICENSE",
+          "path": "packages/build-support/licenses/native/crates__stet-tiny-skia-path__LICENSE",
+          "sha256": "6d41e05f1d54fe726997cb0334ec539f1dff50600b1d5d90462ec2b392770ced"
+        }
+      ]
+    },
+    {
+      "name": "stet-wasm",
+      "version": "0.2.0",
+      "declaredLicense": "Apache-2.0 OR MIT",
+      "sourceCommit": "3aaf0a76ebd0f9129a715dfa10614d8871d8e965",
+      "source": "https://github.com/AndyCappDev/stet/tree/3aaf0a76ebd0f9129a715dfa10614d8871d8e965/crates/stet-wasm",
+      "legalFiles": [
+        {
+          "name": "LICENSE-APACHE",
+          "path": "packages/build-support/licenses/native/crates__stet-wasm__LICENSE-APACHE",
+          "sha256": "281755c6f4d045a464a29eb720c3e7586175c621352675dce144ca74bd1228cb"
+        },
+        {
+          "name": "LICENSE-MIT",
+          "path": "packages/build-support/licenses/native/crates__stet-wasm__LICENSE-MIT",
+          "sha256": "4e27c8bbd00f817fb6fb96e8ca8eada8f0983a50a38fe3114ba8f977d31f654b"
+        }
+      ]
+    }
+  ],
+  "supplements": {
+    "hayro-ccitt@0.2.0": {
+      "name": "Original fixed-commit upstream LICENSE-MIT",
+      "path": "packages/build-support/licenses/native/hayro-ccitt-LICENSE-MIT.txt",
+      "sha256": "ecdb501c87ec79fd92f3db9601cbe1a023a736d50fcf433c527a5b1950c60027"
+    },
+    "hayro-jbig2@0.1.0": {
+      "name": "Original fixed-commit upstream LICENSE-MIT",
+      "path": "packages/build-support/licenses/native/hayro-jbig2-LICENSE-MIT.txt",
+      "sha256": "ecdb501c87ec79fd92f3db9601cbe1a023a736d50fcf433c527a5b1950c60027"
+    }
+  },
+  "standardLibrary": {
+    "version": "1.88.0",
+    "scope": "Original Rust project/standard library grants for declared build profile; no post-link symbols claim.",
+    "legalFiles": [
+      {
+        "name": "rust188-MIT.txt",
+        "path": "packages/build-support/licenses/native/rust188-MIT.txt",
+        "sha256": "b71bd43a069ca0641a9ecfe585ca7b3c53b5cc1608f8b68321168698e28b5ea1"
+      },
+      {
+        "name": "rust188-Apache.txt",
+        "path": "packages/build-support/licenses/native/rust188-Apache.txt",
+        "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+      },
+      {
+        "name": "rust188-COPYRIGHT.txt",
+        "path": "packages/build-support/licenses/native/rust188-COPYRIGHT.txt",
+        "sha256": "172020dbfd5b53a226dfde77616190a48dcff519b0bc0e6deb91a8450782c4af"
+      }
+    ]
+  }
+}
