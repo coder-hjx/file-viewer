@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto'
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import { sanitizeOfflineAssetText } from '../components/web-full/scripts/offline-asset-sanitize.mjs'
-import { removeRuntimeSourceReferences } from '../../scripts/lib/runtime-only-javascript.mjs'
+import { removeRuntimeSourceReferences } from './runtime-only-javascript.mjs'
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex')
 const workspace = resolve(import.meta.dirname, '../..')

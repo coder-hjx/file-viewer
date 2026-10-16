@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import test from 'node:test'
-import { loadEcosystemReleaseContext } from '../../scripts/lib/ecosystem-packages.mjs'
+import { loadEcosystemReleaseContext } from './workspace-packages.mjs'
 import { canonicalRuntimePath } from './shared-asset-attribution.mjs'
 
 const root = resolve(import.meta.dirname, '../..')

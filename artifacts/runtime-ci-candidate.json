@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "8cf8e2795300ada3bb27a090c786bdf2d0211ae4",
+  "manifestSha256": "759717dac3c87ba10354d21507dbb19a0d72af2bb6577326c2435105fbc7d4bb",
+  "tag": "v3.2.1-candidate-759717dac3c8",
+  "registrySupport": [
+    {
+      "packageName": "@file-viewer/docx",
+      "version": "0.3.35",
+      "tarball": "file-viewer-docx-0.3.35.tgz",
+      "tarballSize": 708577,
+      "sha256": "2488fcdf65a22ac5355c734dbbfa9c5301276def543a209fd1045e7d0730448d",
+      "integrity": "sha512-uRwa3P3UXkEOWn5mMKXCagC6cM/IfP52G+WzIekAS/ASQX8gNP/a0LFcj0CGhPiNd9CnJ06plO8wm8qswfdr0w=="
+    },
+    {
+      "packageName": "styled-exceljs",
+      "version": "0.21.6",
+      "tarball": "styled-exceljs-0.21.6.tgz",
+      "tarballSize": 2629444,
+      "sha256": "4aa2800a2d4e286bf9c06db866a26796a719b848ad9ba2f4eb3ff836a813eba7",
+      "integrity": "sha512-n3lHSH5rKn7wlu6+rBIv1/anXDDJd1+IAWI60iCfXW9QlYRDHQDEN6P2Vq9b/6TxT+hUiLTNFy9Hoo0TGk5t8g=="
+    },
+    {
+      "packageName": "@file-viewer/ppt",
+      "version": "0.3.6",
+      "tarball": "file-viewer-ppt-0.3.6.tgz",
+      "tarballSize": 14324993,
+      "sha256": "de8a4ff89249846e7fbed4973d121ca9f2ac550b5effb26fd876c61dfae2735c",
+      "integrity": "sha512-nl3Cwu7uIPVi4mHfD8aOzsbjIPJCqUSaSJxig/2V7T+qsZbGX/EZT1Txgmae8oPjsA4N3fychETyMXk5L9xCDw=="
+    }
+  ],
+  "productionAuditPayloadSha256": {
+    "web-standard": "126327c0620ae2512f890c59764b34fcccd2546dac6d1c54ce6b112270f69ec3",
+    "web-full": "be36b3f6e2232379d58a0a5d2b9741ada71980ce588e3f114c840579aeb88176",
+    "vue3-standard": "6858ceddc2430632090d88f40124768980517f5494a79da03786e6f1c3d29281",
+    "vue3-full": "d945867c6806edc63b64eb72815dff49d1253c2676767c6922060dde8f7ce617",
+    "vue2.7-standard": "f667433e9f3ea8237d99fa29e50de5629e4673d72380d97d82ba55661d35cb1b",
+    "vue2.7-full": "c0d813d8b50a2f4057e9ad541b9b71f6ce3d5f42633ba2f2f6de3672db925274",
+    "vue2.6-standard": "0fec925925ab5282432134b86b56ddd1cdc68f0b93288ea420b52335e85e2d74",
+    "vue2.6-full": "83a96bd9a52fac75e289104539014b403fc1fc02d0c1b05dcd08fc32d68fc7c1",
+    "react-standard": "d4a68616352f460f7c817336ee73ec59f64029e423952ddc72ff569d0a93259f",
+    "react-full": "be3e77b457bf3d1a19be6343fe5d7d14ab93b616227cb88bbd59ddbc702169e9",
+    "react-legacy-standard": "18cfafde3feae2e63c3c1f7daf502a02aa5f822efe710e22b6958b63689e1480",
+    "react-legacy-full": "bddfb2f51237bb44062bfe3f67f816a04b7a65d704be6cec5f1bc401d23079be",
+    "svelte-standard": "0b78b6adfcc96136139f37363b8ef7c3b6e89afda0180e9095ad01dac0a4dedc",
+    "svelte-full": "fe8d16ddef4311b02bf4bcf3ece4d5489de351fc1a0357c3f6e2b6e3d1c5f4a7",
+    "jquery-standard": "ecdf1af8d426a5afd9f70f746596421c91c750c54003a83e048aba1053ea8c51",
+    "jquery-full": "fb23659885d3a252d94d157528d7b22e82c59272d83e1292f5a929256c516720"
+  }
+}

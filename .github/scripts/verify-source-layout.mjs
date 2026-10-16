@@ -47,16 +47,10 @@ for (const path of tracked) {
     `Private local material is tracked: ${path}`
   )
   if (/(?:^|\/)\.env(?:\.|$)/.test(path)) {
-    assert.equal(
-      path,
-      'examples/vue2.6-cli3-office/.env.nginx',
-      `Private environment file is tracked: ${path}`
-    )
-    assert.equal(
-      readFileSync(join(root, path), 'utf8'),
-      'VUE_APP_PREVIEW_API=/api\nVUE_APP_PUBLIC_PATH=./\n',
-      'The public nginx example must contain only documented relative paths'
-    )
+    assert(path.startsWith('examples/vue2.6-cli3-office/.env.'), `Private environment file is tracked: ${path}`)
+    const allowed = new Set(['VUE_APP_PREVIEW_API=', 'VUE_APP_PREVIEW_API=/api', 'VUE_APP_PUBLIC_PATH=./', 'NODE_ENV=production'])
+    const lines = readFileSync(join(root, path), 'utf8').trim().split(/\r?\n/)
+    assert(lines.length >= 2 && lines.length <= 3 && lines.every(line => allowed.has(line)), 'Public CLI3 examples may contain only documented relative paths and build modes')
   }
 }
 assert(

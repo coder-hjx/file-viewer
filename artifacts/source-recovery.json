@@ -22,5 +22,8 @@
   },
   "privateEvidenceIncluded": false,
   "credentialsIncluded": false,
-  "newNpmOrReleasePublication": false
+  "newNpmOrReleasePublication": false,
+  "mainHistoryResetTo": "c4087cc6a3911cfaa9818b0db25893be21bc3be1",
+  "incorrectRuntimeHistoryMerged": false,
+  "historicalBackupBranch": "backup/public-main-before-source-reset-20261016"
 }

@@ -1,4 +1,4 @@
-import { removeRuntimeSourceReferences } from '../../../../scripts/lib/runtime-only-javascript.mjs'
+import { removeRuntimeSourceReferences } from '../../../build-support/runtime-only-javascript.mjs'
 
 export const pdfJsRuntimeIsolationTransform = 'isolate-pdfjs-webpack4-runtime-v2'
 export const pdfJsRuntimeModificationNotice =

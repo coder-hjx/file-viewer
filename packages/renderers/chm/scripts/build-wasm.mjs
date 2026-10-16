@@ -3,8 +3,8 @@ import { access, mkdir, readFile, rm } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { brotliCompressSync, constants as zlibConstants } from 'node:zlib'
-import { distributionMode } from '../../../../scripts/lib/distribution-mode.mjs'
-import { runtimeOnlyRustBuildEnvironment } from '../../../../scripts/lib/runtime-only-rust.mjs'
+import { distributionMode } from '../../../build-support/distribution-mode.mjs'
+import { runtimeOnlyRustBuildEnvironment } from '../../../build-support/runtime-only-rust.mjs'
 
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const rustDir = resolve(packageDir, 'rust')
