@@ -816,6 +816,9 @@
 .support-footer {
   margin-top: 0;
 }
+.workflow-grid > .band {
+  max-width: 100%;
+}
 .workflow-grid .section-heading > p:last-child,
 .workflow-grid .ecosystem-copy > p:not(.section-kicker) {
   max-width: 62ch;
@@ -824,6 +827,7 @@
   line-height: 1.7;
 }
 .workflow-grid .section-kicker {
+  margin-top: 0;
   color: var(--precision-green-dark);
   font-size: 0.75rem;
   line-height: 1.5;
@@ -832,7 +836,9 @@
   flex-wrap: wrap;
   overflow: visible;
   gap: 6px;
-  padding-bottom: 16px;
+  margin-inline: 0;
+  padding: 0 0 16px;
+  scroll-snap-type: none;
 }
 .quickstart-tab {
   min-width: 0;
@@ -856,13 +862,13 @@
   color: var(--precision-green-dark);
 }
 .quickstart-tab:focus-visible,
-.quickstart-panel pre:focus-visible {
+.quickstart-panel pre:focus-visible,
+.quickstart-dots button:focus-visible {
   outline: 2px solid var(--precision-green);
   outline-offset: -2px;
 }
 .quickstart-header {
-  flex-direction: row;
-  flex-wrap: wrap;
+  flex-flow: row wrap;
   gap: 12px;
   padding: 16px 20px;
 }
@@ -882,15 +888,45 @@
   line-height: 1.5;
 }
 .quickstart-header a {
+  width: auto;
   min-height: 44px;
 }
 .quickstart-footer {
+  flex-flow: row wrap;
+  gap: 12px;
   padding: 16px 20px;
 }
 .quickstart-footer > span {
-  max-width: 68ch;
+  flex: 1 1 26rem;
   font-size: 0.875rem;
   line-height: 1.6;
+}
+.quickstart-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.quickstart-dots button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+.quickstart-dots button::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 6px;
+  background: var(--site-muted);
+  content: '';
+}
+.quickstart-dots button.is-active::before {
+  width: 18px;
+  background: var(--precision-green-dark);
 }
 .quickstart-track {
   display: block;
@@ -904,6 +940,7 @@
   min-height: 18rem;
   max-height: 26rem;
   padding: 20px;
+  overflow: auto;
   overscroll-behavior: contain;
   scrollbar-color: var(--site-muted) transparent;
   scrollbar-width: thin;

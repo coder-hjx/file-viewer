@@ -1,6 +1,6 @@
 {
   "name": "@file-viewer/vite-plugin",
-  "version": "3.1.2",
+  "version": "3.2.1",
   "private": false,
   "type": "module",
   "description": "Vite plugin for File Viewer on-demand renderer assembly, chunk planning, and offline asset deployment.",
@@ -55,7 +55,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -b tsconfig.json && node --test scripts/interop-chunks.test.mjs",
+    "build": "tsc -b tsconfig.json && node --test scripts/interop-chunks.test.mjs scripts/full-split-assets.test.mjs scripts/format-selection.test.mjs",
     "type-check": "tsc -b tsconfig.json",
     "verify:github-242": "pnpm build && node scripts/verify-github-242.mjs && node scripts/verify-github-242-copy.mjs",
     "verify:github-257": "pnpm build && node scripts/verify-github-257.mjs",

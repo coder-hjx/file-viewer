@@ -46,18 +46,15 @@ async function optionalJson(path) {
     throw error
   }
 }
-async function installedFiles(directory, prefix = '', label = 'DOCX') {
+async function installedFiles(directory, prefix = '') {
   const files = []
   for (const entry of await readdir(join(directory, prefix), { withFileTypes: true })) {
     if (!prefix && entry.name === 'node_modules') continue
     const path = prefix ? `${prefix}/${entry.name}` : entry.name
-    assert.ok(
-      !entry.isSymbolicLink(),
-      `Unexpected link in installed ${label} distribution: ${path}`
-    )
-    if (entry.isDirectory()) files.push(...(await installedFiles(directory, path, label)))
+    assert.ok(!entry.isSymbolicLink(), `Unexpected link in installed DOCX distribution: ${path}`)
+    if (entry.isDirectory()) files.push(...(await installedFiles(directory, path)))
     else {
-      assert.ok(entry.isFile(), `Unexpected installed ${label} entry: ${path}`)
+      assert.ok(entry.isFile(), `Unexpected installed DOCX entry: ${path}`)
       files.push(path)
     }
   }
@@ -66,23 +63,13 @@ async function installedFiles(directory, prefix = '', label = 'DOCX') {
 
 // This reads public registry bytes only. Nothing is extracted into, patched in,
 // or repacked from the production package. tar writes exclusively to stdout.
-async function withPublishedEngineArchive(
-  version,
-  run,
-  inspect,
-  {
-    packageName = docxPackage,
-    requiredEntries = ['package.json', 'dist/docx-preview.mjs', 'dist/docx-preview.worker.js']
-  } = {}
-) {
-  assert.ok([docxPackage, '@file-viewer/ppt'].includes(packageName), 'Unsupported published engine')
-  const label = packageName === docxPackage ? 'DOCX' : 'PPT'
+async function withPublishedDocxArchive(version, run, inspect) {
   assert.match(version, stableVersion)
-  const spec = `${packageName}@${version}`
+  const spec = `${docxPackage}@${version}`
   const metadata = JSON.parse(
     await run('npm', ['view', spec, 'version', 'dist', '--json', registry])
   )
-  assert.equal(metadata.version, version, `Registry ${label} version mismatch`)
+  assert.equal(metadata.version, version, 'Registry DOCX version mismatch')
   assert.match(
     metadata.dist?.integrity || '',
     /^sha512-[A-Za-z0-9+/]+={0,2}$/,
@@ -135,11 +122,13 @@ async function withPublishedEngineArchive(
     })
     assert.equal(new Set(entries).size, entries.length, 'Duplicate registry archive entries')
     assert.ok(
-      requiredEntries.every((entry) => entries.includes(entry)),
-      `Registry ${label} distribution is incomplete`
+      entries.includes('package.json') &&
+        entries.includes('dist/docx-preview.mjs') &&
+        entries.includes('dist/docx-preview.worker.js'),
+      'Registry DOCX distribution is incomplete'
     )
     return await inspect(archive, entries, {
-      package: packageName,
+      package: docxPackage,
       version,
       mode: 'published',
       integrity
@@ -149,47 +138,25 @@ async function withPublishedEngineArchive(
   }
 }
 
-export async function verifyPublishedEngineFiles({
-  directory,
-  version,
-  run,
-  packageName,
-  requiredEntries
-}) {
-  const label = packageName === '@file-viewer/ppt' ? 'PPT' : 'DOCX'
-  return withPublishedEngineArchive(
-    version,
-    run,
-    async (archive, entries, provenance) => {
-      assert.deepEqual(
-        await installedFiles(directory, '', label),
-        [...entries].sort(),
-        `Installed ${label} file set differs from the registry distribution`
+export async function verifyPublishedDocxFiles({ directory, version, run }) {
+  return withPublishedDocxArchive(version, run, async (archive, entries, provenance) => {
+    assert.deepEqual(
+      await installedFiles(directory),
+      [...entries].sort(),
+      'Installed DOCX file set differs from the registry distribution'
+    )
+    const sha256 = {}
+    for (const entry of entries) {
+      await assertSafeSourcePath(directory, entry)
+      const expected = await run('tar', ['-xOzf', archive, `package/${entry}`], true)
+      const actual = await readFile(join(directory, entry))
+      assert.ok(
+        actual.equals(Buffer.from(expected)),
+        `Installed DOCX ${entry} differs from the ordinary registry distribution`
       )
-      const sha256 = {}
-      for (const entry of entries) {
-        await assertSafeSourcePath(directory, entry)
-        const expected = await run('tar', ['-xOzf', archive, `package/${entry}`], true)
-        const actual = await readFile(join(directory, entry))
-        assert.ok(
-          actual.equals(Buffer.from(expected)),
-          `Installed ${label} ${entry} differs from the ordinary registry distribution`
-        )
-        sha256[entry] = createHash('sha256').update(actual).digest('hex')
-      }
-      return { ...provenance, sha256 }
-    },
-    { packageName, requiredEntries }
-  )
-}
-
-export async function verifyPublishedDocxFiles(options) {
-  return verifyPublishedEngineFiles({
-    directory: options.directory,
-    version: options.version,
-    run: options.run,
-    packageName: docxPackage,
-    requiredEntries: ['package.json', 'dist/docx-preview.mjs', 'dist/docx-preview.worker.js']
+      sha256[entry] = createHash('sha256').update(actual).digest('hex')
+    }
+    return { ...provenance, sha256 }
   })
 }
 
@@ -200,7 +167,7 @@ export async function readPublishedDocxEntry(
   entry,
   { run = commandRunner(defaultRoot) } = {}
 ) {
-  return withPublishedEngineArchive(version, run, async (archive, entries, provenance) => {
+  return withPublishedDocxArchive(version, run, async (archive, entries, provenance) => {
     assert.ok(entries.includes(entry), `Missing public DOCX baseline entry: ${entry}`)
     const bytes = Buffer.from(await run('tar', ['-xOzf', archive, `package/${entry}`], true))
     return {

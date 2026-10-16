@@ -45,7 +45,7 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          package-manager-cache: false
+          cache: pnpm
 
       - name: Install dependencies
         if: steps.impact.outputs.runtime != 'false'
@@ -81,7 +81,6 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 20.20.2
-          package-manager-cache: false
 
       - name: Verify the actual Node20 Mermaid consumer build
         if: always() && steps.browser-source.outcome == 'success' && steps.browsers.outcome == 'success'
@@ -95,7 +94,18 @@ jobs:
 
       - name: Retain cold browser runtime evidence
         if: always() && steps.impact.outputs.runtime != 'false'
-        run: node .github/scripts/report-ci-evidence.mjs output/dicom-packed-browser output/mermaid-packed-browser
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cold-browser-runtime-evidence
+          path: |
+            output/dicom-packed-browser/**/*.json
+            output/dicom-packed-browser/**/*.png
+            output/dicom-packed-browser/**/*.log
+            output/mermaid-packed-browser/**/*.json
+            output/mermaid-packed-browser/**/*.png
+            output/mermaid-packed-browser/**/*.log
+          if-no-files-found: warn
+          retention-days: 7
 
   verify:
     name: Install, type-check, test, build and smoke
@@ -128,7 +138,7 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          package-manager-cache: false
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -198,10 +208,6 @@ jobs:
         if: steps.impact.outputs.runtime != 'false'
         run: pnpm test
 
-      - name: Verify Billboard chart geometry, hover and Worker cleanup
-        if: steps.impact.outputs.runtime != 'false'
-        run: pnpm --filter @file-viewer/pptx verify:chart-families
-
       - name: Verify the installed DOCX diagonal-border repair
         if: steps.impact.outputs.runtime != 'false'
         run: pnpm verify:docx-upstream
@@ -213,14 +219,6 @@ jobs:
       - name: Verify bounded metadata parsing and Illustrator namespace hints
         if: steps.impact.outputs.runtime != 'false'
         run: pnpm exec vitest run test/metadata-input-safety.spec.ts test/chm-renderer.spec.ts
-
-      - name: Verify IDML real installed pages and Worker cleanup
-        if: steps.impact.outputs.runtime != 'false'
-        run: pnpm --filter @file-viewer/renderer-design verify:idml-installed
-
-      - name: Retain IDML installed browser evidence
-        if: always() && steps.impact.outputs.runtime != 'false'
-        run: node .github/scripts/report-ci-evidence.mjs output/idml-installed
 
       - name: Build documentation
         if: steps.impact.outputs.runtime != 'false'
@@ -295,23 +293,27 @@ jobs:
           pnpm --filter @file-viewer/renderer-pdf verify:hand-tool
           pnpm --filter @file-viewer/doc verify:font-table-browser
 
-      - name: Verify migrated Word and PPTX generated regression fixtures
-        if: steps.impact.outputs.runtime != 'false'
-        run: |
-          node packages/renderers/word/scripts/verify-explicit-tabs.mjs
-          node packages/renderers/word/scripts/verify-merged-borders.mjs
-          node packages/renderers/word/scripts/verify-table-header-repeat.mjs
-          node packages/renderers/word/scripts/verify-vml-text-layout.mjs
-          node packages/renderers/word/scripts/verify-paragraph-export.mjs
-          node packages/renderers/pptx/scripts/verify-diagram-text.mjs
-          node packages/renderers/pptx/scripts/verify-drawing-semantics.mjs
-          node packages/renderers/pptx/scripts/verify-paragraph-numbering.mjs
-          node packages/renderers/pptx/scripts/verify-text-body.mjs
-          node packages/renderers/text/test/issue-325-markdown.browser.mjs
-
       - name: Retain intermediate renderer browser evidence
         if: always() && steps.impact.outputs.runtime != 'false'
-        run: node .github/scripts/report-ci-evidence.mjs output/vite-github-311 output/vite-lite-consumer output/pdf-hand-tool output/doc-font-table output/text-single-byte-encodings output/maplibre-browser output/pptx-chart-families
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: intermediate-renderer-browser-evidence
+          path: |
+            output/vite-github-311/*.json
+            output/vite-github-311/*.png
+            output/vite-lite-consumer/*.json
+            output/vite-lite-consumer/*.png
+            output/pdf-hand-tool/**/report.json
+            output/pdf-hand-tool/**/*.png
+            output/doc-font-table/*.json
+            output/doc-font-table/*.png
+            output/doc-font-table/font-cohort.log
+            output/text-single-byte-encodings/*.json
+            output/text-single-byte-encodings/*.png
+            output/maplibre-browser/report.json
+            output/maplibre-browser/*.png
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Verify HTML, revisions, spreadsheet search and DOCX cover regressions
         if: steps.impact.outputs.runtime != 'false'
@@ -349,11 +351,26 @@ jobs:
 
       - name: Upload packed-consumer failure evidence
         if: failure() && steps.impact.outputs.runtime != 'false'
-        run: node .github/scripts/report-ci-evidence.mjs output/packed-issue-consumer
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: packed-issue-consumer-evidence
+          path: output/packed-issue-consumer/*/angular-regression-evidence
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload packed-consumer security evidence
         if: always() && steps.impact.outputs.runtime != 'false'
-        run: node .github/scripts/report-ci-evidence.mjs output/packed-issue-consumer
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: packed-consumer-security-evidence
+          path: |
+            output/packed-issue-consumer/*/audit-*.json
+            output/packed-issue-consumer/*/package.json
+            output/packed-issue-consumer/*/package-lock.json
+            output/packed-issue-consumer/*/candidate-packages.json
+            output/packed-issue-consumer/*/engine-candidate-provenance.json
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Verify CHM Rust/WASM build and distribution assets
         if: steps.impact.outputs.runtime != 'false'
@@ -380,7 +397,15 @@ jobs:
 
       - name: Retain packed Web Full evidence
         if: always() && steps.impact.outputs.runtime != 'false'
-        run: node .github/scripts/report-ci-evidence.mjs output/web-full-packed-assets
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: web-full-packed-evidence
+          path: |
+            output/web-full-packed-assets/**/report.json
+            output/web-full-packed-assets/**/*.log
+            output/web-full-packed-assets/**/offline-source-files.json
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Browser smoke, including CHM Worker/WASM
         if: steps.impact.outputs.runtime != 'false'

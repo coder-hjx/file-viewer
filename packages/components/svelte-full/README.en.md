@@ -47,7 +47,7 @@ Every standard component package shares `@file-viewer/core` as the only common f
 
 ## Format Support Matrix
 
-The legacy-compatible Full default registers 221 file extensions (221 stable and 0 experimental) across 32 preview pipelines, matching the published v2.4 capability contract. The current catalog has 275 file extensions and 47 preview pipelines; DICOM and other new heavy formats require explicit CLI selection and never expand an existing Full package automatically.
+The legacy-compatible Full default provides preview handlers for 223 file extensions (223 stable and 0 experimental) across 33 preview pipelines, including the reviewed CHM and LRC compatibility additions. The current catalog has 275 file extensions and 47 preview pipelines; DICOM and other new heavy formats require explicit CLI selection and never expand an existing Full package automatically.
 
 | Preview pipeline | Category | Extensions | Level / status | Capabilities | Loading |
 | --- | --- | --- | --- | --- | --- |
@@ -67,6 +67,7 @@ The legacy-compatible Full default registers 221 file extensions (221 stable and
 | Hancom Hangul | office | `.hwp`, `.hwpx` | structured / stable | download, print(adapter), HTML export(adapter), zoom(provider), search | lazy async |
 | Typst | document | `.typ`, `.typst` | high-fidelity / stable | download, print(adapter), HTML export(adapter), zoom(provider), search | lazy async |
 | Archive | archive | `.zip`, `.zipx`, `.7z`, `.rar`, `.tar`, `.gz`, `.gzip`, `.tgz`, `.bz2`, `.bzip2`, `.tbz`, `.tbz2`, `.xz`, `.txz`, `.lzma`, `.zst`, `.tzst`, `.cab`, `.ar`, `.cpio`, `.iso`, `.xar`, `.lha`, `.lzh`, `.jar`, `.war`, `.ear`, `.apk`, `.cbz`, `.cbr` | structured / stable | download, search | lazy async |
+| Compiled HTML Help | ebook | `.chm` | structured / stable | download, print(adapter), HTML export(adapter), search | lazy async |
 | Email | email | `.eml`, `.msg`, `.mbox` | structured / stable | download, HTML export, search | lazy async |
 | EDA | eda | `.olb`, `.dra`, `.gds`, `.oas`, `.oasis` | structured / stable | download, print, HTML export, search | lazy async |
 | CAD | cad | `.dxf`, `.dwg`, `.dwf`, `.dwfx`, `.xps` | high-fidelity / stable | download, print, HTML export, zoom(provider) | lazy async |
@@ -79,14 +80,14 @@ The legacy-compatible Full default registers 221 file extensions (221 stable and
 | UMD | ebook | `.umd` | structured / stable | download, print, HTML export, zoom(provider), search | lazy async |
 | Image | image | `.gif`, `.jpg`, `.jpeg`, `.bmp`, `.tiff`, `.tif`, `.png`, `.svg`, `.webp`, `.avif`, `.ico`, `.heic`, `.heif`, `.jxl` | high-fidelity / stable | download, print, HTML export, zoom(provider) | lazy async |
 | Markdown | markdown | `.md`, `.markdown` | structured / stable | download, print, HTML export, search | lazy async |
-| Code and Text | code | `.txt`, `.json`, `.js`, `.mjs`, `.cjs`, `.css`, `.java`, `.py`, `.html`, `.htm`, `.jsx`, `.ts`, `.tsx`, `.xml`, `.log`, `.vue`, `.yaml`, `.yml`, `.ini`, `.sh`, `.bash`, `.sql`, `.go`, `.rs`, `.php`, `.c`, `.cpp`, `.cc`, `.h`, `.hpp`, `.cs`, `.diff`, `.patch`, `.bundle`, `.bdl`, `.jsonc`, `.json5`, `.ipynb`, `.toml`, `.proto`, `.hcl`, `.tex`, `.gv`, `.http`, `.react`, `.rb`, `.swift`, `.kt` | structured / stable | download, print, HTML export, search | lazy async |
+| Code and Text | code | `.txt`, `.lrc`, `.json`, `.js`, `.mjs`, `.cjs`, `.css`, `.java`, `.py`, `.html`, `.htm`, `.jsx`, `.ts`, `.tsx`, `.xml`, `.log`, `.vue`, `.yaml`, `.yml`, `.ini`, `.sh`, `.bash`, `.sql`, `.go`, `.rs`, `.php`, `.c`, `.cpp`, `.cc`, `.h`, `.hpp`, `.cs`, `.diff`, `.patch`, `.bundle`, `.bdl`, `.jsonc`, `.json5`, `.ipynb`, `.toml`, `.proto`, `.hcl`, `.tex`, `.gv`, `.http`, `.react`, `.rb`, `.swift`, `.kt` | structured / stable | download, print, HTML export, search | lazy async |
 | Video | media | `.mp4`, `.webm`, `.m3u8` | high-fidelity / stable | download | lazy async |
 | Audio | media | `.mp3`, `.mpeg`, `.wav`, `.ogg`, `.oga`, `.opus`, `.m4a`, `.aac`, `.flac`, `.weba`, `.midi`, `.mid` | high-fidelity / stable | download | lazy async |
 | Data Asset | asset | `.ttf`, `.otf`, `.woff`, `.woff2`, `.psd`, `.ai`, `.eps`, `.sqlite`, `.wasm`, `.parquet`, `.avro`, `.webarchive` | structured / stable | download, HTML export, search | lazy async |
 
 ## Compatible Full Package Quick Start
 
-`@file-viewer/svelte-full` continues to include `@file-viewer/preset-all` and preserves the published v2.4 contract of 221 extensions, 32 preview pipelines, and the default asset-copy behavior. Existing iWork, CAD, 3D, EDA, Geo, Typst, Drawing, WordPerfect, Hangul, legacy PPT, RTF, Mermaid, HLS/MIDI, and advanced text support is not removed. DICOM and future heavy formats do not enter this historical Full closure automatically.
+`@file-viewer/svelte-full` continues to include `@file-viewer/preset-all` and currently provides preview handlers for 223 extensions across 33 preview pipelines and preserves the default asset-copy behavior. Existing iWork, CAD, 3D, EDA, Geo, Typst, Drawing, WordPerfect, Hangul, legacy PPT, RTF, Mermaid, HLS/MIDI, and advanced text support is not removed. DICOM and future heavy formats do not enter this historical Full closure automatically.
 
 The eight packages that retain this historical Full contract are: `@file-viewer/web-full`, `@file-viewer/vue3-full`, `@file-viewer/vue2.7-full`, `@file-viewer/vue2.6-full`, `@file-viewer/react-full`, `@file-viewer/react-legacy-full`, `@file-viewer/jquery-full`, `@file-viewer/svelte-full`. New projects that do not need the complete matrix should use `@file-viewer/cli` to select standard, lite, office, engineering, or custom capabilities. Existing Full users do not need to change their installation path.
 

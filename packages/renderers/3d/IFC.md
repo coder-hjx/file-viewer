@@ -5,10 +5,17 @@ orbit/pan/zoom, fit-to-model, element selection, basic properties and an advance
 That Open hook. It does not change the ordinary 3D entry or the frozen Full/Office
 presets. Applications opt in instead of paying the BIM dependency cost by default.
 
+The optional `/ifc` entry exposes the actual Components and Fragments classes
+in its hooks and selection data. Its TypeScript declarations therefore require
+the same supported peers as its runtime. The ordinary package entry does not
+import those declarations and remains usable without the IFC SDK. Install the
+peers below before importing `/ifc`, including a type-only import; optional peer
+metadata describes the base package, not an SDK-free version of the IFC API.
+
 ## Install and self-host
 
 ```sh
-npm install @file-viewer/renderer-3d @thatopen/components@3.4.9 @thatopen/fragments@3.4.8 web-ifc@0.0.77
+npm install @file-viewer/renderer-3d @thatopen/components@3.4.8 @thatopen/fragments@3.4.7 web-ifc@0.0.77
 npm install -D esbuild@0.28.2
 npx file-viewer-ifc-assets public/file-viewer/vendor/ifc
 ```
@@ -139,11 +146,9 @@ subject to Web-IFC's capabilities; parse failures are explicit.
 That Open Components and Fragments are MIT. Web-IFC is MPL-2.0, isolated behind this
 optional entry; the File Viewer adapter remains Apache-2.0. Preserve the copied
 MPL license, corresponding-source notice and bundled legal notices when distributing
-WASM/worker files. Components and Fragments omit their root licenses from the published tarballs. Their complete upstream MIT texts are retained in `licenses/` from the exact release commits:
-https://github.com/ThatOpen/engine_components/blob/8479a7c5c6a3c0cf8c7ceab1d1fb329a3f7d1922/LICENSE.md
-https://github.com/ThatOpen/engine_fragment/blob/2ba7e9ddbc02689b8c1044e31daed26f3005f3c5/LICENSE.md
-Web-IFC's corresponding source and build instructions are at:
-https://github.com/ThatOpen/engine_web-ifc/tree/f26c4beef0a668ebdb180d2b95a94097a1e21cef
+WASM/worker files. Fragments' upstream MIT text is retained in `licenses/` because
+its published tarball does not contain its root license file. Source:
+https://github.com/ThatOpen/engine_fragment/blob/main/LICENSE.md
 
 ## Regression fixture attribution
 

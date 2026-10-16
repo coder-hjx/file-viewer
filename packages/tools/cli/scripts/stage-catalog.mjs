@@ -279,7 +279,7 @@ const catalog = {
   },
   frameworkTemplates: {
     web: { defaultVersion: 'browser', runtimeDependencies: {}, viteVersion: '8.0.16', validatedVersions: { browser: { runtimeDependencies: {}, viteVersion: '8.0.16' } } },
-    vue3: { defaultVersion: '3.5.35', runtimeDependencies: { vue: '3.5.35' }, viteVersion: '8.0.16', validatedVersions: { '3.5.35': { runtimeDependencies: { vue: '3.5.35' }, viteVersion: '8.0.16' } } },
+    vue3: { defaultVersion: '3.5.42', runtimeDependencies: { vue: '3.5.42' }, viteVersion: '8.0.16', validatedVersions: { '3.5.42': { runtimeDependencies: { vue: '3.5.42' }, viteVersion: '8.0.16' } } },
     'vue2.7': { defaultVersion: '2.7.16', runtimeDependencies: { vue: '2.7.16' }, viteVersion: '7.1.7', validatedVersions: { '2.7.16': { runtimeDependencies: { vue: '2.7.16' }, viteVersion: '7.1.7' } } },
     'vue2.6': { defaultVersion: '2.6.14', runtimeDependencies: { vue: '2.6.14' }, viteVersion: '6.1.6', validatedVersions: { '2.6.14': { runtimeDependencies: { vue: '2.6.14' }, viteVersion: '6.1.6' } } },
     react: { defaultVersion: '19.2.7', runtimeDependencies: { react: '19.2.7', 'react-dom': '19.2.7' }, viteVersion: '8.0.16', validatedVersions: {

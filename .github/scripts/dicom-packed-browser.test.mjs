@@ -262,11 +262,10 @@ test('independent Public CI builds the exact browser sources, inspects DICOM, ru
     ?.split('- name:')[0]
   assert.ok(retention)
   assert.match(retention, /if: always\(\) && steps\.impact\.outputs\.runtime != 'false'/)
-  assert.match(
-    retention,
-    /run: node \.github\/scripts\/report-ci-evidence\.mjs output\/dicom-packed-browser output\/mermaid-packed-browser/
-  )
-  assert.doesNotMatch(retention, /actions\/(?:upload-artifact|cache)@/)
+  assert.match(retention, /retention-days: 7/)
+  for (const extension of ['json', 'log', 'png']) {
+    assert.ok(retention.includes(`output/dicom-packed-browser/**/*.${extension}`))
+  }
   assert.equal(retention.includes('**/*.tgz'), false)
   assert.equal(retention.includes('node_modules'), false)
 })

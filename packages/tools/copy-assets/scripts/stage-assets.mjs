@@ -6,6 +6,8 @@ import { stageInstalledPptRuntime } from '../../../components/web-full/scripts/s
 import { stagePreparedDesignRuntime } from '../../../build-support/stage-design-runtime.mjs'
 import { stageInstalledCadRuntime } from '../../../build-support/stage-cad-runtime.mjs'
 import { sanitizeOfflineViewerAssetTree } from '../../../components/web-full/scripts/offline-asset-sanitize.mjs'
+import { stageRetainedAssetNotices, withRetainedAssetNoticeManifests } from '../../../build-support/retained-asset-notices.mjs'
+import { stableAssetManifest } from '../../../build-support/stable-asset-manifest.mjs'
 
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 const packageDir = resolve(scriptDir, '..')
@@ -16,6 +18,9 @@ const demoDistDir = resolve(workspaceRoot, 'apps/viewer-demo/dist')
 const demoPublicDir = resolve(workspaceRoot, 'apps/viewer-demo/public')
 const targetDir = resolve(packageDir, 'viewer')
 const manifestFilename = 'flyfish-viewer-assets.json'
+const previousManifestPath = resolve(targetDir, manifestFilename)
+const previousManifest = existsSync(previousManifestPath)
+  ? JSON.parse(await readFile(previousManifestPath, 'utf8')) : null
 
 const sourceDir = process.env.FILE_VIEWER_ASSET_SOURCE_DIR
   ? resolve(process.env.FILE_VIEWER_ASSET_SOURCE_DIR)
@@ -95,30 +100,36 @@ for (const asset of declaredAssets) {
   })
 }
 
+await stageRetainedAssetNotices(targetDir)
+rendererAssetManifests = withRetainedAssetNoticeManifests(rendererAssetManifests)
 await stageInstalledPptRuntime(resolve(targetDir, 'vendor/ppt'))
 await stagePreparedDesignRuntime(targetDir)
 await sanitizeOfflineViewerAssetTree(targetDir)
 const missingRequired = validationAssets.filter((asset) => asset.required && !asset.exists)
 const missingOptional = validationAssets.filter((asset) => !asset.required && !asset.exists)
 const generatedAt = new Date().toISOString()
+const currentManifest = {
+  schemaVersion: 1,
+  generatedAt,
+  rendererAssetManifests,
+  validation: {
+    valid: missingRequired.length === 0,
+    checkedAt: generatedAt,
+    assets: validationAssets,
+    missingRequired,
+    missingOptional
+  }
+}
+const publicationManifest = stableAssetManifest(previousManifest, currentManifest)
+const privateEvidenceDir = resolve(packageDir, '.build')
+await mkdir(privateEvidenceDir, { recursive: true })
+await writeFile(resolve(privateEvidenceDir, 'staged-asset-validation.json'), JSON.stringify({
+  ...currentManifest,
+  reusedPublicTimestamps: publicationManifest === previousManifest
+}, null, 2) + '\n')
 await writeFile(
   resolve(targetDir, manifestFilename),
-  `${JSON.stringify(
-    {
-      schemaVersion: 1,
-      generatedAt,
-      rendererAssetManifests,
-      validation: {
-        valid: missingRequired.length === 0,
-        checkedAt: generatedAt,
-        assets: validationAssets,
-        missingRequired,
-        missingOptional
-      }
-    },
-    null,
-    2
-  )}\n`,
+  JSON.stringify(publicationManifest, null, 2) + '\n',
   'utf8'
 )
 await writeFile(

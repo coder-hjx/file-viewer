@@ -1,4 +1,8 @@
 /apps/chrome-extension/
+/scripts/
+/.release/
+/.agents/
+/.codex/
 node_modules/
 **/dist/
 apps/docs-site/.next/
@@ -21,9 +25,6 @@ packages/tools/assets-*/viewer/
 apps/component-demo/public/file-viewer/
 apps/component-demo/public/requirejs/
 apps/viewer-demo/public/file-viewer/
-apps/viewer-demo/public/wasm/cad/0.8.3/
-apps/viewer-demo/public/wasm/cad/LICENSE
-apps/viewer-demo/public/wasm/cad/NOTICE
 apps/component-demo/public/example/word.docx
 apps/component-demo/public/example/pdf.pdf
 apps/component-demo/public/example/ppt.pptx

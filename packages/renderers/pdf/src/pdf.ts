@@ -78,7 +78,8 @@ import {
   scopePdfJsWorkerMessageHandler,
   type PdfJsWorkerGlobal,
 } from './pdfWorkerGlobal.js';
-import { readPdfJsWorkerVersion } from './pdfWorkerVersion.js';
+import { hasNativePdfWorkerPort, isPdfWorkerVersionMismatch } from './pdfWorkerProbe.js';
+import { scopePdfJsWorkerHandlerCache } from './pdfWorkerCache.js';
 import { getFileViewerPdfIdentityFontRepair } from './optionalCapabilities.js';
 import { isExpectedPdfJsDestroyConsoleError } from './pdfConsoleLifecycle.js';
 
@@ -89,18 +90,12 @@ const MIN_SCALE = 0.2;
 const MAX_SCALE = 3;
 const SCALE_STEP = 0.1;
 const PDF_EXPORT_MAX_PAGE_PIXELS = 8_000_000;
-const PDF_WORKER_PROBE_TIMEOUT_MS = 1200;
-const PDF_WORKER_VERSION_PROBE_BYTES = 4096;
 const PDF_JS_DESTROY_CONSOLE_SUPPRESSION_MS = 1500;
 
 type PdfWorkerHandlerModule = {
   WorkerMessageHandler: unknown;
 };
 
-type PdfWorkerProbeResult = {
-  status: 'compatible' | 'incompatible' | 'unknown' | 'unavailable';
-  workerVersion: string | null;
-};
 
 let bundledPdfWorkerModulePromise: Promise<PdfWorkerHandlerModule> | null = null;
 
@@ -127,6 +122,7 @@ type PdfWorkerInstance = InstanceType<typeof PdfJsWorker>;
 type PdfResource = {
   loadingTask: PdfLoadingTask;
   worker: PdfWorkerInstance | null;
+  fallbackSource?: PdfLoadingSource;
 };
 type PdfLoadingSource =
   | { data: ArrayBuffer | Uint8Array }
@@ -399,25 +395,6 @@ const isConfiguredUrl = (value: string | URL | undefined) => {
   return value !== undefined && value !== null && String(value).trim().length > 0;
 };
 
-const isJavaScriptLikeResponse = (response: Response) => {
-  const contentType = response.headers.get('content-type')?.toLowerCase() || '';
-  return !contentType ||
-    contentType.includes('javascript') ||
-    contentType.includes('ecmascript') ||
-    contentType.includes('application/octet-stream') ||
-    contentType.includes('text/plain');
-};
-
-const readResponsePrefix = async (
-  response: Response,
-  maximumBytes = PDF_WORKER_VERSION_PROBE_BYTES
-) => {
-  // Consume the response even when a server ignores Range. Cancelling after the
-  // prefix creates a browser-level ERR_ABORTED event that strict hosts treat as
-  // a failed asset request, despite the compatibility probe succeeding.
-  return (await response.text()).slice(0, maximumBytes);
-};
-
 const loadBundledPdfWorkerModule = async () => {
   bundledPdfWorkerModulePromise ??= import('pdfjs-dist/legacy/build/pdf.worker.mjs') as Promise<PdfWorkerHandlerModule>;
   return bundledPdfWorkerModulePromise;
@@ -434,14 +411,20 @@ const createBundledPdfFakeWorker = async () => {
     workerModule.WorkerMessageHandler,
     hostWorkerGlobal
   );
+  let workerCacheScope: ReturnType<typeof scopePdfJsWorkerHandlerCache> | undefined;
   try {
+    workerCacheScope = scopePdfJsWorkerHandlerCache(PdfJsWorker, workerModule.WorkerMessageHandler);
     const worker = new PdfJsWorker({
       name: 'file-viewer-pdf-worker',
     } as ConstructorParameters<typeof PdfJsWorker>[0] & { name: string }) as PdfWorkerInstance;
     await worker.promise;
     return worker;
   } finally {
-    workerHandlerScope.restore();
+    try {
+      workerCacheScope?.restore();
+    } finally {
+      workerHandlerScope.restore();
+    }
   }
 };
 
@@ -517,6 +500,7 @@ export default async function renderPdf(
   let fitFrame = 0;
   let pageDimensionFrame = 0;
   let destroyed = false;
+  const unverifiedWorkers = new WeakSet<PdfWorkerInstance>();
   let loadVersion = 0;
   let viewStateApplyVersion = 0;
   let activeViewStateApplyVersion = 0;
@@ -968,57 +952,6 @@ export default async function renderPdf(
     });
   };
 
-  const probeResolvedPdfWorkerUrl = async (
-    workerUrl: string
-  ): Promise<PdfWorkerProbeResult> => {
-    const fetcher = targetWindow.fetch?.bind(targetWindow) || globalThis.fetch?.bind(globalThis);
-    const AbortControllerCtor = targetWindow.AbortController || globalThis.AbortController;
-    if (!fetcher || !AbortControllerCtor) {
-      return { status: 'unavailable', workerVersion: null };
-    }
-
-    try {
-      const parsed = new URL(workerUrl, documentRef.baseURI || targetWindow.location.href);
-      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-        return { status: 'unavailable', workerVersion: null };
-      }
-    } catch {
-      return { status: 'unavailable', workerVersion: null };
-    }
-
-    const controller = new AbortControllerCtor();
-    const timer = targetWindow.setTimeout(() => controller.abort(), PDF_WORKER_PROBE_TIMEOUT_MS);
-    try {
-      const response = await fetcher(workerUrl, {
-        method: 'GET',
-        // A successful range probe must never seed the HTTP cache for the
-        // subsequent module Worker request. Some static servers correctly
-        // return 206 here, and Chromium can otherwise reuse that partial body
-        // as the Worker module, which fails with "Invalid or unexpected token".
-        cache: 'no-store',
-        headers: {
-          Range: `bytes=0-${PDF_WORKER_VERSION_PROBE_BYTES - 1}`,
-        },
-        signal: controller.signal,
-      });
-      if ((!response.ok && response.status !== 206) || !isJavaScriptLikeResponse(response)) {
-        return { status: 'unavailable', workerVersion: null };
-      }
-      const workerVersion = readPdfJsWorkerVersion(await readResponsePrefix(response));
-      if (!workerVersion) {
-        return { status: 'unknown', workerVersion: null };
-      }
-      return {
-        status: workerVersion === pdfJsVersion ? 'compatible' : 'incompatible',
-        workerVersion,
-      };
-    } catch {
-      return { status: 'unavailable', workerVersion: null };
-    } finally {
-      targetWindow.clearTimeout(timer);
-    }
-  };
-
   const createPdfWorker = async () => {
     const workerUrl = resolvePdfWorkerUrl(options, pdfRuntimeAssetBaseUrl);
     const workerGlobal = globalThis as PdfJsWorkerGlobal;
@@ -1034,28 +967,15 @@ export default async function renderPdf(
       }
     }
 
-    const hasExplicitWorkerUrl = isConfiguredUrl(options?.workerUrl);
-    const workerProbe = targetWindow?.Worker
-      ? await probeResolvedPdfWorkerUrl(workerUrl)
-      : { status: 'unavailable' as const, workerVersion: null };
-    if (workerProbe.status === 'incompatible') {
-      console.warn(
-        `[file-viewer] PDF Worker ${workerProbe.workerVersion} 与 PDF.js API ${pdfJsVersion} 不匹配，` +
-        '改用包内同版本 PDF.js handler。'
-      );
-    }
-    const shouldUseRealWorker = !!targetWindow?.Worker && (
-      workerProbe.status === 'compatible' ||
-      (hasExplicitWorkerUrl && workerProbe.status === 'unknown')
-    );
-
-    if (shouldUseRealWorker) {
+    if (targetWindow.Worker) {
       GlobalWorkerOptions.workerSrc = workerUrl;
       try {
         const worker = new PdfJsWorker({
           name: 'file-viewer-pdf-worker',
         } as ConstructorParameters<typeof PdfJsWorker>[0] & { name: string }) as PdfWorkerInstance;
         await worker.promise;
+        // GetDocRequest validates the API version before parsing, without a duplicate Range fetch.
+        unverifiedWorkers.add(worker);
         return worker;
       } catch (error) {
         console.warn('[file-viewer] PDF Worker 初始化失败，改用包内 PDF.js 兜底。', error);
@@ -2254,27 +2174,56 @@ export default async function renderPdf(
           };
 
       const createLoadingResource = async (
-        loadingSource: PdfLoadingSource
+        loadingSource: PdfLoadingSource,
+        bundledFallback = false
       ): Promise<PdfResource> => {
-        const worker = await createPdfWorker();
+        const worker = bundledFallback ? await createBundledPdfFakeWorker() : await createPdfWorker();
+        // PDF.js transfers data buffers. Keep a retry copy only while a Worker
+        // whose version could not be preflighted establishes its document API.
+        const fallbackSource = worker && unverifiedWorkers.has(worker)
+          ? ('data' in loadingSource ? { data: loadingSource.data.slice(0) } : loadingSource)
+          : undefined;
         const loadingTask = getDocument({
           ...loadingSource,
           worker: worker || undefined,
           cMapUrl: pdfAssets.cMapUrl,
           wasmUrl: pdfAssets.wasmUrl,
           standardFontDataUrl: pdfAssets.standardFontDataUrl,
-          useWorkerFetch: true,
+          // The main-thread fallback cannot use PDF.js's synchronous ICC fetch.
+          useWorkerFetch: hasNativePdfWorkerPort(worker?.port, [globalThis.Worker, targetWindow.Worker]),
           cMapPacked: true,
           enableXfa: true,
           fontExtraProperties: fontInspectionEnabled,
         });
-        return { loadingTask, worker };
+        return { loadingTask, worker, fallbackSource };
+      };
+
+      const resolveLoadingDocument = async (currentResource: PdfResource) => {
+        try {
+          return await currentResource.loadingTask.promise;
+        } catch (error) {
+          const retrySource = currentResource.fallbackSource;
+          if (!retrySource || !isPdfWorkerVersionMismatch(error, pdfJsVersion) ||
+              destroyed || requestVersion !== loadVersion) throw error;
+          console.warn(`[file-viewer] PDF Worker 版本不匹配，改用包内同版本 PDF.js ${pdfJsVersion}。`);
+          await destroyPdfResource(currentResource);
+          if (destroyed || requestVersion !== loadVersion) throw error;
+          const replacement = await createLoadingResource(retrySource, true);
+          Object.assign(currentResource, replacement);
+          if (destroyed || requestVersion !== loadVersion) {
+            await destroyPdfResource(currentResource);
+            throw error;
+          }
+          return await currentResource.loadingTask.promise;
+        } finally {
+          delete currentResource.fallbackSource;
+        }
       };
 
       resource = await createLoadingResource(source);
       pdfContext.resource = resource;
 
-      let pdfDocument = await resource.loadingTask.promise;
+      let pdfDocument = await resolveLoadingDocument(resource);
       if (destroyed || requestVersion !== loadVersion || pdfContext.resource !== resource) {
         if (pdfContext.resource === resource) {
           pdfContext.resource = null;
@@ -2325,7 +2274,7 @@ export default async function renderPdf(
             if (repaired.repairedFonts > 0) {
               const previousResource = resource;
               replacementResource = await createLoadingResource({ data: repaired.bytes });
-              const replacementDocument = await replacementResource.loadingTask.promise;
+              const replacementDocument = await resolveLoadingDocument(replacementResource);
               const repairedFirstPage = await replacementDocument.getPage(1);
               const replacementTextContent = await (
                 repairedFirstPage as unknown as PdfTextContentPage

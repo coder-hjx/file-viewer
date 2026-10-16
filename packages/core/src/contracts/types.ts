@@ -611,7 +611,17 @@ export interface FileViewerArchiveOptions {
   wasmUrl?: string
   workerTimeoutMs?: number
   cache?: boolean
+  /**
+   * Maximum input bytes, and maximum expanded TAR/GZIP bytes in the workerless
+   * fallback (including TAR headers and padding). Defaults to 320 MiB.
+   * Must be a non-negative safe integer; zero permits only empty data.
+   */
   maxArchiveSize?: number
+  /**
+   * Maximum selected entry preview bytes. Defaults to 64 MiB. Also bounds
+   * single-file GZIP expansion during fallback listing; TAR/TGZ members are
+   * checked when selected. Must be a non-negative safe integer.
+   */
   maxEntryPreviewSize?: number
   entryActions?: FileViewerArchiveEntryActionsOptions
   /**
@@ -791,6 +801,8 @@ export interface FileViewerSpreadsheetOptions {
   resizableColumns?: boolean
   /** 允许用户在 Excel / CSV / ODS 预览中拖拽行头边界调整行高，默认关闭以保持历史行为。 */
   resizableRows?: boolean
+  /** 仅 Excel：用空白列标题、行号和单元格网格填满预览视口，默认 false；不扩展工作簿数据范围。 */
+  fillViewport?: boolean
 }
 
 export interface FileViewerPresentationOptions {

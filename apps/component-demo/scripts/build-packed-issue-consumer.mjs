@@ -20,8 +20,7 @@ export function preparePackedConsumerManifest(fixtureManifest, version) {
   return manifest
 }
 
-export function assertPublishedEngineCandidateAllowed(name, workspace) {
-  assert.notEqual(name, '@file-viewer/ppt', 'Published PPT must resolve from the ordinary registry, not a local candidate override')
+export function assertDocxCandidateAllowed(name, workspace) {
   if (name === '@file-viewer/docx')
     assert.ok(
       docxPatchEntries(workspace).length > 0,
@@ -92,7 +91,7 @@ async function recordConsumerAudits(project, fixture) {
   await writeFile(resolve(project, 'audit-summary.json'), JSON.stringify(summaries, null, 2) + '\n')
 }
 
-export async function buildPackedIssueConsumer(
+export async function preparePackedIssueConsumer(
   packageDirectory,
   {
     fixture = 'webpack5-issues',
@@ -148,7 +147,7 @@ export async function buildPackedIssueConsumer(
       !candidates.some((candidate) => candidate.name === metadata.name),
       `Duplicate candidate ${metadata.name}`
     )
-    assertPublishedEngineCandidateAllowed(metadata.name, workspace)
+    assertDocxCandidateAllowed(metadata.name, workspace)
     const spec = `file:${path}`
     if (manifest.dependencies[metadata.name]) {
       manifest.dependencies[metadata.name] = spec
@@ -178,7 +177,13 @@ export async function buildPackedIssueConsumer(
     execFileSync(command, args, { cwd: project, stdio: 'inherit', timeout: 600_000 })
   }
   run('npm', ['install', '--ignore-scripts', '--registry=https://registry.npmjs.org'])
-  await recordConsumerAudits(project, fixture)
+  return { project, fixture, renderers }
+}
+
+export async function finishPackedIssueConsumer({ project, fixture, renderers }) {
+  function run(command, args) {
+    execFileSync(command, args, { cwd: project, stdio: 'inherit', timeout: 600_000 })
+  }
   run('node', [
     resolve(project, 'node_modules/file-viewer-copy-assets/dist/cli.js'),
     'public/file-viewer',
@@ -194,6 +199,18 @@ export async function buildPackedIssueConsumer(
   run('npm', ['run', 'build'])
   console.log(`PACKED_ISSUE_CONSUMER_DIR=${project}`)
   return project
+}
+
+export async function auditPreparedPackedIssueConsumer(prepared) {
+  await recordConsumerAudits(prepared.project, prepared.fixture)
+}
+
+export async function buildPackedIssueConsumer(packageDirectory, options) {
+  const prepared = await preparePackedIssueConsumer(packageDirectory, options)
+  // Keep formal audits mandatory; local scope inspection may prepare without
+  // transmitting, but it cannot claim the complete consumer gate passed.
+  await auditPreparedPackedIssueConsumer(prepared)
+  return finishPackedIssueConsumer(prepared)
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

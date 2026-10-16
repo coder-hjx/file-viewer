@@ -58,9 +58,15 @@ The MIT-licensed DEFLATE implementation is bundled transitively through `ag-psd`
 
 ## @paged-media/introspect-wasm 0.70.2
 
-Source: <https://github.com/paged-media/core/tree/c7a4b788cc24acd7d5af8843655ec3806ad613a1>
+Source: <https://github.com/paged-media/core/tree/c7a4b788cc24acd7d5af8843655ec3806ad613a1>, the official npm 0.70.2 `gitHead` and release tag target.
+
+The exact corresponding source archive is <https://codeload.github.com/paged-media/core/tar.gz/c7a4b788cc24acd7d5af8843655ec3806ad613a1> (SHA-256 `58f8eb6e1a0f06b8e2c8babf27d1ae0bad37a21db1ff8243298bdc647eee34a7`). Its IDML import and export dependencies come from <https://codeload.github.com/paged-media/plugin-publish/tar.gz/47ab9d90c8004c32b7d410cc8f2a554b6493a260> (SHA-256 `1053e5d3170d7a8ae01c90534ec7d0dc3821429df84aba6e78cdefedc11cbebe`). Both archives match the immutable Git blobs of those commits.
 
 The package declares `MPL-2.0 OR LicenseRef-PMEL`. File Viewer elects the Mozilla Public License 2.0 option for the distributed JavaScript and WebAssembly runtime. The complete MPL-2.0 text is shipped as `LICENSES/MPL-2.0.txt` and copied next to the self-hosted IDML runtime assets.
+
+The normal Worker build also retains the matching upstream `LICENSE` and `LICENSE.md` in `dist/workers.THIRD_PARTY_LICENSES.txt`, including the copyright attribution and explicit grant of the MPL option. The npm package omits those files; the retained copies are checked against their immutable upstream Git blobs and SHA-256 hashes.
+
+`LICENSES/Introspect_NATIVE_THIRD_PARTY_LICENSES.json` retains the complete collected license texts, copyright notices, immutable source identities, and native byte hashes for the official CPU WASM source configuration. The normal asset build copies this book beside the IDML WASM. Its dependency scope excludes build/dev dependencies and procedural macros and is a conservative source configuration before dead-stripping. The matching Rust standard-library copyright report is retained separately within the book. Preserve the book when copying the WASM for self-hosting.
 
 No public CDN is used. The unmodified `paged_introspect_wasm.js` module is bundled into the IDML Worker and `paged_introspect_wasm_bg.wasm` is distributed as a separate local asset. Any future modification to an MPL-covered upstream file must keep the corresponding source available under MPL-2.0.
 

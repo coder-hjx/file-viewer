@@ -1,3 +1,4 @@
+import { writeBundleInventory } from '../../../build-support/bundle-inventory.mjs'
 /** Derive source-owned raster factories without modifying the installed engine. */
 import { createHash } from 'node:crypto'
 import { realpathSync } from 'node:fs'
@@ -147,7 +148,7 @@ export async function buildRasterAdapters() {
   reviewed('geotiffWorker', await readFile(join(geotiff.folder, 'dist-module/worker/decoder.js')))
   const out = join(root, 'dist'), workers = join(out, 'geo3d-workers')
   await mkdir(workers, { recursive: true })
-  const common = { bundle: true, platform: 'browser', format: 'esm', target: 'es2022', minify: false, metafile: true, logLevel: 'warning' }
+  const common = { bundle: true, platform: 'browser', format: 'esm', target: 'es2022', minify: process.env.FILE_VIEWER_DISTRIBUTION_MODE === 'runtime-only', metafile: true, logLevel: 'warning' }
   const factories = await build({ ...common,
     stdin: { contents: "export { createGeoTIFFSource } from 'geo3d-owned-raster:GeoTIFFSource';", resolveDir: giro.folder },
     outfile: join(out, 'geo3dRasterFactories.js'),
@@ -177,6 +178,7 @@ export async function buildRasterAdapters() {
   // The embedded engine worker is part of the SHA-256-reviewed TextureGenerator.
   // Emit its exact program as a static local file, not a runtime Blob URL.
   await writeFile(join(workers, 'texture-worker.js'), extractTextureWorker(sources.TextureGenerator))
+  await writeBundleInventory([...Object.keys(factories.metafile.inputs), ...Object.keys(decoder.metafile.inputs)], join(root, '.build/geo3d-raster-inputs.json'), { extraInputs: Object.values(paths) })
   const packages = new Map([[giro.folder, giro], [geotiff.folder, geotiff]])
   for (const input of [...Object.keys(factories.metafile.inputs), ...Object.keys(decoder.metafile.inputs)]) {
     if (!input.includes('node_modules') || input.startsWith('owned-raster:')) continue

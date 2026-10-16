@@ -68,10 +68,10 @@ jobs:
           run_install: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 24
-          package-manager-cache: false
+          cache: pnpm
 
       - name: Install workspace from frozen lockfile
         id: install
@@ -205,4 +205,12 @@ jobs:
 
       - name: Upload logs and Geo3D visual evidence
         if: ${{ !cancelled() }}
-        run: node .github/scripts/report-ci-evidence.mjs --require-files output/geo3d-validation output/geo3d-browser
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: geo3d-validation-${{ github.sha }}
+          path: |
+            output/geo3d-validation/
+            output/geo3d-browser/report.json
+            output/geo3d-browser/cityjson.png
+          if-no-files-found: error
+          retention-days: 14

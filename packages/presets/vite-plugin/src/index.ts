@@ -399,6 +399,7 @@ const rendererModules: readonly RendererModuleDescriptor[] = [
     formats: [
       'text',
       'txt',
+      'lrc',
       'log',
       'code',
       'md',
@@ -2609,14 +2610,26 @@ const independentlyOwnedAssetRendererIds = new Map<string, string>([
 
 function resolveInstalledCapabilityAssetSources(
   installedAssetPackages: readonly string[],
-  anchorPackages: readonly string[]
+  anchorPackages: readonly string[],
+  ownerPackageRoot?: string
 ) {
   return installedAssetPackages.map((packageName): InstalledCapabilityAssetSource => {
     if (packageName === 'file-viewer-copy-assets') {
       throw new Error('[file-viewer:vite-plugin] The v2 aggregate asset carrier is forbidden in a v3 capability plan.')
     }
-    const packageRoot = resolvePackageRoot(packageName, anchorPackages)
+    const ownedPackageJson = ownerPackageRoot
+      ? tryResolvePackageJson(packageName, createRequire(join(ownerPackageRoot, 'package.json')))
+      : null
+    const packageRoot = ownerPackageRoot
+      ? (ownedPackageJson ? dirname(ownedPackageJson) : null)
+      : resolvePackageRoot(packageName, anchorPackages)
     if (!packageRoot) throw new Error(`[file-viewer:vite-plugin] Could not resolve installed asset owner ${packageName}.`)
+    const packageJson = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8')) as {
+      name?: string
+    }
+    if (packageJson.name !== packageName) {
+      throw new Error(`[file-viewer:vite-plugin] Asset owner identity differs from ${packageName}.`)
+    }
     const packageVersion = readPackageVersion(packageRoot)
     if (!packageVersion) throw new Error(`[file-viewer:vite-plugin] Could not read ${packageName} version.`)
     const payloadRoot = join(packageRoot, 'viewer')
@@ -2883,6 +2896,42 @@ async function copyBundledFullRendererAssets(
     )
   }
 
+  const packageJson = JSON.parse(readFileSync(join(source.packageRoot, 'package.json'), 'utf8')) as {
+    dependencies?: Record<string, string>
+  }
+  // Full may split large asset families into version-paired dependencies.
+  // Resolve only its declared owners, never an unrelated project-level pack.
+  const dependencies = packageJson.dependencies || {}
+  const splitPackageNames = Object.keys(dependencies)
+    .filter(name => name.startsWith('@file-viewer/assets-'))
+  for (const name of splitPackageNames) {
+    const pin = dependencies[name].replace(/^workspace:/, '')
+    if (pin !== source.sourceVersion) {
+      throw new Error(`[file-viewer:vite-plugin] ${source.packageName} must pin ${name} to ${source.sourceVersion}.`)
+    }
+  }
+  const splitSources = resolveInstalledCapabilityAssetSources(splitPackageNames, [], source.packageRoot)
+  const assetOwners = new Map<string, InstalledCapabilityAssetSource>()
+  const descriptorKeys = ['rendererId', 'kind', 'target', 'required', 'defaultPath'] as const
+  for (const owner of splitSources) {
+    if (owner.packageVersion !== source.sourceVersion) {
+      throw new Error(`[file-viewer:vite-plugin] ${source.packageName} cannot use ${owner.packageName}@${owner.packageVersion}; expected ${source.sourceVersion}.`)
+    }
+    for (const group of owner.manifest.rendererAssetManifests || []) {
+      const bundledGroup = manifest.rendererAssetManifests.find(entry => entry.rendererId === group.rendererId)
+      for (const asset of group.assets) {
+        if (asset.target !== 'public' || !asset.defaultPath) continue
+        const bundledAsset = bundledGroup?.assets.find(entry => entry.id === asset.id)
+        if (!bundledAsset || descriptorKeys.some(key => bundledAsset[key] !== asset[key])) {
+          throw new Error(`[file-viewer:vite-plugin] Split asset ${owner.packageName}:${asset.id} differs from the declared Full manifest.`)
+        }
+        const key = `${asset.rendererId}:${asset.id}`
+        if (assetOwners.has(key)) throw new Error(`[file-viewer:vite-plugin] Multiple split asset owners declare ${key}.`)
+        assetOwners.set(key, owner)
+      }
+    }
+  }
+
   await mkdir(targetRoot, { recursive: true })
   await cp(source.payloadRoot, targetRoot, { recursive: true, force: true })
   const results: AssetCopyResult[] = []
@@ -2896,16 +2945,20 @@ async function copyBundledFullRendererAssets(
     const destination = resolve(targetRoot, ...relativePath.split('/'))
     let copied = false
     let reason: string | undefined
+    const owner = assetOwners.get(`${asset.rendererId}:${asset.id}`)
     if (!isPathWithin(targetRoot, destination)) {
       reason = 'asset manifest path escapes the copy target'
     } else {
       try {
+        if (owner) {
+          await copyAssetPathWithoutConflicts(owner.payloadRoot, targetRoot, relativePath)
+        }
         copied = matchesBundledAssetKind(asset.kind, await stat(destination))
         if (!copied) {
           reason = `copied path does not match asset kind ${asset.kind}`
         }
-      } catch {
-        reason = 'bundled full asset not found after copy'
+      } catch (error) {
+        reason = owner ? (error as Error).message : 'bundled full asset not found after copy'
       }
     }
     results.push({
@@ -2915,8 +2968,8 @@ async function copyBundledFullRendererAssets(
       copied,
       required: asset.required,
       reason,
-      sourcePackage: source.packageName,
-      sourceVersion: source.sourceVersion
+      sourcePackage: owner?.packageName || source.packageName,
+      sourceVersion: owner?.packageVersion || source.sourceVersion
     })
   }
 

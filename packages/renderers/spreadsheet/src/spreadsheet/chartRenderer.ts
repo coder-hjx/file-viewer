@@ -3,6 +3,7 @@ import { extremaPointIndexes } from './chartSampling.js'
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 const DEFAULT_COLORS = ['#4472c4', '#ed7d31', '#70ad47', '#ffc000', '#5b9bd5', '#a5a5a5']
+const MAX_LEGEND_ITEMS = 8
 const MAX_LINE_POINTS_PER_PIXEL = 2
 
 type Plot = {
@@ -604,14 +605,15 @@ const drawLegend = (documentRef: Document, svg: SVGSVGElement, chart: SheetChart
   }
   const right = chart.legendPosition === 'right'
   const categorySeries = chart.type === 'pie' || chart.type === 'doughnut' ? chart.series[0] : undefined
+  // Build only visible entries when a pie has a large category cache.
   const entries = chart.type === 'pie' || chart.type === 'doughnut'
-    ? (categorySeries?.values || []).map((_, index) => ({
+    ? (categorySeries?.values || []).slice(0, MAX_LEGEND_ITEMS).map((_, index) => ({
         ...categorySeries!,
         name: categorySeries!.categories[index] || `${index + 1}`,
         color: DEFAULT_COLORS[index % DEFAULT_COLORS.length]
       }))
     : chart.series
-  entries.slice(0, 8).forEach((series, index) => {
+  entries.slice(0, MAX_LEGEND_ITEMS).forEach((series, index) => {
     const x = right ? 510 : 76 + (index % 4) * 136
     const y = right ? 72 + index * 28 : 342 - Math.floor(index / 4) * 20
     const color = seriesColor(series, index)
