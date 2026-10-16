@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "3.2.0",
+  "version": "3.2.1",
   "status": "historical-source-repair",
-  "sourceCommit": "d20dc22c19a9101647a8198f46dc4037277da7cc",
+  "sourceCommit": "75abb46eea1786fb494d942ae4341191e524e975",
   "openSourceMain": true,
   "sourceMap": "historical-source-map.json",
   "originalRuntimeArchiveBytesPreserved": true,

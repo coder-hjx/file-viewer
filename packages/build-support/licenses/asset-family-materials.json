@@ -4,7 +4,7 @@
   "materials": [
     {
       "sourcePath": "packages/components/web/viewer/wasm/cad/CORRESPONDING_SOURCE_NOTICE.txt",
-      "sha256": "529407ad5d025917b19ae6a8eab8dbec1dcec540cb21f39d8bdfe6a062aa9a65",
+      "sha256": "51353db736eeca8f41e023d39368870b8416682d7ae3c9c31932246d45662ce6",
       "bytes": 2466,
       "kind": "generated-corresponding-source-offer",
       "component": "CAD runtime@0.8.3",

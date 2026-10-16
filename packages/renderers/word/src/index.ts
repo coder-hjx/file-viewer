@@ -47,7 +47,7 @@ export const renderFileViewerWordDocx: FileRenderHandler<FileViewerRenderedInsta
   target,
   _type,
   context
-) => import('./wordDocx.js').then(({ default: renderWordDocx }) => renderWordDocx(buffer, target, context));
+) => renderFileViewerWordDoc(buffer, target, _type, context);
 
 /**
  * A surprising number of legacy systems keep the `.doc` suffix after saving

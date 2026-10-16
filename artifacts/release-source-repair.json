@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "mode": "github-source-repair",
-  "version": "3.2.0",
-  "originalSourceCommit": "d20dc22c19a9101647a8198f46dc4037277da7cc",
-  "manifestSha256": "7577bfce91462fdb4fb8540500788bbd1e623429d0a2384387c05f24d66a9017",
+  "version": "3.2.1",
+  "originalSourceCommit": "75abb46eea1786fb494d942ae4341191e524e975",
+  "manifestSha256": "759717dac3c87ba10354d21507dbb19a0d72af2bb6577326c2435105fbc7d4bb",
   "npmPublication": "forbidden"
 }

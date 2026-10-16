@@ -1,6 +1,6 @@
 {
   "name": "@file-viewer/svelte",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "private": false,
   "type": "module",
   "description": "Standard Svelte component package for File Viewer",
@@ -83,7 +83,7 @@
     "svelte": ">=3.59 <6"
   },
   "dependencies": {
-    "@file-viewer/core": "workspace:3.2.0"
+    "@file-viewer/core": "workspace:3.2.1"
   },
   "devDependencies": {
     "svelte": "^5.57.0",

@@ -1,5 +1,12 @@
 # Changelog
 
+## File Viewer v3.2.1 - 2026-10-15
+
+- Fix PDF cold-network worker initialization. Start the real Worker directly instead of issuing a duplicate version probe that can time out or be cancelled.
+- Keep confirmed worker-version mismatch protection and use the supported asynchronous resource path for main-thread fallbacks in Safari/WebKit.
+- Route legacy binary Word documents mislabeled as `.docx` through the existing content sniffer, including direct renderer-handler integrations (#372).
+- Retain Vue 2.6/2.7 support and the existing Full package capabilities. Unaffected regression evidence is reused by input and artifact identity.
+
 完整对外更新日志见 [docs/changelog.md](docs/changelog.md)。
 
 ## File Viewer v3.1.2 - 2026-09-20

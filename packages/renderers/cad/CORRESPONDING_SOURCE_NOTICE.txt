@@ -1,6 +1,6 @@
 File Viewer CAD integration corresponding source
 
-Package release: 3.2.0
+Package release: 3.2.1
 Source archive: https://github.com/flyfish-dev/file-viewer/releases/download/v3.2.0-sources/file-viewer-cad-corresponding-source-3.2.0.tar.gz
 SHA-256: ca91f24f8adf161bc41a787d111afca493f15f2ee15511dc25e5153a7a607b57
 
