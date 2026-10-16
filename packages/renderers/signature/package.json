@@ -90,7 +90,7 @@
     "verify:openpgp-runtime": "node scripts/verify-openpgp-runtime.mjs",
     "verify:structured": "pnpm build:ts && node scripts/verify-structured-formats.mjs",
     "generate:licenses": "node scripts/generate-license-ledger.mjs",
-    "verify:licenses": "node scripts/generate-license-ledger.mjs --check",
+    "verify:licenses": "cargo fetch --locked --manifest-path rust/Cargo.toml && node scripts/generate-license-ledger.mjs --check",
     "verify:artifacts": "node scripts/verify-artifacts.mjs",
     "verify:openpgp": "pnpm build:wasm && pnpm verify:openpgp-architecture && pnpm verify:openpgp-detection && pnpm verify:openpgp-runtime",
     "verify": "pnpm verify:licenses && pnpm verify:fixtures && pnpm verify:github-206 && pnpm verify:structured && pnpm verify:openpgp && pnpm verify:artifacts"
