@@ -1,0 +1,370 @@
+import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { basename, dirname, join, resolve } from 'node:path'
+import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
+import { test } from 'node:test'
+import * as webNode from '../../web/dist/node.js'
+import { assertFullAssetDependencies } from '../scripts/full-asset-dependencies.mjs'
+import { listFileViewerRendererAssetManifests } from '../../../core/dist/assets.js'
+
+const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const manifestFilename = 'flyfish-viewer-assets.json'
+const sha256 = data => createHash('sha256').update(data).digest('hex')
+
+async function fixture(t) {
+  const root = await mkdtemp(join(tmpdir(), 'web-full-asset-manifest-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const targetPackage = join(root, 'packages/components/web-full')
+  const source = join(root, 'apps/viewer-demo/public')
+  const dist = join(targetPackage, 'dist')
+  await mkdir(join(targetPackage, 'src'), { recursive: true })
+  await writeFile(join(targetPackage, 'src/global.ts'), 'export {}\n')
+  await cp(join(packageDir, 'package.json'), join(targetPackage, 'package.json'))
+  await cp(join(packageDir, 'scripts'), join(targetPackage, 'scripts'), {
+    recursive: true,
+    filter: path => !path.endsWith('copy-assets.mjs')
+  })
+  await mkdir(join(root, 'packages/components/web/scripts'), { recursive: true })
+  await cp(
+    join(packageDir, '../web/scripts/amd-entry.mjs'),
+    join(root, 'packages/components/web/scripts/amd-entry.mjs')
+  )
+  await mkdir(join(root, 'packages/components/web/dist'), { recursive: true })
+  await writeFile(
+    join(root, 'packages/components/web/dist/node.js'),
+    `export * from ${JSON.stringify(new URL('../../web/dist/node.js', import.meta.url).href)}\n`
+  )
+  await writeFile(join(root, 'package.json'), '{"type":"module"}\n')
+  const web = join(targetPackage, 'node_modules/@file-viewer/web')
+  await mkdir(web, { recursive: true })
+  await writeFile(join(web, 'package.json'), JSON.stringify({ name: '@file-viewer/web', type: 'module', exports: { './node': './node.js' } }))
+  await writeFile(join(web, 'node.js'), `export * from ${JSON.stringify(new URL('../../web/dist/node.js', import.meta.url).href)}\n`)
+  const fullManifest = JSON.parse(await readFile(join(targetPackage, 'package.json'), 'utf8'))
+  for (const name of ['@file-viewer/assets-cad', '@file-viewer/assets-drawing']) {
+    const directory = join(targetPackage, 'node_modules', name)
+    await mkdir(directory, { recursive: true })
+    await writeFile(join(directory, 'package.json'), JSON.stringify({ name, version: fullManifest.version, exports: { './package.json': './package.json' } }))
+  }
+
+  // Exercise the real asset-copy, sanitation, PPT-integrity and manifest stages.
+  // Bundling is deliberately stubbed so this regression needs no browser or
+  // hundreds of megabytes of runtime assets; full build/pack checks run separately.
+  const vite = join(targetPackage, 'node_modules/vite')
+  await mkdir(vite, { recursive: true })
+  await writeFile(join(vite, 'package.json'), '{"type":"module","exports":"./index.js"}\n')
+  await writeFile(join(vite, 'index.js'), `
+import { mkdir, writeFile } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
+export async function build(options) {
+  const outDir = resolve(options.build.outDir || 'dist')
+  await mkdir(outDir, { recursive: true })
+  await writeFile(join(outDir, options.build.lib.fileName()), '/* bundle fixture */\\n')
+}
+`)
+
+  const validation = await webNode.validateViewerAssets({ sourceDir: source })
+  for (const asset of validation.assets) {
+    const path = join(source, asset.relativePath)
+    if (asset.kind === 'directory' || asset.kind === 'wasm-directory') {
+      await mkdir(path, { recursive: true })
+    } else {
+      await mkdir(dirname(path), { recursive: true })
+      await writeFile(path, `asset:${asset.relativePath}\n`)
+    }
+  }
+  const ppt = join(source, 'vendor/ppt')
+  const wasm = Buffer.from('unique wasm fixture bytes')
+  const font = Buffer.from('unique font fixture bytes, longer than the wasm')
+  await writeFile(join(ppt, 'ppt-native.wasm'), wasm)
+  await writeFile(join(ppt, 'ppt-font-cjk.otf'), font)
+  await writeFile(join(ppt, 'manifest.json'), JSON.stringify({
+    packageName: '@file-viewer/ppt', packageVersion: '0.3.6',
+    wasmFile: 'ppt-native.wasm', wasmBytes: wasm.length, wasmSha256: sha256(wasm),
+    workerFile: 'worker.mjs',
+    fontPack: { file: 'ppt-font-cjk.otf', bytes: font.length, sha256: sha256(font) }
+  }))
+  await writeFile(join(ppt, 'package.json'), '{"name":"@file-viewer/ppt","version":"0.3.6"}')
+  await writeFile(join(ppt, 'index.mjs'), '// FV-PPT-PUBLIC-WATERMARKED-V2 createPptViewer ppt-native.wasm ppt-font-cjk.otf worker.mjs\n')
+  await writeFile(join(ppt, 'worker.mjs'), "import './frame-cache.mjs'; // from './frame-cache.mjs'\n")
+  await writeFile(join(ppt, 'frame-cache.mjs'), [
+    'export function normalizeFrameCacheLimits() {}',
+    'export function createFrameCacheKey() {}',
+    'export function createFrameCache() {}'
+  ].join('\n'))
+  const installedPpt = join(targetPackage, 'node_modules/@file-viewer/ppt')
+  await cp(ppt, installedPpt, { recursive: true })
+  await writeFile(join(installedPpt, 'package.json'), JSON.stringify({
+    name: '@file-viewer/ppt', version: '0.3.6', exports: { '.': './index.mjs' }
+  }))
+  // Keep the real prepared-design copy stage in this isolated build. Only the
+  // fixture package payloads are synthetic; the production helper is unchanged.
+  const support = join(root, 'packages/build-support')
+  await mkdir(support, { recursive: true })
+  await cp(
+    join(packageDir, '../../build-support/stage-design-runtime.mjs'),
+    join(support, 'stage-design-runtime.mjs')
+  )
+  const designOwner = join(root, 'packages/renderers/design')
+  const designExports = {}
+  const preparedDesignAssets = listFileViewerRendererAssetManifests().map(manifest => ({
+    ...manifest,
+    assets: manifest.assets.filter(asset =>
+      asset.packagePath?.startsWith('@file-viewer/renderer-design/') ||
+      asset.packagePath?.startsWith('@paged-media/introspect-wasm/')
+    )
+  })).filter(manifest => manifest.assets.length)
+  const introspect = join(designOwner, 'node_modules/@paged-media/introspect-wasm')
+  await mkdir(join(designOwner, 'prepared'), { recursive: true })
+  await mkdir(introspect, { recursive: true })
+  await writeFile(join(introspect, 'package.json'), JSON.stringify({
+    name: '@paged-media/introspect-wasm', version: '0.70.2', type: 'module',
+    exports: { '.': './index.js', './paged_introspect_wasm_bg.wasm': './paged_introspect_wasm_bg.wasm' }
+  }))
+  await writeFile(join(introspect, 'index.js'), 'export {}')
+  for (const asset of preparedDesignAssets.flatMap(manifest => manifest.assets)) {
+    if (asset.packagePath.startsWith('@file-viewer/renderer-design/')) {
+      const key = './' + asset.packagePath.slice('@file-viewer/renderer-design/'.length)
+      designExports[key] = './prepared/' + basename(asset.defaultPath)
+      await cp(join(source, asset.defaultPath), join(designOwner, designExports[key]))
+    } else {
+      await cp(join(source, asset.defaultPath), join(introspect, basename(asset.defaultPath)))
+    }
+  }
+  await writeFile(join(designOwner, 'package.json'), JSON.stringify({
+    name: '@file-viewer/renderer-design', version: '1.0.0', type: 'module',
+    dependencies: { '@paged-media/introspect-wasm': '0.70.2' }, exports: designExports
+  }))
+  const core = join(designOwner, 'node_modules/@file-viewer/core')
+  await mkdir(core, { recursive: true })
+  await writeFile(join(core, 'package.json'), JSON.stringify({
+    name: '@file-viewer/core', type: 'module', exports: { './assets': './assets.js' }
+  }))
+  await writeFile(join(core, 'assets.json'), JSON.stringify(preparedDesignAssets))
+  await writeFile(join(core, 'assets.js'), [
+    "import { readFileSync } from 'node:fs'",
+    "const manifests = JSON.parse(readFileSync(new URL('./assets.json', import.meta.url), 'utf8'))",
+    'export function listFileViewerRendererAssetManifests() { return manifests }'
+  ].join('\n') + '\n')
+  await cp(
+    join(packageDir, '../../build-support/stage-cad-runtime.mjs'),
+    join(support, 'stage-cad-runtime.mjs')
+  )
+  const cadOwner = join(root, 'packages/renderers/cad')
+  const installedCad = join(cadOwner, 'node_modules/@flyfish-dev/cad-viewer')
+  await mkdir(join(installedCad, 'dist/wasm'), { recursive: true })
+  await writeFile(join(cadOwner, 'package.json'), JSON.stringify({
+    name: '@file-viewer/renderer-cad', dependencies: { '@flyfish-dev/cad-viewer': '0.8.3' }
+  }))
+  await writeFile(join(installedCad, 'package.json'), JSON.stringify({
+    name: '@flyfish-dev/cad-viewer', version: '0.8.3', exports: { './package.json': './package.json' }
+  }))
+  for (const filename of ['dwg-worker.js', 'dwfv-render.wasm', 'libredwg-web.js', 'libredwg-web.wasm']) {
+    await writeFile(join(installedCad, 'dist/wasm', filename), `installed CAD:${filename}\n`)
+  }
+  for (const filename of ['LICENSE', 'NOTICE']) {
+    await writeFile(join(installedCad, filename), `installed CAD:${filename}\n`)
+  }
+  const cadCore = join(cadOwner, 'node_modules/@file-viewer/core')
+  await mkdir(cadCore, { recursive: true })
+  await writeFile(join(cadCore, 'package.json'), JSON.stringify({
+    name: '@file-viewer/core', type: 'module', exports: { './assets': './assets.js' }
+  }))
+  await writeFile(join(cadCore, 'assets.js'), "export const DEFAULT_FILE_VIEWER_CAD_RUNTIME_VERSION = '0.8.3'\n")
+  return {
+    root, source, dist, targetPackage, installedPpt, designOwner, installedCad,
+    run: () => {
+      const env = { ...process.env }
+      delete env.NODE_PATH
+      delete env.NODE_OPTIONS
+      return spawnSync(process.execPath, ['scripts/build-iife.mjs'], {
+        cwd: targetPackage, env, encoding: 'utf8'
+      })
+    }
+  }
+}
+
+test('bootstrap without a manifest produces valid, portable metadata for the final asset tree', async t => {
+  const f = await fixture(t)
+  const textAsset = 'vendor/sanitization-fixture.js'
+  const originalText = "const fallback = 'https://cdn.jsdelivr.net/example'\n"
+  await writeFile(join(f.source, textAsset), originalText)
+  const built = f.run()
+  assert.equal(built.status, 0, built.stderr)
+  const manifestText = await readFile(join(f.dist, manifestFilename), 'utf8')
+  const manifest = JSON.parse(manifestText)
+  assert.equal(manifest.schemaVersion, 1)
+  assert.equal(manifest.validation.valid, true)
+  assert.deepEqual(manifest.validation.missingRequired, [])
+  assert.ok(manifest.rendererAssetManifests.length > 0)
+  assert.equal(manifestText.includes(f.root), false)
+  const current = await webNode.validateViewerAssets({ sourceDir: f.dist })
+  assert.deepEqual(manifest.validation.assets, webNode.toViewerAssetManifestValidation(current).assets)
+  const packageManifest = JSON.parse(await readFile(join(f.dist, 'flyfish-viewer-manifest.json'), 'utf8'))
+  assert.equal(packageManifest.assets, manifestFilename)
+  assert.deepEqual(
+    await readFile(join(f.dist, 'vendor/ppt/ppt-native.wasm')),
+    await readFile(join(f.source, 'vendor/ppt/ppt-native.wasm'))
+  )
+  assert.equal(
+    await readFile(join(f.dist, textAsset), 'utf8'),
+    "const fallback = 'file-viewer-offline-cdn/example'\n"
+  )
+  assert.equal(await readFile(join(f.source, textAsset), 'utf8'), originalText)
+})
+
+test('source metadata is regenerated from the packaged files', async t => {
+  const f = await fixture(t)
+  await writeFile(join(f.source, manifestFilename), JSON.stringify({
+    schemaVersion: 1, generatedAt: 'stale', rendererAssetManifests: [],
+    validation: { valid: false, assets: [], missingRequired: ['stale'] }
+  }))
+  const built = f.run()
+  assert.equal(built.status, 0, built.stderr)
+  const manifest = JSON.parse(await readFile(join(f.dist, manifestFilename), 'utf8'))
+  assert.equal(manifest.validation.valid, true)
+  assert.ok(manifest.validation.assets.length > 0)
+  assert.notEqual(manifest.generatedAt, 'stale')
+})
+
+test('stale design metadata is replaced by the prepared owner exports', async t => {
+  const f = await fixture(t)
+  await writeFile(join(f.source, 'vendor/design/THIRD_PARTY_NOTICES.md'), 'stale previous notices')
+  const built = f.run()
+  assert.equal(built.status, 0, built.stderr)
+  assert.deepEqual(
+    await readFile(join(f.dist, 'vendor/design/THIRD_PARTY_NOTICES.md')),
+    await readFile(join(f.designOwner, 'prepared/THIRD_PARTY_NOTICES.md'))
+  )
+})
+
+test('missing prepared design notices cannot fall back to bootstrap bytes', async t => {
+  const f = await fixture(t)
+  await rm(join(f.designOwner, 'prepared/THIRD_PARTY_NOTICES.md'))
+  const built = f.run()
+  assert.notEqual(built.status, 0)
+  assert.match(built.stderr, /THIRD_PARTY_NOTICES\.md/)
+})
+
+test('a stale PPT bootstrap is replaced with the installed official runtime', async t => {
+  const f = await fixture(t)
+  const staleRuntime = join(f.source, 'vendor/ppt')
+  await writeFile(join(staleRuntime, 'package.json'), '{"name":"@file-viewer/ppt","version":"0.3.4"}')
+  await writeFile(join(staleRuntime, 'manifest.json'), '{"packageName":"@file-viewer/ppt","packageVersion":"0.3.4"}')
+  await writeFile(join(staleRuntime, 'ppt-native.wasm'), 'stale native bytes')
+  await writeFile(join(staleRuntime, 'stale-only.js'), '// obsolete asset')
+  const built = f.run()
+  assert.equal(built.status, 0, built.stderr)
+  const installedFiles = ['index.mjs', 'worker.mjs', 'frame-cache.mjs', 'ppt-native.wasm', 'ppt-font-cjk.otf', 'manifest.json', 'package.json', 'LICENSE', 'NOTICE']
+  for (const filename of installedFiles) {
+    assert.deepEqual(
+      await readFile(join(f.dist, 'vendor/ppt', filename)),
+      await readFile(join(f.installedPpt, filename)),
+      filename
+    )
+  }
+  await assert.rejects(readFile(join(f.dist, 'vendor/ppt/stale-only.js')), { code: 'ENOENT' })
+})
+
+test('CAD bootstrap bytes are replaced by the installed runtime and its exact notices', async t => {
+  const f = await fixture(t)
+  const oldCad = join(f.source, 'wasm/cad/0.8.0/dwg-worker.js')
+  const originalLegacy = await readFile(oldCad)
+  const built = f.run()
+  assert.equal(built.status, 0, built.stderr)
+  for (const filename of ['dwg-worker.js', 'dwfv-render.wasm', 'libredwg-web.js', 'libredwg-web.wasm', 'LICENSE', 'NOTICE']) {
+    const installed = join(f.installedCad, ['LICENSE', 'NOTICE'].includes(filename) ? filename : `dist/wasm/${filename}`)
+    assert.deepEqual(await readFile(join(f.dist, 'wasm/cad/0.8.3', filename)), await readFile(installed))
+  }
+  assert.deepEqual(await readFile(join(f.dist, 'wasm/cad/0.8.0/dwg-worker.js')), originalLegacy)
+})
+
+test('a missing installed CAD Worker cannot be hidden by current bootstrap bytes', async t => {
+  const f = await fixture(t)
+  await rm(join(f.installedCad, 'dist/wasm/dwg-worker.js'))
+  const built = f.run()
+  assert.notEqual(built.status, 0)
+  assert.match(built.stderr, /dwg-worker\.js/)
+})
+
+test('an installed CAD version mismatch cannot be hidden by bootstrap assets', async t => {
+  const f = await fixture(t)
+  await writeFile(join(f.installedCad, 'package.json'), JSON.stringify({
+    name: '@flyfish-dev/cad-viewer', version: '0.8.2', exports: { './package.json': './package.json' }
+  }))
+  const built = f.run()
+  assert.notEqual(built.status, 0)
+  assert.match(built.stderr, /Installed CAD version differs from its owner/)
+})
+
+test('an old installed PPT version fails even when bootstrap assets are current', async t => {
+  const f = await fixture(t)
+  await writeFile(join(f.installedPpt, 'package.json'), JSON.stringify({
+    name: '@file-viewer/ppt', version: '0.3.4', exports: { '.': './index.mjs' }
+  }))
+  const built = f.run()
+  assert.notEqual(built.status, 0)
+  assert.match(built.stderr, /version mismatch: manifest=0\.3\.6, package=0\.3\.4, expected=0\.3\.6/)
+})
+
+test('corrupt installed PPT bytes fail without falling back to bootstrap assets', async t => {
+  const f = await fixture(t)
+  const wasm = await readFile(join(f.installedPpt, 'ppt-native.wasm'))
+  wasm[0] ^= 1
+  await writeFile(join(f.installedPpt, 'ppt-native.wasm'), wasm)
+  const built = f.run()
+  assert.notEqual(built.status, 0)
+  assert.match(built.stderr, /native WASM or CJK font integrity hash does not match/)
+})
+
+test('a missing required non-PPT asset fails the build with its path', async t => {
+  const f = await fixture(t)
+  const asset = (await webNode.validateViewerAssets({ sourceDir: f.source })).assets.find(
+    item => item.required && item.rendererId === 'pdf' && item.kind === 'worker'
+  )
+  assert.ok(asset)
+  await rm(join(f.source, asset.relativePath))
+  const built = f.run()
+  assert.notEqual(built.status, 0)
+  assert.ok(built.stderr.includes(asset.relativePath), built.stderr)
+})
+
+test('stale dist assets cannot hide a source tree missing required WASM', async t => {
+  const f = await fixture(t)
+  await mkdir(f.dist, { recursive: true })
+  await cp(join(f.source, 'wasm'), join(f.dist, 'wasm'), { recursive: true })
+  await rm(join(f.source, 'wasm'), { recursive: true })
+  const built = f.run()
+  assert.notEqual(built.status, 0)
+  assert.match(built.stderr, /missing required resources:.*wasm\//)
+})
+
+test('a build without a viewer asset source fails explicitly', async t => {
+  const f = await fixture(t)
+  await rm(f.source, { recursive: true })
+  const built = f.run()
+  assert.notEqual(built.status, 0)
+  assert.match(built.stderr, /Missing viewer asset source/)
+})
+
+test('exact installed asset versions work in workspace, exported and local tarball builds', async t => {
+  const f = await fixture(t)
+  const packageJsonPath = join(f.targetPackage, 'package.json')
+  const manifest = JSON.parse(await readFile(packageJsonPath, 'utf8'))
+  for (const spec of [`workspace:${manifest.version}`, manifest.version, 'file:./candidate.tgz']) {
+    const candidate = { ...manifest, dependencies: { ...manifest.dependencies, '@file-viewer/assets-cad': spec, '@file-viewer/assets-drawing': spec } }
+    await assertFullAssetDependencies(candidate, packageJsonPath)
+  }
+})
+
+test('an open asset range or a mismatched installed tarball cannot weaken version ownership', async t => {
+  const f = await fixture(t)
+  const packageJsonPath = join(f.targetPackage, 'package.json')
+  const manifest = JSON.parse(await readFile(packageJsonPath, 'utf8'))
+  await assert.rejects(assertFullAssetDependencies({ ...manifest, dependencies: { ...manifest.dependencies, '@file-viewer/assets-cad': `^${manifest.version}` } }, packageJsonPath), /must match the full package version/)
+  manifest.dependencies['@file-viewer/assets-cad'] = 'file:./mismatched.tgz'
+  await writeFile(join(f.targetPackage, 'node_modules/@file-viewer/assets-cad/package.json'), JSON.stringify({ name: '@file-viewer/assets-cad', version: '0.0.0', exports: { './package.json': './package.json' } }))
+  await assert.rejects(assertFullAssetDependencies(manifest, packageJsonPath), /assets-cad@0.0.0 must match/)
+})
