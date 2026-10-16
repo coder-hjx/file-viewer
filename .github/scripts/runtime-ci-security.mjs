@@ -105,7 +105,11 @@ try {
       // Resolve the normal virtual lock offline before any authorized audit disclosure.
       const virtual = await new Arborist({ path: project, audit: false }).loadVirtual()
       const payload = new AuditReport(virtual, { omit: ['dev'] }).prepareBulkData()
-      const scope = resolvedAuditScope(payload, approvedAuditDigests[caseId], process.env.RUNTIME_AUDIT_DISCLOSURE_APPROVED)
+      const scope = resolvedAuditScope(
+        payload,
+        approvedAuditDigests[caseId],
+        process.env.RUNTIME_AUDIT_DISCLOSURE_APPROVED
+      )
       console.log(JSON.stringify({ caseId, auditScope: scope }))
       const auditHome = join(project, '.audit-home')
       await mkdir(auditHome)
@@ -141,7 +145,10 @@ try {
       await writeFile(join(project, 'normal-npm-audit.json'), audit.stdout || '')
       assert.ok([0, 1].includes(audit.status), 'Normal npm audit could not complete')
       const auditReport = JSON.parse(audit.stdout)
-      assert.ok(!auditReport.error, JSON.stringify({ caseId, error: auditReport.error, stderr: audit.stderr }))
+      assert.ok(
+        !auditReport.error,
+        JSON.stringify({ caseId, error: auditReport.error, stderr: audit.stderr })
+      )
       const lock = JSON.parse(await readFile(join(project, 'package-lock.json'), 'utf8'))
       const policy = assessRuntimeAudit(auditReport, {
         framework,

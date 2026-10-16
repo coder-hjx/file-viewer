@@ -23,7 +23,8 @@ export function officialRegistryUrl(value) {
 
 export function registryMetadataUrl(rawPath) {
   const path = decodeURIComponent(rawPath)
-  const match = /^\/((?:@[a-z0-9._-]+\/)?[a-z0-9._-]+)(?:\/(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?))?$/.exec(path)
+  const match =
+    /^\/((?:@[a-z0-9._-]+\/)?[a-z0-9._-]+)(?:\/(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?))?$/.exec(path)
   assert.ok(match, 'Only npm package metadata paths may be proxied')
   const target = new URL('https://registry.npmjs.org/')
   target.pathname = `/${encodeURIComponent(match[1])}${match[2] ? '/' + match[2] : ''}`
@@ -93,7 +94,10 @@ export async function startFrozenValidationRegistry({ archives, cacheDirectory }
       downloads.set(
         url,
         (async () => {
-          const response = await fetch(officialRegistryUrl(url), { redirect: 'error', signal: AbortSignal.timeout(60_000) })
+          const response = await fetch(officialRegistryUrl(url), {
+            redirect: 'error',
+            signal: AbortSignal.timeout(60_000)
+          })
           assert(response.ok, `Registry tarball returned ${response.status}`)
           const temporary = `${path}.${process.pid}.partial`
           try {
