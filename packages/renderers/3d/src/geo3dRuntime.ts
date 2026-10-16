@@ -450,9 +450,12 @@ export async function renderGeo3d(
           pointOptions.subdivisionThreshold <= 0
         )
           throw new Error('Invalid Geo3D subdivisionThreshold.')
-        pointEntity.subdivisionThreshold = pointOptions.subdivisionThreshold
       }
       await current.add(pointEntity)
+      // The pinned setter notifies its Instance. It is only safe after add()
+      // completes; keep validation above add() so invalid options still fail early.
+      if (pointOptions?.subdivisionThreshold !== undefined)
+        pointEntity.subdivisionThreshold = pointOptions.subdivisionThreshold
     } else if (format === 'geotiff' || format === 'cog') {
       const tiff = await inspectGeoTiffRangeSource(
         createGeo3dProbeRangeGetter({ ...source, signal })

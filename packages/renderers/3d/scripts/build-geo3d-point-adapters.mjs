@@ -16,6 +16,64 @@ export const SOURCE_HASHES = {
 }
 const hash = text => createHash('sha256').update(text).digest('hex')
 
+/** Merge only adjacent declared metadata pages, never speculative point bytes. */
+export function groupCopcHierarchyPages(pages) {
+  const sorted = [...pages].sort((a, b) => a.pageOffset - b.pageOffset)
+  const groups = []
+  for (const page of sorted) {
+    const begin = page.pageOffset, end = begin + page.pageLength
+    if (!Number.isSafeInteger(begin) || begin < 0 || !Number.isSafeInteger(page.pageLength) ||
+        page.pageLength < 0 || page.pageLength % 32 || !Number.isSafeInteger(end)) {
+      throw new Error('Invalid COPC hierarchy page range.')
+    }
+    const last = groups.at(-1)
+    if (last && begin === last.end && end - last.begin <= 512 * 1024) {
+      last.end = end
+      last.pages.push(page)
+    } else groups.push({ begin, end, pages: [page] })
+  }
+  return groups
+}
+
+/** Coalesce contiguous hierarchy I/O with at most eight bounded group reads. */
+export async function loadCopcHierarchy(loadPage, getter, root, nodeMap) {
+  let pending = [root]
+  const visited = new Set()
+  while (pending.length) {
+    const unique = pending.filter(page => {
+      const key = `${page.pageOffset}:${page.pageLength}`
+      if (visited.has(key)) return false
+      visited.add(key)
+      return true
+    })
+    const groups = groupCopcHierarchyPages(unique)
+    pending = []
+    let cursor = 0, failed = false
+    await Promise.all(Array.from({ length: Math.min(8, groups.length) }, async () => {
+      while (!failed && cursor < groups.length) {
+        const group = groups[cursor++]
+        try {
+          let read = getter
+          if (group.pages.length > 1) {
+            const bytes = await getter(group.begin, group.end)
+            if (bytes.byteLength !== group.end - group.begin) throw new Error('Truncated COPC hierarchy group.')
+            read = async (begin, end) => {
+              if (begin < group.begin || end > group.end || end < begin) throw new Error('COPC hierarchy page escaped its declared group.')
+              return bytes.slice(begin - group.begin, end - group.begin)
+            }
+          }
+          for (const page of group.pages) {
+            if (failed) return
+            const { nodes, pages } = await loadPage(read, page)
+            for (const [id, node] of Object.entries(nodes)) nodeMap.set(id, node)
+            for (const child of Object.values(pages)) if (child) pending.push(child)
+          }
+        } catch (error) { failed = true; throw error }
+      }
+    }))
+  }
+}
+
 /** Keep cancellation attached to the requesting node, including queued and late work. */
 export function createPointSourceWithCancellation(Source, options) {
   return new class extends Source {
@@ -126,6 +184,28 @@ export function adaptPointSource(name, text) {
   }
   body = body.replace(`export default class ${name}`, `class ${name}`)
   if (name === 'COPCSource') body = body.replace('export function isCOPCSource', 'function isCOPCSource')
+  if (name === 'COPCSource') {
+    const originalHierarchy = `async function loadSubtree(getter, root, nodeMap) {
+  const {
+    nodes,
+    pages
+  } = await Copc.loadHierarchyPage(getter, root);
+  for (const [id, node] of Object.entries(nodes)) {
+    nodeMap.set(id, node);
+  }
+  for (const page of Object.values(pages)) {
+    if (page) {
+      await loadSubtree(getter, page, nodeMap);
+    }
+  }
+}`
+    if (!body.includes(originalHierarchy)) throw new Error('Unexpected reviewed COPC hierarchy loader.')
+    body = body.replace(originalHierarchy, `async function loadSubtree(getter, root, nodeMap) {
+  return loadCopcHierarchy(Copc.loadHierarchyPage, getter, root, nodeMap);
+}
+${loadCopcHierarchy.toString()}`)
+    body = `${groupCopcHierarchyPages.toString()}\n${body}`
+  }
   const original = name === 'LASSource' ? '  dispose() {\n    // Nothing to do\n  }' : '  dispose() {\n    // Nothing to dispose.\n  }'
   if (!body.includes(original)) throw new Error(`Unexpected ${name} disposal method.`)
   const release = name === 'LASSource'

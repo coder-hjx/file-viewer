@@ -68,6 +68,9 @@ export function adaptGeoTIFFSource(text) {
       this._regionCacheKeys.add(cacheKey);
     }`)
   body = replaceOnce(body, '  async readWindow(image, window, channels, signal) {', '  async readWindow(image, window, channels, signal) {\n    signal = workers.combineSignal(signal);')
+  // Block-cache/coalesced HTTP reads can outlive an individual readWindow signal.
+  // Attach ownership at the actual HTTP client too, including initialization I/O.
+  body = replaceOnce(body, '    const response = await this._downloader.fetch(this.url, {', '    signal = workers.combineSignal(signal);\n    const response = await this._downloader.fetch(this.url, {')
   body = replaceOnce(body, '    }, dataType, ...buffers);', '    }, dataType, ...buffers);\n    if (workers.signal.aborted) { texture.dispose(); throw workers.signal.reason; }')
   body = body.replace(/^export (?=(?:class|function) )/gm, '')
   body = replaceOnce(body, 'export default GeoTIFFSource;', 'return new GeoTIFFSource(options);')
