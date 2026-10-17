@@ -780,6 +780,9 @@ importers:
         specifier: workspace:3.2.1
         version: link:../../core
     devDependencies:
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
       svelte:
         specifier: ^5.57.0
         version: 5.57.2
@@ -799,6 +802,9 @@ importers:
         specifier: workspace:3.2.1
         version: link:../../tools/copy-assets
     devDependencies:
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
       svelte:
         specifier: ^5.57.0
         version: 5.57.2

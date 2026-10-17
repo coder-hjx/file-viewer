@@ -92,6 +92,7 @@
     "file-viewer-copy-assets": "workspace:3.2.1"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "svelte": "^5.57.0",
     "typescript": "^6.0.3"
   },
