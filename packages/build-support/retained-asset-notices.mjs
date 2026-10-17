@@ -4,6 +4,7 @@ import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { createHash } from 'node:crypto'
 import { stageSharedAssetAttribution } from './shared-asset-attribution.mjs'
+import { resolveWorkspaceAsset } from './public-asset-mirror.mjs'
 
 const workspaceRoot = resolve(import.meta.dirname, '../..')
 const workerNotices = [
@@ -30,7 +31,7 @@ export function resolveRetainedAssetNoticeSource(asset, assets, { sourceRoot = w
   assert.equal(asset.kind, 'file')
   assert.equal(asset.target, 'public')
   assert.equal(asset.required, runtime.required)
-  return resolve(sourceRoot, extra.source)
+  return resolveWorkspaceAsset(sourceRoot, extra.source)
 }
 
 export function withRetainedAssetNoticeManifests(manifests) {
@@ -82,9 +83,9 @@ export async function stageRetainedAssetNotices(viewerRoot, { sourceRoot = works
   for (const entry of workerNotices) {
     const runtime = await readOptional(join(viewerRoot, entry.runtime))
     if (!runtime) continue
-    const expected = await readFile(join(sourceRoot, entry.source))
+    const expected = await readFile(resolveWorkspaceAsset(sourceRoot, entry.source))
     assert.ok(runtime.equals(expected), `Copied Worker differs from its original notice build: ${entry.runtime}`)
-    const grant = await readFile(join(sourceRoot, entry.grant))
+    const grant = await readFile(resolveWorkspaceAsset(sourceRoot, entry.grant))
     assert.ok(grant.length > 0, `Missing complete original Worker grants: ${entry.runtime}`)
     writes.push({ target: join(viewerRoot, dirname(entry.runtime), 'licenses/THIRD_PARTY_LICENSES.txt'), bytes: grant })
   }
@@ -121,7 +122,7 @@ export async function stageRetainedAssetNotices(viewerRoot, { sourceRoot = works
       const expected = join(dirname(require.resolve('occt-import-js')), 'occt-import-js.wasm')
       assert.ok(runtime.equals(await readFile(expected)), 'Copied OCCT WASM changed')
     }
-    writes.push({ target: join(viewerRoot, extra.path), bytes: await readFile(join(sourceRoot, extra.source)) })
+    writes.push({ target: join(viewerRoot, extra.path), bytes: await readFile(resolveWorkspaceAsset(sourceRoot, extra.source)) })
   }
   // Verify every present payload before writing any grant, so a stale Worker
   // cannot be paired with the notices of a different normal build.

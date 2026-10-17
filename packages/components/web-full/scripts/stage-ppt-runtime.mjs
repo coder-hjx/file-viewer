@@ -21,7 +21,13 @@ export async function stageInstalledPptRuntime(targetDirectory) {
     throw new Error('[ppt-runtime-stage] The official PPT build dependency must match the integrity verifier')
   }
   const require = createRequire(packageJsonPath)
-  const source = dirname(require.resolve('@file-viewer/ppt'))
+  return stagePptRuntimeFrom(dirname(require.resolve('@file-viewer/ppt')), targetDirectory)
+}
+
+// Copy and re-verify an official runtime directory. Exported separately so tests
+// can exercise the same checks against a fixture package directory.
+export async function stagePptRuntimeFrom(sourceDirectory, targetDirectory) {
+  const source = resolve(sourceDirectory)
   const target = resolve(targetDirectory)
   const sourceWithinTarget = relative(target, source)
   if (sourceWithinTarget === '' || (!sourceWithinTarget.startsWith('..') && !sourceWithinTarget.startsWith('/'))) {
