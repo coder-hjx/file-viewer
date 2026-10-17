@@ -4,6 +4,7 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import { sanitizeOfflineAssetText } from '../components/web-full/scripts/offline-asset-sanitize.mjs'
 import { removeRuntimeSourceReferences } from './runtime-only-javascript.mjs'
+import { resolveWorkspaceAsset } from './public-asset-mirror.mjs'
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex')
 const workspace = resolve(import.meta.dirname, '../..')
@@ -11,7 +12,7 @@ const legalName = /(?:LICENSE|COPYING|COPYRIGHT|NOTICE|PROVENANCE|(?:^|[._-])(?:
 const registryUrl = new URL('./licenses/asset-family-materials.json', import.meta.url)
 
 export function canonicalRuntimePath(path, sourceRoot) {
-  if (path.startsWith('vendor/drawio/')) return join(sourceRoot, 'third_party/drawio', path.slice(14))
+  if (path.startsWith('vendor/drawio/')) return resolveWorkspaceAsset(sourceRoot, `third_party/drawio/${path.slice(14)}`)
   if (path.startsWith('wasm/typst/fonts/')) return join(sourceRoot, 'packages/renderers/typst/assets/fonts', path.slice(17))
   if (path.startsWith('vendor/pdf/') && !path.startsWith('vendor/pdf/fonts/')) return join(sourceRoot, 'packages/renderers/pdf/dist/vendor/pdfjs', path.slice(11))
   if (path === 'vendor/design/stet_wasm_bg.wasm') return join(sourceRoot, 'packages/renderers/design/runtime/postscript/stet_wasm_bg.wasm')
@@ -83,7 +84,7 @@ export async function stageSharedAssetAttribution(viewerRoot, { sourceRoot = wor
   const registry = JSON.parse(registryBytes)
   const byDigest = new Map()
   for (const entry of registry.materials) {
-    const source = await readFile(join(sourceRoot, entry.sourcePath))
+    const source = await readFile(resolveWorkspaceAsset(sourceRoot, entry.sourcePath))
     assert.equal(hash(source), entry.sha256, `Shared legal source changed: ${entry.sourcePath}`)
     assert.equal(source.length, entry.bytes)
     const { sourcePath, initialOccurrences, ...publicIdentity } = entry
