@@ -1,21 +1,14 @@
 import { existsSync } from 'node:fs'
-import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'vite'
-import { sanitizeOfflineViewerAssetTree } from './offline-asset-sanitize.mjs'
-import { verifyPptRuntimeDistributionRoot } from './ppt-runtime-integrity.mjs'
-import { stageInstalledPptRuntime } from './stage-ppt-runtime.mjs'
-import { stagePreparedDesignRuntime } from '../../../build-support/stage-design-runtime.mjs'
-import { stageInstalledCadRuntime } from '../../../build-support/stage-cad-runtime.mjs'
+import { stageFullViewerAssets } from './stage-full-assets.mjs'
 import { isolateAmd, writeAmdEntry } from '../../web/scripts/amd-entry.mjs'
 import * as webNode from '@file-viewer/web/node'
-import { assertFullAssetDependencies } from './full-asset-dependencies.mjs'
 import { writeBundleNotices } from '../../../build-support/bundle-notices.mjs'
 import { appendCadIntegrationSourceNotice } from '../../../build-support/cad-source-offer.mjs'
 import { writeBundleInventory } from '../../../build-support/bundle-inventory.mjs'
-import { stageRetainedAssetNotices, withRetainedAssetNoticeManifests, withRetainedAssetNoticeValidation } from '../../../build-support/retained-asset-notices.mjs'
-import { stableAssetManifest } from '../../../build-support/stable-asset-manifest.mjs'
 
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageManifest = JSON.parse(await readFile(resolve(packageDir, 'package.json'), 'utf8'))
@@ -216,82 +209,7 @@ await appendCadIntegrationSourceNotice(join(outDir, 'THIRD_PARTY_LICENSES.txt'),
 
 await rm(generatedDir, { recursive: true, force: true })
 
-const assetSourceCandidates = [
-  resolve(packageDir, '..', 'web', 'viewer'),
-  resolve(packageDir, '..', '..', 'compat', 'web', 'viewer'),
-  resolve(packageDir, '..', '..', '..', 'apps', 'viewer-demo', 'dist'),
-  // A fresh public-source checkout has no generated viewer/demo dist yet. The
-  // tracked offline assets are the canonical bootstrap source for that build.
-  resolve(packageDir, '..', '..', '..', 'apps', 'viewer-demo', 'public')
-]
-const assetSource = assetSourceCandidates.find(candidate =>
-  existsSync(resolve(candidate, 'flyfish-viewer-assets.json')) ||
-  existsSync(resolve(candidate, 'vendor')) ||
-  existsSync(resolve(candidate, 'wasm'))
-)
-
-if (assetSource) {
-  for (const entry of ['vendor', 'wasm']) {
-    const sourcePath = resolve(assetSource, entry)
-    const targetPath = resolve(outDir, entry)
-    await rm(targetPath, { recursive: true, force: true })
-    if (!existsSync(sourcePath)) {
-      continue
-    }
-    await cp(sourcePath, targetPath, { recursive: true })
-  }
-  console.log(`[web-full-iife] Copied viewer assets from ${assetSource}`)
-} else {
-  throw new Error('[web-full-iife] Missing viewer asset source. Build viewer assets before publishing the full CDN package.')
-}
-
-await stageInstalledPptRuntime(join(outDir, 'vendor/ppt'))
-await stagePreparedDesignRuntime(outDir)
-await stageInstalledCadRuntime(outDir)
-const sanitization = await sanitizeOfflineViewerAssetTree(outDir)
-await verifyPptRuntimeDistributionRoot(outDir, {
-  unbundledJavaScriptPath: 'renderers/presentation.iife.js'
-})
-await assertFullAssetDependencies(packageManifest, resolve(packageDir, 'package.json'))
-await stageRetainedAssetNotices(outDir, {
-  externalAssetOwners: [
-    { prefix: 'vendor/drawio/', packageName: '@file-viewer/assets-drawing', version: packageManifest.version, inventoryPath: 'viewer/THIRD_PARTY_LICENSES.assets.json' },
-    { prefix: 'wasm/cad/', packageName: '@file-viewer/assets-cad', version: packageManifest.version, inventoryPath: 'viewer/THIRD_PARTY_LICENSES.assets.json' },
-  ],
-})
-const initialValidation = await webNode.validateViewerAssets({ sourceDir: outDir })
-const viewerAssetManifest = webNode.buildViewerAssetManifest(initialValidation)
-viewerAssetManifest.rendererAssetManifests = withRetainedAssetNoticeManifests(viewerAssetManifest.rendererAssetManifests)
-const validation = await withRetainedAssetNoticeValidation(initialValidation, viewerAssetManifest.rendererAssetManifests)
-if (!validation.valid) {
-  const missing = validation.missingRequired
-    .map(asset => `${asset.rendererId}:${asset.relativePath}`)
-    .join(', ')
-  throw new Error(`[web-full-iife] Viewer static assets are missing required resources: ${missing}`)
-}
-viewerAssetManifest.validation = webNode.toViewerAssetManifestValidation(validation)
-const privateEvidenceDir = join(packageDir, '.build')
-await mkdir(privateEvidenceDir, { recursive: true })
-await writeFile(join(privateEvidenceDir, 'full-assets-validation.json'), `${JSON.stringify({
-  checkedAt: validation.checkedAt,
-  reusedPublicTimestamps: stableAssetManifest(previousAssetManifest, viewerAssetManifest) === previousAssetManifest,
-  validation: viewerAssetManifest.validation
-}, null, 2)}\n`)
-await webNode.writeViewerAssetManifest(outDir, stableAssetManifest(previousAssetManifest, viewerAssetManifest))
-// Keep the complete local dist for self-hosted release assets. The ordinary npm
-// archive carries these two groups through exact-version asset dependencies.
-await assertFullAssetDependencies(packageManifest, resolve(packageDir, 'package.json'))
-await writeFile(join(outDir, '.npmignore'), '/vendor/drawio/\n/wasm/cad/\n', 'utf8')
-await writeFile(
-  resolve(outDir, 'flyfish-viewer-manifest.json'),
-  `${JSON.stringify({
-    name: packageManifest.name,
-    version: packageManifest.version,
-    kind: 'viewer-assets',
-    assets: webNode.VIEWER_ASSET_MANIFEST_FILENAME
-  }, null, 2)}\n`,
-  'utf8'
-)
+const { sanitization } = await stageFullViewerAssets({ packageDir, outDir, packageManifest, webNode, previousAssetManifest })
 console.log(
   `[web-full-iife] Sanitized ${sanitization.checkedFiles} shipped text assets; ` +
   `replaced ${sanitization.replacementCount} public runtime fallback markers in ` +
