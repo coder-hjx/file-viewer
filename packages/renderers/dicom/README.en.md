@@ -4,13 +4,13 @@ An explicitly installed DICOM renderer for local DICOM Part 10 files. It uses th
 
 This package is excluded from File Viewer full and preset packages. The CLI `--profile full` separately adds DICOM and signature capabilities.
 
-## Current source build and verification
+## 3.2.2 build and verification
 
-The normal source build bundles Cornerstone 5.11.6, the SDK modules actually used, and the codec Worker. Applications no longer resolve the complete Cornerstone npm graph when installing this candidate. Decoder imports are built into the Worker, and five native WASM codecs are embedded with reviewed SHA-256 identities. `dist/bundled-runtime.json` records hashes for the source lockfile, input files, package metadata and license files, outputs, and WASM codecs. `dist/THIRD_PARTY_LICENSES.txt` retains the complete licenses of the bundled dependencies.
+The normal source build bundles Cornerstone 5.11.6, the SDK modules actually used, and the codec Worker. Applications no longer resolve the complete Cornerstone npm graph when installing this compiled package. Decoder imports are built into the Worker, and five native WASM codecs are embedded with reviewed SHA-256 identities. `dist/bundled-runtime.json` records hashes for the source lockfile, input files, package metadata and license files, outputs, and WASM codecs. `dist/THIRD_PARTY_LICENSES.txt` retains the complete licenses of the bundled dependencies.
 
 `pnpm --filter @file-viewer/renderer-dicom verify:packed-browser` installs source-packed artifacts in an independent consumer with an empty npm cache and no dependency security overrides. It verifies the installed files and runs full and production audits. Chromium and WebKit exercise eight bounded fixtures covering the six transfer syntaxes listed below, actual PNG pixels, frame changes, offline request boundaries, and cleanup. The macOS checks have passed; Public CI runs the strict Linux screenshot gate. Reports and screenshots remain in the local evidence directory; CI retains report summaries and hashes in its run logs.
 
-These results describe the source candidate. They do not mean the published npm 3.1.2 package has changed or that every DICOM file is covered. The same gate must pass on the target platform before release.
+The 3.2.2 build uses this bundled runtime. The checks cover the fixtures and transfer syntaxes described here; they do not cover every DICOM file. Earlier npm 3.1.2 packages retain their original dependency graph.
 
 ## Application policy for published 3.1.2
 
@@ -35,7 +35,7 @@ For npm, merge these scoped overrides into the consuming application's root `pac
 ```
 
 ```bash
-npm install @file-viewer/renderer-dicom
+npm install @file-viewer/renderer-dicom@3.1.2
 npm ls adm-zip uuid fflate
 npm audit
 npm audit --omit=dev

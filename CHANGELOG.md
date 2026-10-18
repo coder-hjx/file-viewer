@@ -1,9 +1,14 @@
 # Changelog
 
-## Unreleased
+## File Viewer v3.2.2 - 2026-10-18
 
 - Restore the complete open-source project and normal source development workflow.
 - Preserve PDF worker fallback recovery (#375), DOCX 0.3.36 pagination (#322), and pie/doughnut category legends (#376). Thanks to @kami-woo for #377; legend construction remains bounded.
+- Bound Geo3D hierarchy reads and cancel viewer-owned HTTP requests (#324).
+- Preserve the unmodified Stet upstream fonts and CMYK profile, with complete original native license materials (#344).
+- Add typed cross-sheet spreadsheet range navigation, including cancellation, fit, scroll/zoom restoration, and stale-request isolation (#378, #379). Thanks to @kami-woo for the original navigation API.
+- Preserve every PPTX chart group and typed Worker metadata, render bar/line combinations with separate axes, and expose a custom chart adapter (#385). Document-specific font, label, legend, and overlap fidelity still needs comparison with the original file.
+- Publish both maintained package READMEs byte-for-byte and verify complete repository source before publishing npm assets.
 
 ## File Viewer v3.2.1 - 2026-10-15
 

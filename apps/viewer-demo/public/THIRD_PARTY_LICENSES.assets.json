@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "purpose": "shared-runtime-material-attribution",
   "scope": "Material identity and actual copied payloads; not a source-availability or release approval.",
-  "registrySha256": "cbbc5c184136a51210dc688fcae649b743cef36a5a5a2e55d2b55ba54f784dc6",
+  "registrySha256": "d06cd1dfceaf3da9d1650c3f4f1967b9fb1d8bed734a7309adc700f11ccefbe0",
   "releaseApproval": false,
   "materials": [
     {
@@ -3134,21 +3134,6 @@
       ]
     },
     {
-      "path": "wasm/cad/0.8.0/CORRESPONDING_SOURCE_NOTICE.txt",
-      "sha256": "529407ad5d025917b19ae6a8eab8dbec1dcec540cb21f39d8bdfe6a062aa9a65",
-      "bytes": 2466,
-      "kind": "generated-corresponding-source-offer",
-      "component": "CAD runtime@0.8.3",
-      "declaredLicense": null,
-      "source": "https://github.com/flyfish-dev/file-viewer/releases/tag/v3.2.0-sources",
-      "runtimePaths": [
-        "wasm/cad/0.8.0/dwfv-render.wasm",
-        "wasm/cad/0.8.0/dwg-worker.js",
-        "wasm/cad/0.8.0/libredwg-web.js",
-        "wasm/cad/0.8.0/libredwg-web.wasm"
-      ]
-    },
-    {
       "path": "wasm/cad/0.8.0/GPL-3.0.txt",
       "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
       "bytes": 35147,
@@ -3187,21 +3172,6 @@
         "wasm/cad/0.8.0/dwg-worker.js",
         "wasm/cad/0.8.0/libredwg-web.js",
         "wasm/cad/0.8.0/libredwg-web.wasm"
-      ]
-    },
-    {
-      "path": "wasm/cad/0.8.1/CORRESPONDING_SOURCE_NOTICE.txt",
-      "sha256": "529407ad5d025917b19ae6a8eab8dbec1dcec540cb21f39d8bdfe6a062aa9a65",
-      "bytes": 2466,
-      "kind": "generated-corresponding-source-offer",
-      "component": "CAD runtime@0.8.3",
-      "declaredLicense": null,
-      "source": "https://github.com/flyfish-dev/file-viewer/releases/tag/v3.2.0-sources",
-      "runtimePaths": [
-        "wasm/cad/0.8.1/dwfv-render.wasm",
-        "wasm/cad/0.8.1/dwg-worker.js",
-        "wasm/cad/0.8.1/libredwg-web.js",
-        "wasm/cad/0.8.1/libredwg-web.wasm"
       ]
     },
     {
@@ -3246,21 +3216,6 @@
       ]
     },
     {
-      "path": "wasm/cad/0.8.3/CORRESPONDING_SOURCE_NOTICE.txt",
-      "sha256": "529407ad5d025917b19ae6a8eab8dbec1dcec540cb21f39d8bdfe6a062aa9a65",
-      "bytes": 2466,
-      "kind": "generated-corresponding-source-offer",
-      "component": "CAD runtime@0.8.3",
-      "declaredLicense": null,
-      "source": "https://github.com/flyfish-dev/file-viewer/releases/tag/v3.2.0-sources",
-      "runtimePaths": [
-        "wasm/cad/0.8.3/dwfv-render.wasm",
-        "wasm/cad/0.8.3/dwg-worker.js",
-        "wasm/cad/0.8.3/libredwg-web.js",
-        "wasm/cad/0.8.3/libredwg-web.wasm"
-      ]
-    },
-    {
       "path": "wasm/cad/0.8.3/GPL-3.0.txt",
       "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
       "bytes": 35147,
@@ -3299,33 +3254,6 @@
         "wasm/cad/0.8.3/dwg-worker.js",
         "wasm/cad/0.8.3/libredwg-web.js",
         "wasm/cad/0.8.3/libredwg-web.wasm"
-      ]
-    },
-    {
-      "path": "wasm/cad/CORRESPONDING_SOURCE_NOTICE.txt",
-      "sha256": "529407ad5d025917b19ae6a8eab8dbec1dcec540cb21f39d8bdfe6a062aa9a65",
-      "bytes": 2466,
-      "kind": "generated-corresponding-source-offer",
-      "component": "CAD runtime@0.8.3",
-      "declaredLicense": null,
-      "source": "https://github.com/flyfish-dev/file-viewer/releases/tag/v3.2.0-sources",
-      "runtimePaths": [
-        "wasm/cad/0.8.0/dwfv-render.wasm",
-        "wasm/cad/0.8.0/dwg-worker.js",
-        "wasm/cad/0.8.0/libredwg-web.js",
-        "wasm/cad/0.8.0/libredwg-web.wasm",
-        "wasm/cad/0.8.1/dwfv-render.wasm",
-        "wasm/cad/0.8.1/dwg-worker.js",
-        "wasm/cad/0.8.1/libredwg-web.js",
-        "wasm/cad/0.8.1/libredwg-web.wasm",
-        "wasm/cad/0.8.3/dwfv-render.wasm",
-        "wasm/cad/0.8.3/dwg-worker.js",
-        "wasm/cad/0.8.3/libredwg-web.js",
-        "wasm/cad/0.8.3/libredwg-web.wasm",
-        "wasm/cad/dwfv-render.wasm",
-        "wasm/cad/dwg-worker.js",
-        "wasm/cad/libredwg-web.js",
-        "wasm/cad/libredwg-web.wasm"
       ]
     },
     {
@@ -3544,16 +3472,16 @@
     },
     {
       "path": "vendor/design/postscript.worker.js",
-      "bytes": 11090,
-      "sha256": "b8a9e512adc036cb1b6d167c689b7ccfda2c118a2724427ab0756aa2892c9375",
-      "sourceSha256": "b8a9e512adc036cb1b6d167c689b7ccfda2c118a2724427ab0756aa2892c9375",
+      "bytes": 10685,
+      "sha256": "51be6c3ddfb88d77cca31ab1e3b5250737fe6f8b3ddd125d4531645cd4ad0470",
+      "sourceSha256": "51be6c3ddfb88d77cca31ab1e3b5250737fe6f8b3ddd125d4531645cd4ad0470",
       "sourceTransform": "none"
     },
     {
       "path": "vendor/design/stet_wasm_bg.wasm",
-      "bytes": 12144124,
-      "sha256": "454a28adcd8403a7885af9ca8ffb725cb469b273635602757d7c324cbd1ebeea",
-      "sourceSha256": "454a28adcd8403a7885af9ca8ffb725cb469b273635602757d7c324cbd1ebeea",
+      "bytes": 14706940,
+      "sha256": "b8d72531ec41ca497d67a79589a1dbb44748a4fefd088aa122007fbb28e06b20",
+      "sourceSha256": "b8d72531ec41ca497d67a79589a1dbb44748a4fefd088aa122007fbb28e06b20",
       "sourceTransform": "none"
     },
     {
@@ -21814,9 +21742,9 @@
     },
     {
       "path": "vendor/xlsx/sheet.worker.js",
-      "bytes": 902140,
-      "sha256": "3870c761f9bd96b21bfaabdcd643bf9adf9edd36b946d897951f19ff13cb1f91",
-      "sourceSha256": "3870c761f9bd96b21bfaabdcd643bf9adf9edd36b946d897951f19ff13cb1f91",
+      "bytes": 903671,
+      "sha256": "7f5b980ffbc226f042077ed25635142ac92e75cfdf6aeaee37bac471f55fbc7a",
+      "sourceSha256": "7f5b980ffbc226f042077ed25635142ac92e75cfdf6aeaee37bac471f55fbc7a",
       "sourceTransform": "none"
     },
     {
