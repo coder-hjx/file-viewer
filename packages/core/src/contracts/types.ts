@@ -1831,6 +1831,8 @@ export type FileViewerSpreadsheetNavigationStatus =
 export interface FileViewerViewState {
   /** Coordinate navigation for spreadsheets; does not edit or select cell contents. */
   spreadsheet?: {
+    /** Active workbook sheet id, retained for restoring views without a range. */
+    sheetId?: number;
     range?: FileViewerSpreadsheetRange;
     status?: FileViewerSpreadsheetNavigationStatus;
   };

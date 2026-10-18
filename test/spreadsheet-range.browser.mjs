@@ -29,9 +29,32 @@ try{
    window.rangeTest.applyViewState({spreadsheet:{range:{sheetId:0,startRow:4,startCol:1,endRow:4,endCol:2}}}),
    window.rangeTest.applyViewState({spreadsheet:{range:{sheetId:1,startRow:29,startCol:3,endRow:29,endCol:4}}})]));
  assert.deepEqual(results.map(x=>x.spreadsheet.status),['cancelled','applied']);
+ await page.evaluate(()=>{
+   window.rangeHarness.holdSearch();
+   window.delayedRangeSearch=window.rangeTest.search('定位目标');
+ });
+ await page.waitForFunction(()=>window.rangeHarness.isSearchHeld());
+ assert.equal((await apply({...range,startRow:599,endRow:599}))?.spreadsheet?.status,'applied');
+ await page.evaluate(()=>window.rangeHarness.releaseSearch());
+ await page.evaluate(()=>window.delayedRangeSearch);
+ await page.waitForTimeout(200);
+ assert.equal(await page.evaluate(()=>window.rangeTest.getViewState().spreadsheet.range.startRow),599);
+ // State without a highlighted range must still restore scale, sheet and scroll.
+ const restored=await page.evaluate(async()=>{
+   const source=window.rangeTest.getViewState();
+   delete source.spreadsheet.range;
+   source.scale=1.25;
+   await window.rangeTest.applyViewState({spreadsheet:{range:{sheetId:0,startRow:4,startCol:1,endRow:4,endCol:2}}});
+   await window.rangeTest.applyViewState(source);
+   return {source,current:window.rangeTest.getViewState(),events:window.rangeHarness.changes};
+ });
+ assert.equal(restored.current.scale,1.25);
+ assert.equal(restored.current.spreadsheet.sheetId,restored.source.spreadsheet.sheetId);
+ assert.ok(Math.abs(restored.current.scroll.top-restored.source.scroll.top)<3,JSON.stringify({source:restored.source,current:restored.current}));
+ assert.ok(restored.events.some(change=>change.state.spreadsheet?.status==='applied'));
  const found=await page.evaluate(()=>window.rangeTest.search('定位目标'));assert.equal(found.total,2);
  await page.evaluate(()=>window.rangeTest.nextSearchResult());
  await page.evaluate(()=>window.rangeTest.destroy());
  assert.deepEqual(errors,[]);
- console.log('PASS: exact cross-sheet range, 3 settled-layout round trips, blank cells, invalid/hidden/out-of-bounds rejection, latest request wins, destruction');
+ console.log('PASS: exact range, virtual windows, invalid bounds, latest request wins, delayed search race, scale/sheet/scroll restoration, subscriptions, destruction');
 }catch(e){console.log('PAGE ERRORS',errors);throw e;}finally{await browser.close();}
