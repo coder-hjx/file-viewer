@@ -30,3 +30,14 @@ apps/viewer-demo/public/vendor/iwork/licenses/THIRD_PARTY_LICENSES.txt -text whi
 packages/build-support/licenses/native/** -text -whitespace
 packages/renderers/signature/licenses/*.txt -text -whitespace
 **/wasm/model/CORRESPONDING_SOURCE_NOTICE.txt -text -whitespace
+
+# Preserve unmodified Stet upstream grants.
+packages/renderers/design/LICENSES/Stet-URW-Fonts-OFL-1.1.txt -text -whitespace
+packages/renderers/design/LICENSES/Stet-CMYK-Profile.txt -text -whitespace
+packages/renderers/design/LICENSES/CC0-1.0.txt -text -whitespace
+**/LICENSE.Stet-URW-Fonts-OFL-1.1.txt -text -whitespace
+**/LICENSE.Stet-CMYK-Profile.txt -text -whitespace
+**/LICENSE.CC0-1.0.txt -text -whitespace
+**/Stet_NATIVE_THIRD_PARTY_LICENSES.json -text -whitespace
+packages/renderers/design/source/postscript/rust-licenses/* -text -whitespace
+packages/renderers/design/source/postscript/license-overrides/* -text -whitespace
