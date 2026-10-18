@@ -10,4 +10,4 @@ Node20 消费兼容性由独立的 Node20.20.2 安装与浏览器构建验证。
 
 数学标签默认使用 KaTeX MathML，不请求外部字体或样式。带数学标签的图使用经过资源策略检查和 DOMPurify 清理的 `foreignObject`；普通图继续使用 SVG 标签。
 
-`pnpm --filter @file-viewer/capability-mermaid verify:packed-browser` 在空缓存、无安全 overrides 的独立消费项目中核验打包文件与两种依赖审计，并在 Chromium、WebKit 中检查 Markdown 和绘图的实际图形、数学标签、带参与者配置的时序图与离线请求。这些检查对应源码候选；npm 已发布的 3.1.2 仍使用旧依赖图。
+`pnpm --filter @file-viewer/capability-mermaid verify:packed-browser` 在空缓存、无安全 overrides 的独立消费项目中核验打包文件与两种依赖审计，并在 Chromium、WebKit 中检查 Markdown 和绘图的实际图形、数学标签、带参与者配置的时序图与离线请求。3.2.2 构建使用上述内置运行时；较早的 npm 3.1.2 包仍保留其旧依赖图。

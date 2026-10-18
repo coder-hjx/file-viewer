@@ -3,7 +3,9 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 export const CAD_INTEGRATION_SOURCE = Object.freeze({
-  releaseVersion: '3.2.1',
+  // 3.2.2 retains the same CAD/DWF inputs and byte-identical integration.
+  // The original reviewed corresponding-source archive therefore still applies.
+  releaseVersion: '3.2.2',
   cadVersion: '0.8.3',
   dwfVersion: '0.6.7',
   url: 'https://github.com/flyfish-dev/file-viewer/releases/download/v3.2.0-sources/file-viewer-cad-corresponding-source-3.2.0.tar.gz',

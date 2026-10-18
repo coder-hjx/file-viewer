@@ -6,7 +6,7 @@ import { createRequire } from 'node:module'
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from 'node:fs'
 import { extname, join, relative, resolve, sep } from 'node:path'
 import { tmpdir } from 'node:os'
-import { pnpmInvocation } from '../../../../.github/scripts/lib/pinned-pnpm.mjs'
+import { pnpmInvocation } from '../../../../scripts/lib/pinned-pnpm.mjs'
 
 const root = resolve(import.meta.dirname, '../../../..')
 const output = join(root, 'output/web-full-packed-assets', new Date().toISOString().replaceAll(':', '-'))
