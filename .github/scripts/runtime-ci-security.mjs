@@ -105,11 +105,9 @@ try {
       // Resolve the normal virtual lock offline before any authorized audit disclosure.
       const virtual = await new Arborist({ path: project, audit: false }).loadVirtual()
       const payload = new AuditReport(virtual, { omit: ['dev'] }).prepareBulkData()
-      const scope = resolvedAuditScope(
-        payload,
-        approvedAuditDigests[caseId],
-        process.env.RUNTIME_AUDIT_DISCLOSURE_APPROVED
-      )
+      // Standing permission enables these cases; it must never broaden the
+      // exact approved body if registry resolution changes.
+      const scope = resolvedAuditScope(payload, approvedAuditDigests[caseId])
       console.log(JSON.stringify({ caseId, auditScope: scope }))
       const auditHome = join(project, '.audit-home')
       await mkdir(auditHome)
