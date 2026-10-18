@@ -38,6 +38,21 @@ async function fixture(values=[3,2,1],hole=75,angle=90) {
   zip.file('ppt/charts/chart3.xml',chart('barChart',`<c:barDir val="bar"/><c:grouping val="percentStacked"/>${ser(0,[1,2],'First')}${ser(1,[4,3],'Second')}<c:overlap val="100"/>`));
   return zip.generateAsync({type:'nodebuffer',compression:'DEFLATE'});
 }
+async function comboFixture() {
+  const zip=await JSZip.loadAsync(await fixture());
+  const categories='<c:cat><c:multiLvlStrRef><c:f>Sheet1!A1:B2</c:f><c:multiLvlStrCache><c:ptCount val="2"/><c:lvl><c:pt idx="0"><c:v>四月</c:v></c:pt><c:pt idx="1"><c:v>五月</c:v></c:pt></c:lvl><c:lvl><c:pt idx="0"><c:v>2026</c:v></c:pt></c:lvl></c:multiLvlStrCache></c:multiLvlStrRef></c:cat>';
+  const row=(index,values,name)=>ser(index,values,name,['四月','五月']).replace(/<c:cat>[\s\S]*?<\/c:cat>/,categories);
+  const ids=(...values)=>values.map(value=>`<c:axId val="${value}"/>`).join('');
+  const rich=text=>`<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>${text}</a:t></a:r></a:p></c:rich></c:tx></c:title>`;
+  zip.file('ppt/charts/chart1.xml',`<c:chartSpace xmlns:c="${C}" xmlns:a="${A}"><c:chart><c:plotArea><c:layout/>
+    <c:barChart><c:barDir val="col"/><c:grouping val="clustered"/>${row(0,[20,30],'收入')}${row(1,[10,15],'支出')}<c:dLbls><c:showVal val="1"/></c:dLbls><c:gapWidth val="75"/>${ids(1,2)}</c:barChart>
+    <c:lineChart><c:grouping val="standard"/>${row(2,[0.2,0.3],'增长率')}<c:dLbls><c:showVal val="1"/><c:numFmt formatCode="0.0%" sourceLinked="0"/></c:dLbls>${ids(1,3)}</c:lineChart>
+    <c:catAx>${ids(1)}<c:axPos val="b"/><c:crossAx val="2"/></c:catAx>
+    <c:valAx>${ids(2)}<c:scaling><c:orientation val="minMax"/><c:min val="0"/><c:max val="100"/></c:scaling><c:axPos val="l"/><c:majorGridlines/>${rich('收入（万元）')}<c:numFmt formatCode="#,##0" sourceLinked="0"/><c:crossAx val="1"/></c:valAx>
+    <c:valAx>${ids(3)}<c:scaling><c:orientation val="maxMin"/><c:min val="0"/><c:max val="1"/></c:scaling><c:axPos val="r"/><c:numFmt formatCode="0.0%" sourceLinked="0"/><c:crossAx val="1"/></c:valAx>
+    </c:plotArea><c:legend><c:legendPos val="b"/></c:legend></c:chart></c:chartSpace>`);
+  return zip.generateAsync({type:'nodebuffer',compression:'DEFLATE'});
+}
 await check('Chart family metadata preserves bounded angles, ratios, grouping and point indices',()=>{
   const options=extractChartOptions({'c:grouping':val('stacked'),'c:holeSize':val(75),'c:firstSliceAng':val(90),'c:ser':{'c:dPt':[{'c:idx':val(4),'c:spPr':{'a:solidFill':{}}}]}},{'c:legend':{'c:legendPos':val('b')}},()=> '123456');
   assert.equal(options.holeSize,75);assert.equal(options.firstSliceAngle,90);assert.equal(options.grouping,'stacked');assert.deepEqual(options.series[0].points,{'4':'#123456'});assert.deepEqual(options.legend,{show:true,position:'b'});
@@ -49,7 +64,7 @@ await check('Malformed chart metadata cannot create CSS or unbounded point alloc
 const sourceAliases = { '@file-viewer/core': path.join(root, 'packages/core/src/index.ts') };
 const compiled=await build({alias:sourceAliases,stdin:{resolveDir:packageDir,contents:`
  import process from './src/engine/process.js';
- import {registerPptxChartLibraryLoader,renderPptxPostProcessing} from './src/chart.ts';
+ import {registerPptxChartLibraryLoader,registerPptxChartRenderer,renderPptxPostProcessing} from './src/chart.ts';
  import {createDefaultPptxOptions} from './src/options.ts';
  import {pptxViewerCss} from './src/styles.ts';
  import {sanitizePptxMarkup,sanitizePptxCss} from './src/sanitize.ts';
@@ -60,7 +75,7 @@ const compiled=await build({alias:sourceAliases,stdin:{resolveDir:packageDir,con
    const instance=(billboard.default||billboard).generate(options);
    calls.push({options,instance});return instance;
  }}},d3Format}));
- window.review={process,renderPptxPostProcessing,createDefaultPptxOptions,pptxViewerCss,sanitizePptxMarkup,sanitizePptxCss,PptxViewer};
+ window.review={process,registerPptxChartRenderer,renderPptxPostProcessing,createDefaultPptxOptions,pptxViewerCss,sanitizePptxMarkup,sanitizePptxCss,PptxViewer};
 `},bundle:true,platform:'browser',format:'iife',write:false,logLevel:'warning'});
 const workerPath=process.env.PPTX_CHART_WORKER_FILE;
 const workerSource=workerPath?await readFile(path.resolve(workerPath),'utf8'):(await build({alias:sourceAliases,entryPoints:[path.join(packageDir,'src/worker-entry.ts')],bundle:true,format:'iife',write:false,platform:'browser',logLevel:'warning'})).outputFiles[0].text;
@@ -193,11 +208,52 @@ try {
       },{base:bytes.toString('base64'),source:workerSource});
       assert.deepEqual(result,{slides:3,charts:3,arcs:3});assert.equal(await page.locator('.pptx-chart-surface').count(),0);
     });
+    const comboBytes=await comboFixture();
+    await page.evaluate(()=>{host.innerHTML='<div class="flyfish-pptx-content" id="root"></div>';});
+    if(dpr===1)await writeFile(path.join(output,'issue-385-combo.pptx'),comboBytes);
+    const comboQueue=await mount(comboBytes,true);
+    await check(`DPR ${dpr}: real PPTX Worker preserves all combo series and axis/category metadata`,()=>{
+      const payload=comboQueue[0].data,model=payload.chartModel;
+      assert.equal(payload.chartType,'comboChart');
+      assert.deepEqual(model.groups.map(group=>[group.chartType,group.series.length]),[['barChart',2],['lineChart',1]]);
+      assert.deepEqual(model.groups[0].series[0].values.map(point=>point.y),[20,30]);
+      assert.deepEqual(model.groups[1].axisIds,['1','3']);assert.equal(model.axes.length,3);
+      assert.equal(model.axes.find(axis=>axis.id==='2').max,100);
+      assert.equal(model.axes.find(axis=>axis.id==='3').numberFormat.code,'0.0%');
+      assert.equal(model.axes.find(axis=>axis.id==='3').reversed,true);
+      assert.deepEqual(Object.values(model.groups[0].series[0].xlabels),['2026 / 四月','2026 / 五月']);
+    });
+    await check(`DPR ${dpr}: actual Billboard SVG renders bars plus line, dual axes and data labels`,async()=>{
+      const state=await page.evaluate(()=>{
+        const {options:o}=calls[0];return {types:Object.values(o.data.types),axes:Object.values(o.data.axes),
+          bars:o.bindto.querySelectorAll('.bb-chart-bars .bb-bar').length,
+          lines:o.bindto.querySelectorAll('.bb-chart-lines .bb-line').length,
+          labels:[...o.bindto.querySelectorAll('.bb-chart-texts text')].map(node=>node.textContent),
+          secondary:[...o.bindto.querySelectorAll('.bb-axis-y2 text')].map(node=>node.textContent),
+          primary:[...o.bindto.querySelectorAll('.bb-axis-y text')].map(node=>node.textContent),
+        };
+      });
+      assert.deepEqual(state.types,['bar','bar','line']);assert.deepEqual(state.axes,['y','y','y2']);
+      assert.equal(state.bars,4);assert.equal(state.lines,1);
+      for(const label of ['20','30','10','15','20.0%','30.0%'])assert.ok(state.labels.includes(label),JSON.stringify(state));
+      assert.ok(state.secondary.includes('100.0%'));assert.ok(state.primary.includes('100'));
+    });
+    await check(`DPR ${dpr}: custom renderer receives the Worker model and disposes without rereading the ZIP`,async()=>{
+      await page.evaluate(()=>{window.models=[];window.customDestroyed=0;review.registerPptxChartRenderer((model,target)=>{
+        models.push(model);target.textContent='Custom chart';return {destroy(){customDestroyed++;}};
+      });});
+      await mount(comboBytes,true);
+      const result=await page.evaluate(()=>{
+        const model=models[0];handle.destroy();review.registerPptxChartRenderer(null);
+        return {groups:model.groups.length,axes:model.axes.length,libraryCalls:calls.length,destroyed:customDestroyed};
+      });
+      assert.deepEqual(result,{groups:2,axes:3,libraryCalls:0,destroyed:3});
+    });
     await page.close();
   }
   await check('No uncaught browser errors, library warnings or external requests',()=>{assert.deepEqual(errors,[]);assert.deepEqual(requests,[]);});
   completed=true;
 } finally {
-  await browser.close();await writeFile(path.join(output,'report.json'),JSON.stringify({completed,passed:checks.filter(c=>c.status==='pass').length,failed:checks.filter(c=>c.status==='fail').length,checks,originals,errors,requests,scope:'Single-series doughnuts, stacked chart grouping and corresponding C048 data; not full chart-style fidelity.'},null,2)+'\n');
+  await browser.close();await writeFile(path.join(output,'report.json'),JSON.stringify({completed,passed:checks.filter(c=>c.status==='pass').length,failed:checks.filter(c=>c.status==='fail').length,checks,originals,errors,requests,scope:'Doughnuts/stacked grouping plus synthetic issue385 real-PPTX combo/dual-axis/category/data-label model; not full chart-style fidelity.'},null,2)+'\n');
 }
 if(checks.some(c=>c.status==='fail'))process.exitCode=1;
