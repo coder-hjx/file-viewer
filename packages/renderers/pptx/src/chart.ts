@@ -1,21 +1,5 @@
-type ChartOptions = {
-  grouping?: 'standard' | 'clustered' | 'stacked' | 'percentStacked';
-  holeSize?: number;
-  firstSliceAngle?: number;
-  legend?: { show?: boolean; position?: string };
-  series?: Array<{ color?: string; points?: Record<string, string> }>;
-};
-
-type ChartMessage = {
-  type?: string;
-  data?: {
-    chartID?: string;
-    chartType?: string;
-    barDirection?: string;
-    chartData?: any;
-    chartOptions?: ChartOptions;
-  };
-};
+import { createPptxCartesianChart } from './chart-config';
+import type { PptxChartMessage as ChartMessage, PptxChartRenderer } from './chart-types';
 
 type BillboardChart = {
   destroy?: () => void;
@@ -29,6 +13,12 @@ export type PptxChartLibraries = {
 export type PptxChartLibraryLoader = () => Promise<PptxChartLibraries>;
 
 let chartLibraryLoader: PptxChartLibraryLoader | null = null;
+let chartRenderer: PptxChartRenderer | null = null;
+
+/** Register a renderer receiving the preserved Worker model, without reopening the ZIP. */
+export const registerPptxChartRenderer = (renderer: PptxChartRenderer | null) => {
+  chartRenderer = renderer;
+};
 
 export const registerPptxChartLibraryLoader = (
   loader: PptxChartLibraryLoader | null
@@ -309,6 +299,10 @@ const renderChart = async (message: ChartMessage, root: ParentNode) => {
     return;
   }
 
+  if (chartRenderer && payload.chartModel) {
+    return await chartRenderer(payload.chartModel, chartTarget);
+  }
+
   if (!chartLibraryLoader) {
     chartTarget.dataset.fileViewerMissingCapability = 'pptx-charts';
     chartTarget.setAttribute(
@@ -344,7 +338,9 @@ const renderChart = async (message: ChartMessage, root: ParentNode) => {
     },
   };
 
-  switch (payload.chartType) {
+  const cartesian = payload.chartModel ? createPptxCartesianChart(payload.chartModel, billboard) : null;
+  if (cartesian) Object.assign(chart, cartesian);
+  else switch (payload.chartType) {
     case 'doughnutChart': {
       const series = chartData[0];
       const columns: Array<[string, number]> = [];
@@ -485,7 +481,7 @@ const renderChart = async (message: ChartMessage, root: ParentNode) => {
         format: (label: string) => label === '' ? '\u200b' : label,
       };
     }
-    if (['barChart', 'areaChart', 'lineChart'].includes(payload.chartType)) {
+    if (!cartesian && ['barChart', 'areaChart', 'lineChart'].includes(payload.chartType)) {
       // Distinct series can legitimately share a display name. Billboard groups
       // by id, so disambiguate only duplicate ids and preserve authored labels.
       const used = new Set<string>();

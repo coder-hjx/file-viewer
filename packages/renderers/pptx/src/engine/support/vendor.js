@@ -3,8 +3,7 @@ import { getTextBodyMetrics } from './text-body.js';
 import { getDrawingTextRuns, getFirstSlideNumber, getPictureEffects } from './drawing-semantics.js';
 import { getEmbeddedPictureCandidates } from './picture-resource.js';
 import { createBuiltinDrawingMlTableStyle } from './table-styles.js';
-import { extractChartData } from './chart-data.js';
-import { extractChartOptions } from './chart-options.js';
+import { extractChartModel } from './chart-model.js';
 import tinycolor from 'tinycolor2'
 import { parse } from './txml'
 import * as dingbatToUnicode from "dingbat-to-unicode";
@@ -10588,98 +10587,23 @@ async function genChart(node, warpObj, groupContext) {
   var content = await readXmlFile(warpObj["zip"], refName);
   var plotArea = getTextByPathList(content, ["c:chartSpace", "c:chart", "c:plotArea"]);
 
-  var chartData = null;
-  for (var key in plotArea) {
-    switch (key) {
-      case "c:lineChart":
-        chartData = {
-          "type": "createChart",
-          "data": {
-            "chartID": "chart" + chartID,
-            "chartType": "lineChart",
-            "chartData": extractChartData(plotArea[key]["c:ser"])
-          }
-        };
-        break;
-      case "c:barChart":
-        chartData = {
-          "type": "createChart",
-          "data": {
-            "chartID": "chart" + chartID,
-            "chartType": "barChart",
-            "barDirection": getTextByPathList(plotArea[key], ["c:barDir", "attrs", "val"]),
-            "chartData": extractChartData(plotArea[key]["c:ser"])
-          }
-        };
-        break;
-      case "c:doughnutChart":
-        chartData = {
-          "type": "createChart",
-          "data": {
-            "chartID": "chart" + chartID,
-            "chartType": "doughnutChart",
-            "chartData": extractChartData(plotArea[key]["c:ser"])
-          }
-        };
-        break;
-      case "c:pieChart":
-        chartData = {
-          "type": "createChart",
-          "data": {
-            "chartID": "chart" + chartID,
-            "chartType": "pieChart",
-            "chartData": extractChartData(plotArea[key]["c:ser"])
-          }
-        };
-        break;
-      case "c:pie3DChart":
-        chartData = {
-          "type": "createChart",
-          "data": {
-            "chartID": "chart" + chartID,
-            "chartType": "pie3DChart",
-            "chartData": extractChartData(plotArea[key]["c:ser"])
-          }
-        };
-        break;
-      case "c:areaChart":
-        chartData = {
-          "type": "createChart",
-          "data": {
-            "chartID": "chart" + chartID,
-            "chartType": "areaChart",
-            "chartData": extractChartData(plotArea[key]["c:ser"])
-          }
-        };
-        break;
-      case "c:scatterChart":
-        chartData = {
-          "type": "createChart",
-          "data": {
-            "chartID": "chart" + chartID,
-            "chartType": "scatterChart",
-            "chartData": extractChartData(plotArea[key]["c:ser"])
-          }
-        };
-        break;
-      case "c:catAx":
-        break;
-      case "c:valAx":
-        break;
-      default:
-    }
-    // Attach metadata only to the chart group just selected. Axis siblings must
-    // not overwrite family-specific settings with defaults.
-    if (chartData !== null && key === "c:" + chartData.data.chartType) {
-      chartData.data.chartOptions = extractChartOptions(
-        plotArea[key], getTextByPathList(content, ["c:chartSpace", "c:chart"]),
-        fill => getSolidFill(fill, undefined, undefined, warpObj)
-      );
-    }
-  }
-
-  if (chartData !== null) {
-    Charts.MsgQueue.push(chartData);
+  var model = extractChartModel(content, fill => getSolidFill(fill, undefined, undefined, warpObj));
+  if (model.groups.length) {
+    var primary = model.groups[0];
+    var legacyData = primary.chartType === 'scatterChart'
+      ? [primary.series[0]?.values.map(point => point.x) || [], primary.series[0]?.values.map(point => point.y) || []]
+      : primary.series;
+    Charts.MsgQueue.push({
+      type: "createChart",
+      data: {
+        chartID: "chart" + chartID,
+        chartType: model.groups.length > 1 ? "comboChart" : primary.chartType,
+        barDirection: primary.barDirection,
+        chartData: model.groups.length > 1 ? model.groups.flatMap(group => group.series) : legacyData,
+        chartOptions: primary.options,
+        chartModel: model,
+      }
+    });
   }
 
   chartID++;
