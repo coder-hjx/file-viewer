@@ -1,3 +1,4 @@
+import { loadInstalledPackage } from '../../packages/build-support/installed-package-root.mjs'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -267,8 +268,7 @@ function licenseFilesFor(packagePath) {
 }
 
 function loadPackageJson(packagePath) {
-  if (!packagePath || !existsSync(join(packagePath, 'package.json'))) return null
-  return JSON.parse(readFileSync(join(packagePath, 'package.json'), 'utf8'))
+  return loadInstalledPackage({ sourceRoot, path: packagePath }).packageJson
 }
 
 const listResult = spawnSync(
@@ -293,7 +293,12 @@ assert(Array.isArray(roots) && roots.length === 1, 'Expected one DICOM package d
 
 const packages = new Map()
 function visit(node, nameHint, state) {
-  const packageJson = loadPackageJson(node?.path)
+  const { packageRoot: packagePath, packageJson } = loadInstalledPackage({
+    sourceRoot,
+    path: node?.path,
+    expectedName: node?.name || nameHint,
+    expectedVersion: String(node?.version || '')
+  })
   const name = packageJson?.name || nameHint || node?.name
   const version = packageJson?.version || String(node?.version || '').replace(/^link:/, '')
   assert(name && version, `Dependency tree entry is missing name/version: ${JSON.stringify(node)}`)
@@ -307,7 +312,7 @@ function visit(node, nameHint, state) {
       `${key} license selection drifted from ${selection.declaredLicense}`
     )
     assert(
-      packageFilesForSelection(node?.path, selection.licenseFile),
+      packageFilesForSelection(packagePath, selection.licenseFile),
       `${key} is missing selected ${selection.selectedLicense} text in ${selection.licenseFile}`
     )
   }
@@ -318,7 +323,7 @@ function visit(node, nameHint, state) {
     `${key} uses unapproved license expression ${declaredLicense}`
   )
   if (nativeWrapperNames.has(name)) {
-    verifyCodecArtifact(node.path, nativeArtifacts.get(name))
+    verifyCodecArtifact(packagePath, nativeArtifacts.get(name))
     assert(
       Object.keys(packageJson.dependencies || {}).length === 0 &&
         Object.keys(packageJson.optionalDependencies || {}).length === 0,
@@ -330,7 +335,7 @@ function visit(node, nameHint, state) {
     )
   }
   const previous = packages.get(key)
-  const packageFiles = licenseFilesFor(node?.path)
+  const packageFiles = licenseFilesFor(packagePath)
   const retained = wrapperSourceLicenses.find((entry) => entry.name === name)
   if (retained) {
     assert(

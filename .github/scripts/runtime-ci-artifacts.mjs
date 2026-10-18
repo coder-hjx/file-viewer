@@ -7,7 +7,13 @@ import { Readable, Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { createGunzip } from 'node:zlib'
 import { spawn } from 'node:child_process'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import {
+  packageReadmeFiles,
+  readmeContract,
+  readPackageReadmes,
+  verifyPackageReadmes
+} from '../../packages/build-support/package-readmes.mjs'
 
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex')
 
@@ -65,7 +71,7 @@ const safePath = (path) => {
 }
 
 /** Inspect TAR members before any package manager is allowed to install them. */
-export async function inspectFrozenTarball(path, expected) {
+export async function inspectFrozenTarball(path, expected, { sourceReadmes } = {}) {
   const info = await lstat(path)
   assert(info.isFile() && !info.isSymbolicLink())
   assert.equal(info.size, expected.tarballSize, 'Archive size changed')
@@ -90,6 +96,7 @@ export async function inspectFrozenTarball(path, expected) {
     pax = {},
     ended = false,
     packageJson
+  const readmes = {}
   const files = [],
     seen = new Set()
   const take = async (count, allowEnd = false) => {
@@ -174,6 +181,10 @@ export async function inspectFrozenTarball(path, expected) {
       const file = safePath(name)
       assert(file !== 'package.json' || size <= 1024 * 1024, 'Package metadata is too large')
       assert(
+        !packageReadmeFiles.includes(file) || size <= 2 * 1024 * 1024,
+        'Package README is too large'
+      )
+      assert(
         !seen.has(file) && seen.size < 10000,
         'Duplicate TAR member or file-count limit exceeded'
       )
@@ -187,7 +198,7 @@ export async function inspectFrozenTarball(path, expected) {
         const chunk = await take(Math.min(remaining, 65536))
         remaining -= chunk.length
         hash.update(chunk)
-        if (file === 'package.json') content.push(chunk)
+        if (file === 'package.json' || packageReadmeFiles.includes(file)) content.push(chunk)
         if (inspectText) {
           const value = previous + chunk.toString('utf8')
           assert(
@@ -200,6 +211,7 @@ export async function inspectFrozenTarball(path, expected) {
         }
       }
       if (file === 'package.json') packageJson = JSON.parse(Buffer.concat(content).toString('utf8'))
+      if (packageReadmeFiles.includes(file)) readmes[file] = Buffer.concat(content)
       if (size % 512) await take(512 - (size % 512))
       files.push({ path: file, bytes: size, sha256: hash.digest('hex') })
       seen.add(file)
@@ -214,6 +226,7 @@ export async function inspectFrozenTarball(path, expected) {
       files.some((file) => file.path === 'LICENSE' && file.bytes > 20),
       'Package license is absent'
     )
+    verifyPackageReadmes(readmes, expected.readmes, sourceReadmes)
     const hooks = Object.keys(packageJson.scripts || {})
     assert(
       hooks.every((hook) => ['preinstall', 'install', 'postinstall'].includes(hook)),
@@ -248,14 +261,23 @@ export async function inspectFrozenTarball(path, expected) {
         'Runtime entrypoint is absent'
       )
     }
-    return { packageJson, files, unpackedBytes: files.reduce((sum, file) => sum + file.bytes, 0) }
+    return {
+      packageJson,
+      files,
+      readmes: readmeContract(readmes),
+      unpackedBytes: files.reduce((sum, file) => sum + file.bytes, 0)
+    }
   } finally {
     expanded.destroy()
     input.destroy()
   }
 }
 
-export async function verifyFrozenArtifacts(directory, manifest) {
+export async function verifyFrozenArtifacts(
+  directory,
+  manifest,
+  { sourceRoot = fileURLToPath(new URL('../../', import.meta.url)) } = {}
+) {
   assert.equal(manifest.mode, 'runtime-only')
   assert.equal(manifest.packages.length, manifest.packageCount)
   assert(manifest.packageCount > 0)
@@ -272,7 +294,9 @@ export async function verifyFrozenArtifacts(directory, manifest) {
     archives.add(entry.tarball)
     results.push({
       ...entry,
-      ...(await inspectFrozenTarball(join(directory, entry.tarball), entry))
+      ...(await inspectFrozenTarball(join(directory, entry.tarball), entry, {
+        sourceReadmes: await readPackageReadmes(sourceRoot, entry.packageDir, entry.packageName)
+      }))
     })
   }
   return results

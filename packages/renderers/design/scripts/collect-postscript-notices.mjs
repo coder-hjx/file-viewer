@@ -13,6 +13,11 @@ assert.ok(process.argv[2], 'Pass the pinned upstream stet checkout path.')
 const hash = bytes => createHash('sha256').update(bytes).digest('hex')
 const git = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: source, encoding: 'utf8' })
 assert.equal(git.stdout.trim(), profile.commit)
+for (const args of [['diff', '--name-only', 'HEAD'], ['ls-files', '--others', '--exclude-standard']]) {
+  const result = spawnSync('git', args, { cwd: source, encoding: 'utf8' })
+  assert.equal(result.status, 0)
+  assert.ok(result.stdout.trim().split('\n').every(path => !path || path === 'crates/stet-wasm/Cargo.lock'), 'Native notices require unmodified upstream source')
+}
 const lock = await readFile(resolve(source, 'crates/stet-wasm/Cargo.lock'))
 assert.equal(hash(lock), profile.cargoLockSha256)
 const lockedChecksums = new Map(lock.toString('utf8').split('[[package]]').flatMap(block => {
@@ -120,5 +125,8 @@ const book = {
   lockSha256: hash(lock), runtimeFiles: [{ path: 'stet_wasm_bg.wasm', bytes: wasm.length, sha256: hash(wasm) }],
   packages, standardLibrary, materials,
 }
-await writeFile(resolve(pkg, 'LICENSES/Stet_NATIVE_THIRD_PARTY_LICENSES.json'), JSON.stringify(book, null, 2) + '\n')
+const bookPath = resolve(pkg, 'LICENSES/Stet_NATIVE_THIRD_PARTY_LICENSES.json')
+const bookBytes = Buffer.from(JSON.stringify(book, null, 2) + '\n')
+if (process.argv.includes('--check')) assert.ok(bookBytes.equals(await readFile(bookPath)), 'Native notice book differs from the pinned upstream and exact cache')
+else await writeFile(bookPath, bookBytes)
 console.log(`[postscript-notices] ${packages.length} locked packages, ${Object.keys(materials).length} unmodified legal materials, bound to WASM ${hash(wasm)}.`)

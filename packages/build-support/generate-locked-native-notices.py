@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import re
+import subprocess
 import tarfile
 import tomllib
 from pathlib import Path
@@ -14,9 +15,20 @@ from pathlib import Path
 sha = lambda b: hashlib.sha256(b).hexdigest()
 parser = argparse.ArgumentParser()
 parser.add_argument('config', type=Path)
+parser.add_argument('--upstream-source', type=Path)
+parser.add_argument('--check', action='store_true')
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[2]
 config = json.loads(args.config.read_text())
+if config.get('generationEntrypoint'):
+    assert config['generationEntrypoint'] == 'packages/renderers/design/scripts/collect-postscript-notices.mjs'
+    if not args.upstream_source:
+        raise SystemExit('Stet notices use the pinned upstream collector; pass --upstream-source <checkout> (and --check for read-only validation).')
+    command = ['node', str(root / config['generationEntrypoint']), str(args.upstream_source)]
+    if args.check:
+        command.append('--check')
+    subprocess.run(command, check=True)
+    raise SystemExit(0)
 lock_bytes = (root / config['lock']).read_bytes()
 lock = tomllib.loads(lock_bytes.decode())
 materials = {}
@@ -85,5 +97,9 @@ book = {'schemaVersion': 1, 'scope': 'Conservative exact locked source profile i
     'standardLibrary': standard, 'materials': materials}
 output = root / config['output']
 output.parent.mkdir(parents=True, exist_ok=True)
-output.write_text(json.dumps(book, ensure_ascii=False, indent=2) + '\n')
+encoded = (json.dumps(book, ensure_ascii=False, indent=2) + '\n').encode()
+if args.check:
+    assert output.read_bytes() == encoded, 'Native notices differ from their exact source profile'
+else:
+    output.write_bytes(encoded)
 print(f'{output.relative_to(root)}: {len(packages)} public packages, {len(materials)} original or explicitly reviewed materials')

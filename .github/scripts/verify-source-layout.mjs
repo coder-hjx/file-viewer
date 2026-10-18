@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve, join } from 'node:path'
+import { verifySourceRetention } from '../../packages/build-support/source-retention.mjs'
 
 const root = resolve(import.meta.dirname, '../..')
 const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
@@ -41,7 +43,18 @@ const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: root, maxBuffer: 
   .toString()
   .split('\0')
   .filter(Boolean)
+const inventory = readFileSync(join(root, 'ecosystem/source-retention.json'))
+assert.equal(
+  createHash('sha256').update(inventory).digest('hex'),
+  'b9b9b6fe59576d0f7f7b427c14f0633a080bc866d3f11225b6f87e8b805638f0',
+  'Source retention policy changed; review the complete baseline and each removal'
+)
+const policy = JSON.parse(inventory)
+assert.equal(policy.schemaVersion, 1)
+assert.equal(policy.baselineCommit, '7bb5e683784735d5ff6b8eb5ebcd4b98ffed8db3')
+const retention = await verifySourceRetention({ root, tracked, policy })
 for (const path of tracked) {
+  assert(!path.split('/').includes('.build'), `Local build receipt is tracked: ${path}`)
   assert(
     !/^(?:apps\/chrome-extension|\.release|\.agents|\.codex|\.aws|node_modules)(?:\/|$)/.test(path),
     `Private local material is tracked: ${path}`
@@ -72,6 +85,7 @@ console.log(
   JSON.stringify({
     status: 'verified-complete-open-source-layout',
     trackedFiles: tracked.length,
-    requiredSourceEntries: required.length
+    requiredSourceEntries: required.length,
+    ...retention
   })
 )
