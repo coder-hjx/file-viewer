@@ -67,7 +67,7 @@
     "README.en.md"
   ],
   "scripts": {
-    "build": "tsc -b tsconfig.json && node ../../../scripts/build-web-iife.mjs packages/compat/web",
+    "build": "tsc -b tsconfig.json && node ../../../.github/scripts/build-web-iife.mjs packages/compat/web",
     "postinstall": "node ./scripts/copy-assets.mjs --postinstall",
     "type-check": "tsc -b tsconfig.json"
   },

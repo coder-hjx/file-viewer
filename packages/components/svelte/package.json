@@ -76,7 +76,7 @@
     "README.en.md"
   ],
   "scripts": {
-    "build": "tsc -b tsconfig.json && node ../../../scripts/build-svelte-runtime.mjs --package-root .",
+    "build": "tsc -b tsconfig.json && node ../../../.github/scripts/build-svelte-runtime.mjs --package-root .",
     "type-check": "tsc -b tsconfig.json"
   },
   "peerDependencies": {
