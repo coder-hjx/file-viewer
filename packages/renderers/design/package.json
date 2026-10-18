@@ -77,6 +77,10 @@
     "./licenses/Introspect_NATIVE_THIRD_PARTY_LICENSES.json": "./LICENSES/Introspect_NATIVE_THIRD_PARTY_LICENSES.json",
     "./licenses/Stet-Apache-2.0.txt": "./LICENSES/Stet-Apache-2.0.txt",
     "./licenses/Stet-MIT.txt": "./LICENSES/Stet-MIT.txt",
+    "./licenses/Stet-URW-Fonts-OFL-1.1.txt": "./LICENSES/Stet-URW-Fonts-OFL-1.1.txt",
+    "./licenses/Stet-CMYK-Profile.txt": "./LICENSES/Stet-CMYK-Profile.txt",
+    "./licenses/CC0-1.0.txt": "./LICENSES/CC0-1.0.txt",
+    "./licenses/Stet_NATIVE_THIRD_PARTY_LICENSES.json": "./LICENSES/Stet_NATIVE_THIRD_PARTY_LICENSES.json",
     "./licenses/Carlito-OFL-1.1.txt": "./LICENSES/Carlito-OFL-1.1.txt",
     "./licenses/Tinos-OFL-1.1.txt": "./LICENSES/Tinos-OFL-1.1.txt",
     "./licenses/Cousine-OFL-1.1.txt": "./LICENSES/Cousine-OFL-1.1.txt",
@@ -91,8 +95,7 @@
     "./licenses/illustrator-pgf-MIT.txt": "./LICENSES/illustrator-pgf-MIT.txt",
     "./licenses/fzstd-MIT.txt": "./LICENSES/fzstd-MIT.txt",
     "./third-party-notices": "./THIRD_PARTY_NOTICES.md",
-    "./package.json": "./package.json",
-    "./licenses/Stet_NATIVE_THIRD_PARTY_LICENSES.json": "./LICENSES/Stet_NATIVE_THIRD_PARTY_LICENSES.json"
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
@@ -107,7 +110,8 @@
   ],
   "scripts": {
     "build": "tsc -b tsconfig.json --force && node scripts/build-worker.mjs",
-    "type-check": "tsc -b tsconfig.json"
+    "type-check": "tsc -b tsconfig.json",
+    "verify:postscript-built": "node scripts/verify-postscript-wasm.mjs"
   },
   "dependencies": {
     "@file-viewer/core": "workspace:3.2.1",

@@ -2481,6 +2481,10 @@ async function copyKnownRendererAssets(targetRoot: string, rendererIds: readonly
   const postscriptLicenses = [
     ['postscript-design-license-stet-apache', 'Stet-Apache-2.0.txt', 'LICENSE.stet-Apache-2.0.txt'],
     ['postscript-design-license-stet-mit', 'Stet-MIT.txt', 'LICENSE.stet-MIT.txt'],
+    ['postscript-design-license-urw-ofl', 'Stet-URW-Fonts-OFL-1.1.txt', 'LICENSE.Stet-URW-Fonts-OFL-1.1.txt'],
+    ['postscript-design-license-cmyk-provenance', 'Stet-CMYK-Profile.txt', 'LICENSE.Stet-CMYK-Profile.txt'],
+    ['postscript-design-license-cc0', 'CC0-1.0.txt', 'LICENSE.CC0-1.0.txt'],
+    ['postscript-design-license-native-dependencies', 'Stet_NATIVE_THIRD_PARTY_LICENSES.json', 'Stet_NATIVE_THIRD_PARTY_LICENSES.json'],
     ['postscript-design-license-carlito-ofl', 'Carlito-OFL-1.1.txt', 'LICENSE.Carlito-OFL-1.1.txt'],
     ['postscript-design-license-tinos-ofl', 'Tinos-OFL-1.1.txt', 'LICENSE.Tinos-OFL-1.1.txt'],
     ['postscript-design-license-cousine-ofl', 'Cousine-OFL-1.1.txt', 'LICENSE.Cousine-OFL-1.1.txt'],
@@ -3345,7 +3349,8 @@ const defaultRequiredAssetRendererIds: readonly string[] = [
   'office-presentation',
   'archive',
   'cad',
-  'typst'
+  'typst',
+  'postscript-design'
 ]
 
 function isRequiredAssetResult(result: AssetCopyResult): boolean {

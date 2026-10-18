@@ -103,6 +103,14 @@ export const DEFAULT_FILE_VIEWER_POSTSCRIPT_STET_APACHE_LICENSE_PATH = 'vendor/d
 export const DEFAULT_FILE_VIEWER_POSTSCRIPT_STET_APACHE_LICENSE_PACKAGE_PATH = '@file-viewer/renderer-design/licenses/Stet-Apache-2.0.txt';
 export const DEFAULT_FILE_VIEWER_POSTSCRIPT_STET_MIT_LICENSE_PATH = 'vendor/design/LICENSE.stet-MIT.txt';
 export const DEFAULT_FILE_VIEWER_POSTSCRIPT_STET_MIT_LICENSE_PACKAGE_PATH = '@file-viewer/renderer-design/licenses/Stet-MIT.txt';
+export const DEFAULT_FILE_VIEWER_POSTSCRIPT_URW_LICENSE_PATH = 'vendor/design/LICENSE.Stet-URW-Fonts-OFL-1.1.txt';
+export const DEFAULT_FILE_VIEWER_POSTSCRIPT_URW_LICENSE_PACKAGE_PATH = '@file-viewer/renderer-design/licenses/Stet-URW-Fonts-OFL-1.1.txt';
+export const DEFAULT_FILE_VIEWER_POSTSCRIPT_CMYK_NOTICE_PATH = 'vendor/design/LICENSE.Stet-CMYK-Profile.txt';
+export const DEFAULT_FILE_VIEWER_POSTSCRIPT_CMYK_NOTICE_PACKAGE_PATH = '@file-viewer/renderer-design/licenses/Stet-CMYK-Profile.txt';
+export const DEFAULT_FILE_VIEWER_POSTSCRIPT_CC0_LICENSE_PATH = 'vendor/design/LICENSE.CC0-1.0.txt';
+export const DEFAULT_FILE_VIEWER_POSTSCRIPT_CC0_LICENSE_PACKAGE_PATH = '@file-viewer/renderer-design/licenses/CC0-1.0.txt';
+export const DEFAULT_FILE_VIEWER_POSTSCRIPT_NATIVE_NOTICES_PATH = 'vendor/design/Stet_NATIVE_THIRD_PARTY_LICENSES.json';
+export const DEFAULT_FILE_VIEWER_POSTSCRIPT_NATIVE_NOTICES_PACKAGE_PATH = '@file-viewer/renderer-design/licenses/Stet_NATIVE_THIRD_PARTY_LICENSES.json';
 export const DEFAULT_FILE_VIEWER_POSTSCRIPT_CARLITO_LICENSE_PATH = 'vendor/design/LICENSE.Carlito-OFL-1.1.txt';
 export const DEFAULT_FILE_VIEWER_POSTSCRIPT_CARLITO_LICENSE_PACKAGE_PATH = '@file-viewer/renderer-design/licenses/Carlito-OFL-1.1.txt';
 export const DEFAULT_FILE_VIEWER_POSTSCRIPT_TINOS_LICENSE_PATH = 'vendor/design/LICENSE.Tinos-OFL-1.1.txt';
@@ -1355,7 +1363,7 @@ export const DEFAULT_FILE_VIEWER_RENDERER_ASSET_MANIFESTS: readonly FileViewerRe
         defaultPath: DEFAULT_FILE_VIEWER_POSTSCRIPT_WASM_PATH,
         packagePath: DEFAULT_FILE_VIEWER_POSTSCRIPT_WASM_PACKAGE_PATH,
         optionPath: 'design.postscriptWasmUrl',
-        description: 'License-safe Stet WebAssembly interpreter with OFL substitutes and no bundled CMYK ICC profile.',
+        description: 'Unpatched Stet WebAssembly interpreter with URW Base35 OFL fonts and the CC0 Compact ICC CMYK profile.',
       },
       {
         id: 'postscript-design-license-stet-apache',
@@ -1376,6 +1384,46 @@ export const DEFAULT_FILE_VIEWER_RENDERER_ASSET_MANIFESTS: readonly FileViewerRe
         defaultPath: DEFAULT_FILE_VIEWER_POSTSCRIPT_STET_MIT_LICENSE_PATH,
         packagePath: DEFAULT_FILE_VIEWER_POSTSCRIPT_STET_MIT_LICENSE_PACKAGE_PATH,
         description: 'Stet MIT license text.',
+      },
+      {
+        id: 'postscript-design-license-urw-ofl',
+        rendererId: 'postscript-design',
+        kind: 'license',
+        target: 'public',
+        required: true,
+        defaultPath: DEFAULT_FILE_VIEWER_POSTSCRIPT_URW_LICENSE_PATH,
+        packagePath: DEFAULT_FILE_VIEWER_POSTSCRIPT_URW_LICENSE_PACKAGE_PATH,
+        description: 'URW Base35 font provenance, copyright notices and complete SIL OFL 1.1 text.',
+      },
+      {
+        id: 'postscript-design-license-cmyk-provenance',
+        rendererId: 'postscript-design',
+        kind: 'license',
+        target: 'public',
+        required: true,
+        defaultPath: DEFAULT_FILE_VIEWER_POSTSCRIPT_CMYK_NOTICE_PATH,
+        packagePath: DEFAULT_FILE_VIEWER_POSTSCRIPT_CMYK_NOTICE_PACKAGE_PATH,
+        description: 'Provenance of the CC0 Compact ICC CMYK profile embedded by Stet.',
+      },
+      {
+        id: 'postscript-design-license-cc0',
+        rendererId: 'postscript-design',
+        kind: 'license',
+        target: 'public',
+        required: true,
+        defaultPath: DEFAULT_FILE_VIEWER_POSTSCRIPT_CC0_LICENSE_PATH,
+        packagePath: DEFAULT_FILE_VIEWER_POSTSCRIPT_CC0_LICENSE_PACKAGE_PATH,
+        description: 'Complete CC0 1.0 legal text for the embedded CMYK profile.',
+      },
+      {
+        id: 'postscript-design-license-native-dependencies',
+        rendererId: 'postscript-design',
+        kind: 'license',
+        target: 'public',
+        required: true,
+        defaultPath: DEFAULT_FILE_VIEWER_POSTSCRIPT_NATIVE_NOTICES_PATH,
+        packagePath: DEFAULT_FILE_VIEWER_POSTSCRIPT_NATIVE_NOTICES_PACKAGE_PATH,
+        description: 'Exact locked Rust dependency legal materials and original standard-library grants, bound to the Stet WASM hash.',
       },
       {
         id: 'postscript-design-license-carlito-ofl',

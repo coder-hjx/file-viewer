@@ -1492,7 +1492,7 @@ export const DEFAULT_RENDERER_DEFINITIONS = [
     ],
     "knownLimits": [
       "Stet WASM renders pages in a terminable Worker with latest-wins interactive requests and bounded source size, VM memory, page count, dimensions, pixels, DPI, total print working set, and retained canvas cache",
-      "The distributed runtime excludes upstream URW Base35 and Ghostscript CMYK ICC assets; Carlito, Tinos, Cousine, and Noto Sans Symbols 2 OFL substitutes plus the PLRM DeviceCMYK formula fallback can differ in metrics and color from Adobe applications",
+      "The unpatched Stet runtime embeds URW Base35 fonts under OFL-1.1 and the Compact ICC Profiles CGATS001Compat-v2-micro CMYK profile under CC0; document-specific fonts and print conditions can still differ from Adobe applications",
       "This experimental path is not claimed to implement every Adobe PostScript Level 3 operator, font technology, color-management workflow, or printer device"
     ],
     "capabilities": {
