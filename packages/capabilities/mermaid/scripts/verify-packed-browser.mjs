@@ -16,7 +16,7 @@ import {
 import { basename, delimiter, dirname, extname, join, resolve, sep } from 'node:path'
 import { tmpdir } from 'node:os'
 import { pathToFileURL } from 'node:url'
-import { pnpmInvocation } from '../../../../scripts/lib/pinned-pnpm.mjs'
+import { pnpmInvocation } from '../../../../.github/scripts/lib/pinned-pnpm.mjs'
 import {
   assertNoAncestorNodeModules,
   cleanEnvironment,
