@@ -53,14 +53,14 @@ pnpm verify:github-governance
 Run a focused test for the changed package or renderer. Useful repository-level checks include:
 
 ```bash
-pnpm verify:format-support
-pnpm verify:ecosystem-readmes
-pnpm verify:offline-assets
-pnpm verify:demo-output
+pnpm verify:public-release-facts
+pnpm test
+pnpm build
+pnpm verify:browser-smoke
 ```
 
-`pnpm verify:migration-gates` and release-channel checks are maintainer gates. Contributors do not
-need to run them unless a maintainer specifically requests it.
+Build the demo before running the browser smoke. For a focused renderer change, run the relevant
+`test/*.spec.ts` file with `pnpm exec vitest run test/<name>.spec.ts` and retain any needed browser evidence.
 
 ## Pull request evidence contract
 
