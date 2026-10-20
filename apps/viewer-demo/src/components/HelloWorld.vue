@@ -151,7 +151,9 @@ const url = ref(demoFileHandoff.isEmbedRequest && !demoFileHandoff.initialUrl
 // First-visit welcome card: product shell only, never for shared sample links,
 // embeds or `?url=` handoffs. Dismissal persists in localStorage.
 const welcomeOpen = ref(!demoFileHandoff.isImmersiveRequest && !demoFileHandoff.isEmbedRequest && !demoFileHandoff.initialUrl && !initialSampleUrl && shouldShowDemoWelcome())
-const welcomeSampleAliases = ['dwg', 'pptx', 'xlsx', 'fox'] as const
+const welcomeSampleAliases = computed(() => demoLocale.value === 'en-US'
+  ? ['dwg', 'word', 'xlsx', 'fox'] as const
+  : ['dwg', 'pptx', 'xlsx', 'fox'] as const)
 const welcomeCopy = computed(() => demoWelcomeCopy[demoLocale.value] ?? demoWelcomeCopy['en-US'])
 const preview = ref('')
 
@@ -1116,14 +1118,14 @@ function toggleSampleGroup(index: number) {
   expandedSampleGroupIndex.value = expandedSampleGroupIndex.value === index ? null : index
 }
 
-const welcomeSamples = computed<DemoWelcomeSample[]>(() => welcomeSampleAliases.flatMap(alias => {
+const welcomeSamples = computed<DemoWelcomeSample[]>(() => welcomeSampleAliases.value.flatMap(alias => {
   const sampleUrl = resolveDemoSampleParam(alias, demoLocale.value)
   if (!sampleUrl) {
     return []
   }
   const normalizedUrl = normalizeDemoUrl(sampleUrl)
   const thumbnail = samplePreviews.previews.find(entry => entry.sources.includes(sampleUrlKey(normalizedUrl)))
-  const kind = ({ dwg: 'drawing', pptx: 'presentation', xlsx: 'workbook', fox: 'model' } as const)[alias]
+  const kind = ({ dwg: 'drawing', word: 'document', pptx: 'presentation', xlsx: 'workbook', fox: 'model' } as const)[alias]
   const item = sampleGroups.value.flatMap(group => group.items).find(entry => isSameSampleUrl(entry.url, normalizedUrl))
   return [{
     url: normalizedUrl,

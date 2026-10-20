@@ -232,6 +232,7 @@ function handleDrop(event: DragEvent) {
 .demo-welcome__preview img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
 .demo-welcome__preview--drawing { background: #080c10; }
 .demo-welcome__preview--drawing img { object-fit: cover; }
+.demo-welcome__preview--document img { object-fit: cover; object-position: center top; }
 .demo-welcome__preview-fallback {
   display: grid;
   justify-items: center;

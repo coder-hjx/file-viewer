@@ -62,6 +62,18 @@
       "width": 960,
       "height": 554,
       "attribution": "./example/licenses/fox/NOTICE.txt"
+    },
+    {
+      "id": "business-report",
+      "sources": [
+        "/example/en/quarterly-operations-report.docx"
+      ],
+      "sourceSha256": "4d8c08aed5651cb17b71fda46dd4abf312e213af285423444c65fb82f0e63547",
+      "sourceBytes": 83054,
+      "path": "./sample-previews/business-report.png",
+      "imageSha256": "e7f454990527febecd7b5e096dcab75447c8ff01696fe0225ca442f09cb818b7",
+      "width": 816,
+      "height": 1056
     }
   ]
 }

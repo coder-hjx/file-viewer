@@ -32,6 +32,7 @@ export const sampleGroupsZh: DemoSampleGroup[] = [
       { name: 'OFD 嵌套资源', url: '/example/ofd-resource-paths.ofd' },
       { name: 'DOCX 封面边框', url: '/example/word-cover.docx' },
       { name: 'DOCX 中文长文档', url: '/example/word.docx' },
+      { name: 'DOCX 英文格式参考', url: '/example/en/calibre-demo.docx' },
       { name: 'DOT 模板', url: '/example/template.dot' },
       { name: 'RTF', url: '/example/sample.rtf' },
       { name: 'ODT', url: '/example/document.odt' },
@@ -332,7 +333,7 @@ const englishGroupCopy: Array<Pick<DemoSampleGroup, 'title' | 'description'>> = 
 ]
 
 const englishSampleUrlMap: Record<string, string> = {
-  '/example/word.docx': '/example/en/calibre-demo.docx',
+  '/example/word.docx': '/example/en/quarterly-operations-report.docx',
   '/example/excel.xlsx': '/example/en/financial-sample.xlsx',
   '/example/pdf.pdf': '/example/en/prince-sample.pdf',
   '/example/ppt.pptx': '/example/en/sample-presentation.pptx',
@@ -363,6 +364,7 @@ const englishSampleNameMap: Record<string, string> = {
   '/example/ofd-resource-paths.ofd': 'OFD nested resource references',
   '/example/word-cover.docx': 'DOCX page-relative cover borders',
   '/example/en/calibre-demo.docx': 'DOCX rich English document',
+  '/example/en/quarterly-operations-report.docx': 'Quarterly operations report (fictional business)',
   '/example/template.dot': 'DOT template',
   '/example/sample.rtf': 'RTF document',
   '/example/document.odt': 'ODT document',
@@ -523,6 +525,7 @@ const japaneseSampleNameMap: Record<string, string> = {
   '/example/ofd-resource-paths.ofd': 'OFD ネストしたリソース参照',
   '/example/word-cover.docx': 'DOCX 表紙のページ相対枠',
   '/example/en/calibre-demo.docx': 'DOCX リッチ文書',
+  '/example/en/quarterly-operations-report.docx': '四半期業務レポート（架空の企業・英語）',
   '/example/template.dot': 'DOT テンプレート',
   '/example/sample.rtf': 'RTF 文書',
   '/example/document.odt': 'ODT 文書',
