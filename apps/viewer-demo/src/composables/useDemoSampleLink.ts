@@ -17,8 +17,8 @@ type SampleAlias = { default: string; zh?: string }
 // Short names used in posts and docs. English locales get the English fixture
 // when one exists; Chinese keeps the canonical catalog file.
 export const DEMO_SAMPLE_ALIASES: Record<string, SampleAlias> = {
-  docx: { default: '/example/en/calibre-demo.docx', zh: '/example/word.docx' },
-  word: { default: '/example/en/calibre-demo.docx', zh: '/example/word.docx' },
+  docx: { default: '/example/en/quarterly-operations-report.docx', zh: '/example/word.docx' },
+  word: { default: '/example/en/quarterly-operations-report.docx', zh: '/example/word.docx' },
   xlsx: { default: '/example/en/financial-sample.xlsx', zh: '/example/excel.xlsx' },
   excel: { default: '/example/en/financial-sample.xlsx', zh: '/example/excel.xlsx' },
   pptx: { default: '/example/en/sample-presentation.pptx', zh: '/example/ppt.pptx' },

@@ -26,7 +26,7 @@ export function dismissDemoWelcome() {
   }
 }
 
-export type DemoWelcomeExampleKind = 'drawing' | 'presentation' | 'workbook' | 'model'
+export type DemoWelcomeExampleKind = 'drawing' | 'document' | 'presentation' | 'workbook' | 'model'
 
 export interface DemoWelcomeCopy {
   eyebrow: string
@@ -54,6 +54,7 @@ export const demoWelcomeCopy: Record<DemoLocale, DemoWelcomeCopy> = {
     modelCredit: '3D 模型署名与许可',
     examples: {
       drawing: { title: '查看图纸细节', description: '缩放图纸，拖动查看不同区域' },
+      document: { title: '阅读业务报告', description: '查看目录、图表与分页内容' },
       presentation: { title: '翻阅演示文稿', description: '逐页查看幻灯片与图文内容' },
       workbook: { title: '浏览表格数据', description: '查看单元格，拖动调整列宽' },
       model: { title: '探索低模狐狸', description: '拖动旋转，从不同角度观察狐狸' }
@@ -71,6 +72,7 @@ export const demoWelcomeCopy: Record<DemoLocale, DemoWelcomeCopy> = {
     modelCredit: '3D model credits & license',
     examples: {
       drawing: { title: 'Explore a drawing', description: 'Zoom into details and pan across the drawing.' },
+      document: { title: 'Read a business report', description: 'Follow the contents, tables and charts. All business data is fictional.' },
       presentation: { title: 'Read a presentation', description: 'Browse the slides, images and text.' },
       workbook: { title: 'Explore a workbook', description: 'Read cells and drag to resize columns.' },
       model: { title: 'Explore a low-poly fox', description: 'Drag to see the fox from different angles.' }
@@ -88,6 +90,7 @@ export const demoWelcomeCopy: Record<DemoLocale, DemoWelcomeCopy> = {
     modelCredit: '3D モデルの作者・ライセンス',
     examples: {
       drawing: { title: '図面の詳細を見る', description: '拡大やドラッグで図面の各部を確認。' },
+      document: { title: '業務レポートを読む', description: '目次、表、図を確認。企業とデータは架空です。' },
       presentation: { title: 'スライドを読む', description: 'ページをめくり、画像や文章を確認。' },
       workbook: { title: '表のデータを見る', description: 'セルを確認し、ドラッグで列幅を調整。' },
       model: { title: 'ローポリのキツネを見る', description: 'ドラッグしてさまざまな角度から観察。' }
@@ -105,6 +108,7 @@ export const demoWelcomeCopy: Record<DemoLocale, DemoWelcomeCopy> = {
     modelCredit: '3D-Modell: Urheber & Lizenz',
     examples: {
       drawing: { title: 'Zeichnung erkunden', description: 'Details vergrößern und die Ansicht verschieben.' },
+      document: { title: 'Geschäftsbericht lesen', description: 'Inhaltsverzeichnis, Tabellen und Diagramme. Alle Geschäftsdaten sind fiktiv.' },
       presentation: { title: 'Präsentation lesen', description: 'Folien, Bilder und Texte durchblättern.' },
       workbook: { title: 'Tabelle erkunden', description: 'Zellen lesen und Spaltenbreiten anpassen.' },
       model: { title: 'Low-Poly-Fuchs erkunden', description: 'Den Fuchs drehen und von allen Seiten ansehen.' }

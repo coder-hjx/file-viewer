@@ -30,7 +30,7 @@ describe('first-visit welcome', () => {
     for (const copy of Object.values(demoWelcomeCopy)) {
       expect(Object.keys(copy).sort()).toEqual(keys)
       expect(Object.values(copy).filter(value => typeof value === 'string').every(text => text.trim())).toBe(true)
-      expect(Object.keys(copy.examples).sort()).toEqual(['drawing', 'model', 'presentation', 'workbook'])
+      expect(Object.keys(copy.examples).sort()).toEqual(['document', 'drawing', 'model', 'presentation', 'workbook'])
       for (const example of Object.values(copy.examples)) {
         expect(example.title.trim()).toBeTruthy()
         expect(example.description.trim()).toBeTruthy()

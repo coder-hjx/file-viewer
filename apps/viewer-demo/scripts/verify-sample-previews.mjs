@@ -24,7 +24,7 @@ for (const preview of manifest.previews) {
     assert.equal(bytes.length, preview.sourceBytes)
   }
 }
-for (const required of ['/example/sample.dwg', '/example/ppt.pptx', '/example/en/sample-presentation.pptx',
+for (const required of ['/example/en/quarterly-operations-report.docx', '/example/sample.dwg', '/example/ppt.pptx', '/example/en/sample-presentation.pptx',
   '/example/excel.xlsx', '/example/en/financial-sample.xlsx', '/example/fox.glb']) {
   assert(seen.has(required), `Featured sample is missing a preview: ${required}`)
 }

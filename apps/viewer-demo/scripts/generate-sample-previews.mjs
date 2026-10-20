@@ -12,6 +12,8 @@ assert(base.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes
   'Preview capture must use a local Demo server')
 const hash = bytes => createHash('sha256').update(bytes).digest('hex')
 const samples = [
+  { id: 'business-report', sources: ['/example/en/quarterly-operations-report.docx'],
+    selector: 'section.docx', ready: 'document' },
   { id: 'drawing', sources: ['/example/sample.dwg'], selector: '.cad-stage', ready: 'cad' },
   { id: 'presentation', sources: ['/example/en/sample-presentation.pptx', '/example/ppt.pptx'],
     selector: '.flyfish-pptx-content[data-render-state="ready"] .slide', ready: 'presentation' },
@@ -21,17 +23,25 @@ const samples = [
     attribution: './example/licenses/fox/NOTICE.txt' }
 ]
 const imageDirectory = resolve(appRoot, 'public/sample-previews')
+const manifestPath = resolve(appRoot, 'src/data/demoSamplePreviews.json')
+const selectedIds = process.env.DEMO_SAMPLE_PREVIEW_IDS?.split(',').map(id => id.trim()).filter(Boolean)
+if (selectedIds) {
+  for (const id of selectedIds) assert(samples.some(sample => sample.id === id), `Unknown preview: ${id}`)
+}
 await mkdir(imageDirectory, { recursive: true })
 const browser = await chromium.launch({ headless: true })
-const previews = []
+const previews = selectedIds
+  ? JSON.parse(await readFile(manifestPath, 'utf8')).previews.filter(preview => !selectedIds.includes(preview.id))
+  : []
 try {
-  for (const sample of samples) {
+  for (const sample of samples.filter(sample => !selectedIds || selectedIds.includes(sample.id))) {
     const source = await readFile(resolve(appRoot, `public${sample.sources[0]}`))
     for (const alias of sample.sources.slice(1)) {
       assert.equal(hash(await readFile(resolve(appRoot, `public${alias}`))), hash(source),
         `A shared preview requires identical source bytes: ${alias}`)
     }
-    const page = await browser.newPage({ viewport: { width: sample.ready === 'cad' ? 1280 : 960, height: 660 },
+    const page = await browser.newPage({ viewport: { width: sample.ready === 'cad' ? 1280 : 960,
+      height: sample.ready === 'document' ? 1300 : 660 },
       colorScheme: 'light', reducedMotion: 'reduce', deviceScaleFactor: 1 })
     try {
       await page.route('**/*', route => new URL(route.request().url()).origin === base.origin
@@ -40,7 +50,7 @@ try {
       address.searchParams.set('url', new URL(`.${sample.sources[0]}`, base).href)
       address.searchParams.set('lang', sample.id.endsWith('-zh') ? 'zh-CN' : 'en-US')
       await page.goto(address.href)
-      const rootSelector = { cad: '.cad-shell', model: '.model-viewer',
+      const rootSelector = { cad: '.cad-shell', model: '.model-viewer', document: 'section.docx',
         presentation: '.flyfish-pptx-content[data-render-state="ready"]', workbook: '.e-virt-table-stage' }[sample.ready]
       const renderer = page.locator(rootSelector).first()
       await renderer.waitFor({ state: 'visible', timeout: 90000 })
@@ -59,6 +69,10 @@ try {
           const slide = root.querySelector('.slide')
           return slide && !slide.closest('.pptx-render-surface')?.classList.contains('is-loading') &&
             [...slide.querySelectorAll('img')].every(image => image.complete && image.naturalWidth > 0)
+        }
+        if (kind === 'document') {
+          return root.textContent.includes('Quarterly operations and risk review') &&
+            root.textContent.includes('Page 1 of 9')
         }
         return (root.textContent || '').trim().length > 10 || Boolean(root.querySelector('canvas'))
       }
@@ -86,6 +100,6 @@ try {
       console.log(`[sample-previews] ${sample.id}: ${image.length} bytes from ${sample.sources[0]}`)
     } finally { await page.close() }
   }
-  await writeFile(resolve(appRoot, 'src/data/demoSamplePreviews.json'),
+  await writeFile(manifestPath,
     JSON.stringify({ method: 'local-renderer-screenshot', previews }, null, 2) + '\n')
 } finally { await browser.close() }
