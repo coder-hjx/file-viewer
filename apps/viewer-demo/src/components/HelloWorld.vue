@@ -470,7 +470,7 @@ const fileIdentityAriaLabel = computed(() => (
 // A file change invalidates the old capsule geometry even when the URL changes
 // without changing the surrounding responsive breakpoint.
 // Existing toolbar actions take over from the guide instead of opening behind it.
-watch([desktopSourcePanelOpen, mobileControlsOpen, mobileActionsOpen], (panels) => {
+watch([desktopSourcePanelOpen, desktopActionsOpen, settingsPanelOpen, mobileControlsOpen, mobileActionsOpen], (panels) => {
   if (panels.some(Boolean)) closeWelcome()
 })
 
