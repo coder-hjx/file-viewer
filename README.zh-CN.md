@@ -911,3 +911,5 @@ File Viewer 自有源码采用 [Apache-2.0](LICENSE)。DWG/DWF/DWFX 运行时（
 旧版 PPT 运行时 `@file-viewer/ppt` 保留独立 LICENSE、NOTICE 和内置水印；移除水印需商业授权。其他依赖按各自许可证使用，不因被 File Viewer 引用而改为 Apache-2.0。
 
 欢迎通过 issue / PR 贡献通用修复与改进，参与方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+新贡献者可从[本地开发](docs/zh/guide/development.md)、[国际协作](docs/zh/guide/collaboration.md)和[翻译指南](docs/zh/guide/translations.md)开始；欢迎中英文参与，其他语言可附简短英文摘要。

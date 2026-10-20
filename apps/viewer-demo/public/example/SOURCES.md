@@ -4,6 +4,7 @@
 
 | Local file | Source | License | Purpose |
 | --- | --- | --- | --- |
+| `fox.glb` | [Khronos glTF Sample Assets, Fox](https://github.com/KhronosGroup/glTF-Sample-Assets/tree/edc7c9e67c639d230715049ee31f9a96a6babbbe/Models/Fox) | PixelMannen model: CC0-1.0; tomkranis rigging/animation and AsoboStudio/scurest glTF conversion: CC-BY-4.0. Original texts and attribution in `licenses/fox/` | Real low-poly model for the featured 3D card, self-hosted GLB loading and orbit interaction; upstream GLB unchanged |
 | `page.html` | Project-authored static report | Apache-2.0 | HTML page/source switching, inline styles, responsive layout, and offline sandbox behavior |
 | `word-revisions.doc` | [Issue #255](https://github.com/flyfish-dev/file-viewer/issues/255), original public `111.doc` attachment | Reporter confirmed sanitized redistribution for regression testing | Original DOC insertion/deletion records; SHA256 `762969dde787960b8e33e65ac11b5c85247c648329e69f560dd7554633cc706f` |
 | `word-cover.docx` | [Issue #250](https://github.com/flyfish-dev/file-viewer/issues/250), unchanged `test/fixtures/issue-250/page-anchors.docx` | Reporter confirmed sanitized redistribution for regression testing | Page-relative cover-border geometry; SHA256 `d9e59a52a9f2bcb3e42142b4abb0f80410a7d62d142f4c0515f004806cd38dff` |

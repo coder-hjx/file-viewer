@@ -87,7 +87,8 @@
     "vendor",
     "README.md",
     "README.en.md",
-    "LICENSE"
+    "LICENSE",
+    "README.zh-CN.md"
   ],
   "scripts": {
     "build": "node scripts/clean-dist.mjs && tsc -b tsconfig.json --force && node scripts/fix-core-esm-extensions.mjs",

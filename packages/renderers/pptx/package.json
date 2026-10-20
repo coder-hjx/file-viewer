@@ -57,7 +57,8 @@
     "dist",
     "README.md",
     "README.en.md",
-    "LICENSE"
+    "LICENSE",
+    "README.zh-CN.md"
   ],
   "scripts": {
     "build": "node scripts/clean-dist.mjs && tsc -b tsconfig.json --force && node scripts/build-worker.mjs && node scripts/copy-assets.mjs && node scripts/fix-esm-extensions.mjs",

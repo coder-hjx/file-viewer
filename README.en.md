@@ -132,6 +132,8 @@ pnpm verify:browser-smoke
 
 If a documented format fails, please include a sanitized sample or a public reproduction link, the browser version and the expected result. A screenshot alone rarely identifies a parser or rendering bug. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request; report security issues through [SECURITY.md](SECURITY.md).
 
+New contributors: [local development](docs/guide/development.md), [international collaboration](docs/guide/collaboration.md), and [translations](docs/guide/translations.md). English and Chinese are welcome; other languages can include a short English summary.
+
 Maintenance is supported through [GitHub Sponsors](https://github.com/sponsors/wybaby168). For private deployment or work requiring a response commitment, see [enterprise support](https://dev.flyfish.group/shop).
 
 ### Thanks to Our Sponsors

@@ -74,7 +74,8 @@
     "IFC.md",
     "licenses",
     "GEO3D.md",
-    "GEO3D_THIRD_PARTY_NOTICES.md"
+    "GEO3D_THIRD_PARTY_NOTICES.md",
+    "README.zh-CN.md"
   ],
   "scripts": {
     "build": "tsc -b tsconfig.json && node scripts/build-geo3d-point-adapters.mjs && node scripts/build-geo3d-raster-adapters.mjs && node scripts/verify-geo3d-material-compatibility.mjs",

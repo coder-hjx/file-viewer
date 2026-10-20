@@ -1,5 +1,7 @@
 # @file-viewer/renderer-epub
 
+[English](https://github.com/flyfish-dev/file-viewer/blob/main/packages/renderers/ebook/README.md) · [简体中文](https://github.com/flyfish-dev/file-viewer/blob/main/packages/renderers/ebook/README.zh-CN.md)
+
 Standalone ebook renderer package for Flyfish File Viewer. It handles `.epub` parsing, table-of-contents navigation, scrolling reading, previous/next navigation, reading progress, and `.umd` mobile ebook metadata, TOC, and zlib text blocks.
 
 ## Usage

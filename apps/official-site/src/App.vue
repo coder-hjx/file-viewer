@@ -124,7 +124,6 @@ const demoUrl = 'https://demo.file-viewer.app/'
 const compareUrl = 'https://demo.file-viewer.app/compare.html'
 const githubUrl = 'https://github.com/flyfish-dev/file-viewer'
 const githubApiUrl = 'https://api.github.com/repos/flyfish-dev/file-viewer'
-const githubStarCountFallback = 1900
 const releasesUrl = 'https://github.com/flyfish-dev/file-viewer/releases'
 const currentReleaseVersion = '3.2.2'
 const currentReleaseUrl = `${releasesUrl}/tag/v${currentReleaseVersion}`
@@ -146,9 +145,10 @@ const demoPreviewMobilePaths = {
   zh: '/file-viewer-demo-v2.2.6-mobile-zh.webp',
   en: '/file-viewer-demo-v2.2.6-mobile-en.webp'
 } satisfies Record<Locale, string>
+// Share cards use the same 1280x640 PNG as the GitHub repository social preview.
 const sitePreviewImageUrls = {
-  zh: `${siteRootUrl}${demoPreviewDesktopPaths.zh.slice(1)}`,
-  en: `${siteRootUrl}${demoPreviewDesktopPaths.en.slice(1)}`
+  zh: `${siteRootUrl}social-preview.png`,
+  en: `${siteRootUrl}social-preview.png`
 } satisfies Record<Locale, string>
 const siteLocalePreferenceKey = 'flyfish-site-locale-preference'
 const siteThemePreferenceKey = 'flyfish-site-theme-preference'
@@ -171,16 +171,16 @@ const siteMetadata = {
     description: `开源 File Viewer 在浏览器内预览 Office、PDF、CAD 等 ${registeredExtensionCount} 个扩展名（${stableExtensionCount} 个稳定、${experimentalExtensionCount} 个实验），通过 ${previewPipelineCount} 条链路按需加载，无需服务端转码，支持离线与私有化部署。`,
     ogLocale: 'zh_CN',
     ogLocaleAlternate: 'en_US',
-    imageAlt: `File Viewer v${currentReleaseVersion} 浏览器原生 DOCX 预览工作区`
+    imageAlt: 'File Viewer：浏览器内预览文件，资源可自托管'
   },
   en: {
     lang: 'en',
     canonical: siteEnglishUrl,
     title: 'File Viewer for Office, PDF & CAD | Flyfish',
-    description: `Open-source browser file viewer for Office, PDF, CAD, archives, email, and ${registeredExtensionCount} formats (${stableExtensionCount} stable, ${experimentalExtensionCount} experimental) across ${previewPipelineCount} lazy preview pipelines. No conversion server. Self-hosted and offline-ready.`,
+    description: `Open-source browser file viewer for Office, PDF, CAD, archives, email, and ${registeredExtensionCount} registered extensions (${stableExtensionCount} stable, ${experimentalExtensionCount} experimental) across ${previewPipelineCount} lazy preview pipelines. No conversion server. Self-hosted and offline-ready.`,
     ogLocale: 'en_US',
     ogLocaleAlternate: 'zh_CN',
-    imageAlt: `File Viewer v${currentReleaseVersion} browser-native DOCX preview workspace`
+    imageAlt: 'File Viewer: local browser previews with self-hosted runtime assets'
   }
 } satisfies Record<Locale, SiteMetadata>
 
@@ -214,7 +214,7 @@ const demoFrameMounted = ref(false)
 const demoFrameReady = ref(false)
 const quickStartSectionActive = ref(false)
 const activeQuickStartIndex = ref(0)
-const githubStarCount = ref(githubStarCountFallback)
+const githubStarCount = ref<number | null>(null)
 const supportDialogOpen = ref(false)
 const supportDialogView = ref<SupportDialogView>('sponsor')
 const activeChineseContactId = ref<ChineseContactId>('service')
@@ -239,9 +239,9 @@ const heroPreviewShieldStyle = computed(() => {
     height: `${shield.height}px`
   }
 })
-const githubStarsLabel = computed(() => formatStarCount(githubStarCount.value))
+const githubStarsLabel = computed(() => githubStarCount.value === null ? 'GitHub' : formatStarCount(githubStarCount.value))
 const githubStarsAriaLabel = computed(() =>
-  isZh.value
+  githubStarCount.value === null ? (isZh.value ? 'GitHub 开源总仓' : 'GitHub repository') : isZh.value
     ? `GitHub 开源总仓，${githubStarsLabel.value} stars`
     : `GitHub repository, ${githubStarsLabel.value} stars`
 )
@@ -318,11 +318,11 @@ async function loadGithubStarCount() {
       return
     }
     const payload = (await response.json()) as { stargazers_count?: unknown }
-    if (typeof payload.stargazers_count === 'number' && Number.isFinite(payload.stargazers_count)) {
+    if (typeof payload.stargazers_count === 'number' && Number.isSafeInteger(payload.stargazers_count) && payload.stargazers_count >= 0) {
       githubStarCount.value = payload.stargazers_count
     }
   } catch {
-    // Keep the baked-in count when GitHub is unavailable or rate limited.
+    // Keep the repository link usable without inventing a count when offline.
   }
 }
 
@@ -458,8 +458,8 @@ const metrics = computed<MetricItem[]>(() =>
         },
         {
           title: 'npm 发布目标',
-          value: '84',
-          detail: '76 个标准包、7 个同版本 alias，msdoc-viewer 独立版本',
+          value: '89',
+          detail: '81 个标准包、8 个历史兼容包，msdoc-viewer 独立版本',
           tone: 'amber'
         }
       ]
@@ -484,9 +484,9 @@ const metrics = computed<MetricItem[]>(() =>
         },
         {
           title: 'npm targets',
-          value: '84',
+          value: '89',
           detail:
-            '76 standard packages, 7 same-line aliases, and independently versioned msdoc-viewer',
+            '81 standard packages, 8 legacy-compatible packages, and independently versioned msdoc-viewer',
           tone: 'amber'
         }
       ]
