@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp, h, nextTick, ref } from 'vue'
 import DemoWelcomeCard from '../apps/viewer-demo/src/components/demo/DemoWelcomeCard.vue'
+import type { DemoWelcomeSample } from '../apps/viewer-demo/src/components/demo/DemoWelcomeCard.vue'
 import { demoWelcomeCopy, dismissDemoWelcome, shouldShowDemoWelcome } from '../apps/viewer-demo/src/composables/useDemoWelcome'
 
 beforeEach(() => localStorage.clear())
@@ -28,8 +29,35 @@ describe('first-visit welcome', () => {
     const keys = Object.keys(demoWelcomeCopy['en-US']).sort()
     for (const copy of Object.values(demoWelcomeCopy)) {
       expect(Object.keys(copy).sort()).toEqual(keys)
-      expect(Object.values(copy).every(text => text.trim())).toBe(true)
+      expect(Object.values(copy).filter(value => typeof value === 'string').every(text => text.trim())).toBe(true)
+      expect(Object.keys(copy.examples).sort()).toEqual(['drawing', 'model', 'presentation', 'workbook'])
+      for (const example of Object.values(copy.examples)) {
+        expect(example.title.trim()).toBeTruthy()
+        expect(example.description.trim()).toBeTruthy()
+      }
     }
+  })
+
+  it('opens the selected real file and keeps that action usable when its preview fails', async () => {
+    const host = document.createElement('div')
+    document.body.append(host)
+    const onSample = vi.fn()
+    const sample: DemoWelcomeSample = { url: '/example/fox.glb', name: 'Low-poly fox', filename: 'fox.glb', kind: 'model',
+      preview: './sample-previews/model.png', bytes: 162852, family: 'model', icon: 'Box' }
+    const app = createApp({ render: () => h(DemoWelcomeCard, { copy: demoWelcomeCopy['en-US'], samples: [sample], onSample }) })
+    try {
+      app.mount(host)
+      await nextTick()
+      expect(host.querySelector('input[type=file]')).toBeNull()
+      const image = host.querySelector('img')!
+      expect(image.getAttribute('src')).toBe(sample.preview)
+      image.dispatchEvent(new Event('error'))
+      await nextTick()
+      expect(host.querySelector('img')).toBeNull()
+      expect(host.textContent).toContain('Preview unavailable')
+      host.querySelector<HTMLButtonElement>('.demo-welcome__file')!.click()
+      expect(onSample).toHaveBeenCalledWith(sample.url)
+    } finally { app.unmount(); host.remove() }
   })
 
   it('focuses the nonmodal card and restores focus after Escape', async () => {

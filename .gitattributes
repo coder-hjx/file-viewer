@@ -41,3 +41,5 @@ packages/renderers/design/LICENSES/CC0-1.0.txt -text -whitespace
 **/Stet_NATIVE_THIRD_PARTY_LICENSES.json -text -whitespace
 packages/renderers/design/source/postscript/rust-licenses/* -text -whitespace
 packages/renderers/design/source/postscript/license-overrides/* -text -whitespace
+# This source-bound upstream license includes original trailing spaces.
+apps/viewer-demo/public/example/licenses/fox/CC0-1.0.txt -text whitespace=-blank-at-eol

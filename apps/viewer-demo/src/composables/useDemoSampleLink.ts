@@ -28,6 +28,8 @@ export const DEMO_SAMPLE_ALIASES: Record<string, SampleAlias> = {
   cad: { default: '/example/sample.dwg' },
   dxf: { default: '/example/drawing.dxf' },
   step: { default: '/example/model.step' },
+  fox: { default: '/example/fox.glb' },
+  glb: { default: '/example/fox.glb' },
   ofd: { default: '/example/ofd.ofd' },
   psd: { default: '/example/design.psd' },
   epub: { default: '/example/book.epub' },

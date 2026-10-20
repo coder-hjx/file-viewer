@@ -32,6 +32,7 @@ import DemoFileTypeIcon from '@/components/demo/DemoFileTypeIcon.vue'
 import DemoRecentFiles from '@/components/demo/DemoRecentFiles.vue'
 import DemoWelcomeCard from '@/components/demo/DemoWelcomeCard.vue'
 import type { DemoWelcomeSample } from '@/components/demo/DemoWelcomeCard.vue'
+import samplePreviews from '@/data/demoSamplePreviews.json'
 import {
   demoSampleParamFor,
   readDemoSampleParam,
@@ -51,6 +52,7 @@ import {
   DEFAULT_DEMO_URL_BY_LOCALE,
   isSameSampleUrl,
   normalizeDemoUrl,
+  sampleUrlKey,
   useDemoSamples
 } from '@/composables/useDemoSamples'
 import {
@@ -149,7 +151,7 @@ const url = ref(demoFileHandoff.isEmbedRequest && !demoFileHandoff.initialUrl
 // First-visit welcome card: product shell only, never for shared sample links,
 // embeds or `?url=` handoffs. Dismissal persists in localStorage.
 const welcomeOpen = ref(!demoFileHandoff.isImmersiveRequest && !demoFileHandoff.isEmbedRequest && !demoFileHandoff.initialUrl && !initialSampleUrl && shouldShowDemoWelcome())
-const welcomeSampleAliases = ['dwg', 'pptx', 'xlsx', 'step']
+const welcomeSampleAliases = ['dwg', 'pptx', 'xlsx', 'fox'] as const
 const welcomeCopy = computed(() => demoWelcomeCopy[demoLocale.value] ?? demoWelcomeCopy['en-US'])
 const preview = ref('')
 
@@ -467,6 +469,11 @@ const fileIdentityAriaLabel = computed(() => (
 
 // A file change invalidates the old capsule geometry even when the URL changes
 // without changing the surrounding responsive breakpoint.
+// Existing toolbar actions take over from the guide instead of opening behind it.
+watch([desktopSourcePanelOpen, mobileControlsOpen, mobileActionsOpen], (panels) => {
+  if (panels.some(Boolean)) closeWelcome()
+})
+
 watch(currentFileTarget, (nextTarget, previousTarget) => {
   if (nextTarget !== previousTarget) {
     resetFileCapsuleMotion()
@@ -1115,10 +1122,17 @@ const welcomeSamples = computed<DemoWelcomeSample[]>(() => welcomeSampleAliases.
     return []
   }
   const normalizedUrl = normalizeDemoUrl(sampleUrl)
+  const thumbnail = samplePreviews.previews.find(entry => entry.sources.includes(sampleUrlKey(normalizedUrl)))
+  const kind = ({ dwg: 'drawing', pptx: 'presentation', xlsx: 'workbook', fox: 'model' } as const)[alias]
   const item = sampleGroups.value.flatMap(group => group.items).find(entry => isSameSampleUrl(entry.url, normalizedUrl))
   return [{
     url: normalizedUrl,
     name: item?.name || fileNameOf(normalizedUrl) || normalizedUrl,
+    filename: fileNameOf(normalizedUrl) || normalizedUrl,
+    kind,
+    preview: thumbnail?.path,
+    bytes: thumbnail?.sourceBytes,
+    attribution: thumbnail?.attribution,
     ...getFileIconMeta(normalizedUrl)
   }]
 }))
@@ -1129,15 +1143,6 @@ function closeWelcome() {
   }
   welcomeOpen.value = false
   dismissDemoWelcome()
-}
-
-async function openWelcomeSource(mode: 'upload' | 'samples') {
-  closeWelcome()
-  if (isMobileDemoViewport()) {
-    await openMobileControls(mode, mode)
-  } else {
-    await openDesktopSourcePanel(mode, mode)
-  }
 }
 
 function openWelcomeSample(sampleUrl: string) {
@@ -1851,9 +1856,7 @@ function handleWindowResize() {
           v-if='welcomeOpen'
           :copy='welcomeCopy'
           :samples='welcomeSamples'
-          :accept='uploadAccept'
           @close='closeWelcome'
-          @samples='openWelcomeSource("samples")'
           @sample='openWelcomeSample'
           @file='openWelcomeFile'
         />

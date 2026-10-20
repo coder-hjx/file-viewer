@@ -27,6 +27,8 @@ describe('viewer demo ?sample= links', () => {
 
   it('accepts catalog paths and bare file names, case-insensitive aliases', () => {
     expect(resolveDemoSampleParam('DWG')).toBe('/example/sample.dwg')
+    expect(resolveDemoSampleParam('fox')).toBe('/example/fox.glb')
+    expect(resolveDemoSampleParam('glb', 'zh-CN')).toBe('/example/fox.glb')
     expect(resolveDemoSampleParam('/example/model.step')).toBe('/example/model.step')
     expect(resolveDemoSampleParam('model.step')).toBe('/example/model.step')
     expect(resolveDemoSampleParam('%2Fexample%2Fpdf.pdf')).toBe('/example/pdf.pdf')

@@ -8,10 +8,24 @@ final class DemoOnboardingTests: XCTestCase {
         let close = safari.buttons["Close welcome card"].firstMatch
         XCTAssertTrue(close.waitForExistence(timeout: 60), safari.debugDescription)
         XCTAssertTrue(close.isHittable)
-        XCTAssertTrue(safari.buttons["Choose a local file"].firstMatch.isHittable)
-        XCTAssertTrue(safari.buttons["Browse all samples"].firstMatch.isHittable)
+        XCTAssertTrue(safari.buttons["Explore a drawing: sample.dwg"].firstMatch.isHittable)
+        XCTAssertTrue(safari.buttons["Read a presentation: sample-presentation.pptx"].firstMatch.exists)
+        XCTAssertTrue(safari.buttons["Explore a workbook: financial-sample.xlsx"].firstMatch.exists)
+        XCTAssertTrue(safari.buttons["Explore a low-poly fox: fox.glb"].firstMatch.exists)
         capture(safari, "welcome")
-        close.tap()
+        let fox = safari.buttons["Explore a low-poly fox: fox.glb"].firstMatch
+        for _ in 0..<3 {
+            if fox.isHittable { break }
+            safari.swipeUp()
+        }
+        XCTAssertTrue(fox.isHittable)
+        fox.tap()
+        XCTAssertTrue(safari.staticTexts["1 meshes"].firstMatch.waitForExistence(timeout: 60))
+        capture(safari, "fox-before-orbit")
+        let orbitStart = safari.coordinate(withNormalizedOffset: CGVector(dx: 0.45, dy: 0.45))
+        let orbitEnd = safari.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.5))
+        orbitStart.press(forDuration: 0.1, thenDragTo: orbitEnd)
+        capture(safari, "fox-after-orbit")
 
         let upload = safari.buttons["Upload a local file"].firstMatch
         let samples = safari.buttons["Open sample files"].firstMatch
@@ -23,9 +37,10 @@ final class DemoOnboardingTests: XCTestCase {
         capture(safari, "mobile-primary-entries")
         samples.tap()
         XCTAssertTrue(safari.staticTexts["Sample library"].firstMatch.waitForExistence(timeout: 15))
-        let nasa = safari.buttons.matching(NSPredicate(format: "label CONTAINS 'NASA'")).firstMatch
-        XCTAssertTrue(nasa.waitForExistence(timeout: 15))
-        XCTAssertTrue(nasa.isHittable)
+        // The library opens the current model group after selecting the fox.
+        let foxInLibrary = safari.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Low-poly fox'")).firstMatch
+        XCTAssertTrue(foxInLibrary.waitForExistence(timeout: 15))
+        XCTAssertTrue(foxInLibrary.isHittable)
         capture(safari, "sample-library")
         let closePanel = safari.buttons.matching(identifier: "Close control panel").allElementsBoundByIndex.first { $0.isHittable }
         XCTAssertNotNil(closePanel)

@@ -101,6 +101,7 @@ export const sampleGroupsZh: DemoSampleGroup[] = [
     description: 'GLTF / STEP / IFC / OBJ / STL / GeoJSON / KML / GPX',
     family: 'model',
     items: [
+      { name: '低模狐狸（Khronos）', url: '/example/fox.glb' },
       { name: 'GLTF', url: '/example/model.gltf' },
       { name: 'STEP 工程模型', url: '/example/model.step' },
       { name: 'IFC4 建筑模型（buildingSMART）', url: '/example/buildingSMART-ifc4-building.ifc' },
@@ -435,6 +436,7 @@ const englishSampleNameMap: Record<string, string> = {
   '/example/en/code.ts': 'TypeScript integration sample',
   '/example/en/code.js': 'JavaScript integration sample',
   '/example/en/model.gltf': 'glTF embedded model',
+  '/example/fox.glb': 'Low-poly fox (Khronos)',
   '/example/model.step': 'STEP engineering model',
   '/example/buildingSMART-ifc4-building.ifc': 'IFC4 building model (buildingSMART)',
   '/example/buildingSMART-ifc43-building.ifc': 'IFC4.3 building model (buildingSMART)',
@@ -565,6 +567,7 @@ const japaneseSampleNameMap: Record<string, string> = {
   '/example/en/code.ts': 'TypeScript 組み込みサンプル',
   '/example/en/code.js': 'JavaScript 組み込みサンプル',
   '/example/en/model.gltf': 'glTF 埋め込みモデル',
+  '/example/fox.glb': 'ローポリのキツネ（Khronos）',
   '/example/model.step': 'STEP 工学モデル',
   '/example/buildingSMART-ifc4-building.ifc': 'IFC4 建築モデル（buildingSMART）',
   '/example/buildingSMART-ifc43-building.ifc': 'IFC4.3 建築モデル（buildingSMART）',
