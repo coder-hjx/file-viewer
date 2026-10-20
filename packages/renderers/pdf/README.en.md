@@ -1,5 +1,7 @@
 # @file-viewer/renderer-pdf
 
+[English](https://github.com/flyfish-dev/file-viewer/blob/main/packages/renderers/pdf/README.md) · [简体中文](https://github.com/flyfish-dev/file-viewer/blob/main/packages/renderers/pdf/README.zh-CN.md)
+
 Cold-network loading starts the real Worker directly, without a duplicate version-probe request.
 PDF.js checks API compatibility before parsing. Mismatched workers are destroyed and retried
 with the bundled matching handler without losing transferred input. Main-thread fallbacks

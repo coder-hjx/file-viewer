@@ -62,7 +62,8 @@
     "README.en.md",
     "test/fixtures",
     "THIRD_PARTY_NOTICES.md",
-    "LICENSE"
+    "LICENSE",
+    "README.zh-CN.md"
   ],
   "scripts": {
     "build": "node scripts/build-bpmn-styles.mjs && tsc -b tsconfig.json",

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "purpose": "shared-runtime-material-attribution",
   "scope": "Material identity and actual copied payloads; not a source-availability or release approval.",
-  "registrySha256": "d06cd1dfceaf3da9d1650c3f4f1967b9fb1d8bed734a7309adc700f11ccefbe0",
+  "registrySha256": "bf128371e19f0d67e124ec8d3c8a76897f0e712a75d1cc1b893bd2e0126c8f5e",
   "releaseApproval": false,
   "materials": [
     {
@@ -3134,6 +3134,21 @@
       ]
     },
     {
+      "path": "wasm/cad/0.8.0/CORRESPONDING_SOURCE_NOTICE.txt",
+      "sha256": "70513af0df0e9e24a7099b7b90e0987e5be9ec04528cad5b6a896e94ef312c9d",
+      "bytes": 2466,
+      "kind": "generated-corresponding-source-offer",
+      "component": "CAD runtime@0.8.3",
+      "declaredLicense": null,
+      "source": "https://github.com/flyfish-dev/file-viewer/releases/tag/v3.2.0-sources",
+      "runtimePaths": [
+        "wasm/cad/0.8.0/dwfv-render.wasm",
+        "wasm/cad/0.8.0/dwg-worker.js",
+        "wasm/cad/0.8.0/libredwg-web.js",
+        "wasm/cad/0.8.0/libredwg-web.wasm"
+      ]
+    },
+    {
       "path": "wasm/cad/0.8.0/GPL-3.0.txt",
       "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
       "bytes": 35147,
@@ -3172,6 +3187,21 @@
         "wasm/cad/0.8.0/dwg-worker.js",
         "wasm/cad/0.8.0/libredwg-web.js",
         "wasm/cad/0.8.0/libredwg-web.wasm"
+      ]
+    },
+    {
+      "path": "wasm/cad/0.8.1/CORRESPONDING_SOURCE_NOTICE.txt",
+      "sha256": "70513af0df0e9e24a7099b7b90e0987e5be9ec04528cad5b6a896e94ef312c9d",
+      "bytes": 2466,
+      "kind": "generated-corresponding-source-offer",
+      "component": "CAD runtime@0.8.3",
+      "declaredLicense": null,
+      "source": "https://github.com/flyfish-dev/file-viewer/releases/tag/v3.2.0-sources",
+      "runtimePaths": [
+        "wasm/cad/0.8.1/dwfv-render.wasm",
+        "wasm/cad/0.8.1/dwg-worker.js",
+        "wasm/cad/0.8.1/libredwg-web.js",
+        "wasm/cad/0.8.1/libredwg-web.wasm"
       ]
     },
     {
@@ -3216,6 +3246,21 @@
       ]
     },
     {
+      "path": "wasm/cad/0.8.3/CORRESPONDING_SOURCE_NOTICE.txt",
+      "sha256": "70513af0df0e9e24a7099b7b90e0987e5be9ec04528cad5b6a896e94ef312c9d",
+      "bytes": 2466,
+      "kind": "generated-corresponding-source-offer",
+      "component": "CAD runtime@0.8.3",
+      "declaredLicense": null,
+      "source": "https://github.com/flyfish-dev/file-viewer/releases/tag/v3.2.0-sources",
+      "runtimePaths": [
+        "wasm/cad/0.8.3/dwfv-render.wasm",
+        "wasm/cad/0.8.3/dwg-worker.js",
+        "wasm/cad/0.8.3/libredwg-web.js",
+        "wasm/cad/0.8.3/libredwg-web.wasm"
+      ]
+    },
+    {
       "path": "wasm/cad/0.8.3/GPL-3.0.txt",
       "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
       "bytes": 35147,
@@ -3254,6 +3299,33 @@
         "wasm/cad/0.8.3/dwg-worker.js",
         "wasm/cad/0.8.3/libredwg-web.js",
         "wasm/cad/0.8.3/libredwg-web.wasm"
+      ]
+    },
+    {
+      "path": "wasm/cad/CORRESPONDING_SOURCE_NOTICE.txt",
+      "sha256": "70513af0df0e9e24a7099b7b90e0987e5be9ec04528cad5b6a896e94ef312c9d",
+      "bytes": 2466,
+      "kind": "generated-corresponding-source-offer",
+      "component": "CAD runtime@0.8.3",
+      "declaredLicense": null,
+      "source": "https://github.com/flyfish-dev/file-viewer/releases/tag/v3.2.0-sources",
+      "runtimePaths": [
+        "wasm/cad/0.8.0/dwfv-render.wasm",
+        "wasm/cad/0.8.0/dwg-worker.js",
+        "wasm/cad/0.8.0/libredwg-web.js",
+        "wasm/cad/0.8.0/libredwg-web.wasm",
+        "wasm/cad/0.8.1/dwfv-render.wasm",
+        "wasm/cad/0.8.1/dwg-worker.js",
+        "wasm/cad/0.8.1/libredwg-web.js",
+        "wasm/cad/0.8.1/libredwg-web.wasm",
+        "wasm/cad/0.8.3/dwfv-render.wasm",
+        "wasm/cad/0.8.3/dwg-worker.js",
+        "wasm/cad/0.8.3/libredwg-web.js",
+        "wasm/cad/0.8.3/libredwg-web.wasm",
+        "wasm/cad/dwfv-render.wasm",
+        "wasm/cad/dwg-worker.js",
+        "wasm/cad/libredwg-web.js",
+        "wasm/cad/libredwg-web.wasm"
       ]
     },
     {
