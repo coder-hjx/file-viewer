@@ -351,8 +351,8 @@
   min-height: 44px;
   padding: 0 17px;
   border-radius: 14px;
-  background: #2c9e69;
-  box-shadow: 0 10px 22px rgba(36, 141, 91, 0.2);
+  background: var(--demo-accent-strong);
+  box-shadow: none;
 }
 
 .source-context-row {

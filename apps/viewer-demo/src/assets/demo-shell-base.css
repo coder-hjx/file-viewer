@@ -225,7 +225,7 @@
   padding: 0 15px;
   border-radius: var(--demo-field-radius);
   white-space: nowrap;
-  box-shadow: 0 12px 24px rgba(33, 163, 102, 0.18);
+  box-shadow: none;
 }
 
 .sample-picker-open .panel-body {
