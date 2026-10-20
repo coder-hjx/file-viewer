@@ -40,6 +40,13 @@
 
 <p align="center">⭐ If File Viewer helps you, please <a href="https://github.com/flyfish-dev/file-viewer">star the repo</a>.</p>
 
+## Why File Viewer
+
+- **275 registered extensions** (225 stable, 50 experimental) across 47 preview pipelines: Word, Excel, PowerPoint, PDF, OFD, DWG/DXF, STEP/IFC, archives, email, images, media, code, DICOM and more.
+- **No conversion server.** Files are parsed and rendered in the browser; Workers, WASM and fonts can be self-hosted for offline networks.
+- **Loads only what a file needs.** Heavy engines (PDF, CAD, Office, 3D) are lazy-loaded per format.
+- **One API, every framework.** Web Component, Vue 3, Vue 2.7/2.6, React 16.8–19, Svelte and jQuery share options, events and controller methods.
+
 ## Quick start
 
 The Web Component works without a framework:
@@ -90,7 +97,7 @@ The eight `*-full` packages preserve the published v2.4 `preset-all` compatibili
 
 File Viewer is a viewer, not an editor. Fonts, vendor-specific features, encrypted files and very large inputs can affect fidelity or memory use. Check the format matrix before relying on a specialist format in production, and test with representative files from your own workflow.
 
-The source tree adds opt-in [BPMN diagrams](docs/guide/bpmn.md) and [XML validation/transformation profiles](docs/guide/xml-profiles.md). These are not included in npm 3.1.1; use the guides when testing the source build.
+Opt-in [BPMN diagrams](docs/guide/bpmn.md) (`@file-viewer/renderer-drawing/bpmn`) and [XML validation/transformation profiles](docs/guide/xml-profiles.md) (`@file-viewer/renderer-text/xml-profiles`) ship on npm since 3.1.2; they are not added to Full packages.
 
 ## Runtime assets
 
