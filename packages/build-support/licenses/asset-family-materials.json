@@ -444,8 +444,8 @@
     },
     {
       "sourcePath": "packages/renderers/dicom/THIRD_PARTY_NOTICES.md",
-      "sha256": "197379984adb7e753627d00a91364f7a9269c003822a057e6499c51b65fd78a6",
-      "bytes": 14376,
+      "sha256": "28e26035bf01dc15aae7e4ac3a5ea7c17f116a688fe9795ab9e92dda8db075cc",
+      "bytes": 14455,
       "kind": "generated-attribution-inventory",
       "component": "DICOM source inventory",
       "declaredLicense": null,

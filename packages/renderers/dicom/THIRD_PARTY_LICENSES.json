@@ -765,6 +765,20 @@
       "noticeFiles": []
     },
     {
+      "name": "caniuse-lite",
+      "version": "1.0.30001816",
+      "license": "CC-BY-4.0",
+      "direct": false,
+      "optional": false,
+      "firstParty": false,
+      "author": "Ben Briggs <beneb.info@gmail.com> http://beneb.info",
+      "repository": "https://github.com/browserslist/caniuse-lite",
+      "licenseFiles": [
+        "LICENSE"
+      ],
+      "noticeFiles": []
+    },
+    {
       "name": "comlink",
       "version": "4.4.2",
       "license": "Apache-2.0",
