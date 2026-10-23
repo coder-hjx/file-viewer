@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { readFile } from 'node:fs/promises'
+import { las14EvlrWkt } from '../test/fixtures/las14-evlr-wkt.mjs'
 import { inspectLasCrsRangeSource, parseLasGeoKeys } from '../dist/geo3dLasCrs.js'
 
 function directory(entries) {
@@ -42,6 +43,12 @@ test('reporter LAS twins expose matching declared-CRS decisions without reading 
     assert.equal(result.crs, name === 'crs-geokeys-only' ? 'EPSG:2177' : undefined)
     assert.ok(reads.every(([a, b]) => a >= 0 && b <= end))
   }
+})
+test('LAS 1.4 EVLR-only WKT remains available for the pinned engine fallback', async () => {
+  const bytes = las14EvlrWkt(await readFile(new URL('../test/fixtures/github-406-crs-wkt.las', import.meta.url)))
+  assert.equal(bytes.readUInt32LE(100), 0)
+  assert.equal(bytes.readUInt32LE(243), 2)
+  assert.deepEqual(await inspectLasCrsRangeSource(async (a, b) => bytes.subarray(a, b)), { crs: undefined, hasCrsMetadata: false })
 })
 test('truncated VLRs fail closed instead of treating the cloud as unreferenced', async () => {
   const bytes = await readFile(new URL('../test/fixtures/github-406-crs-geokeys-only.las', import.meta.url))

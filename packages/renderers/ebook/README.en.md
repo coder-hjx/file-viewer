@@ -40,6 +40,8 @@ const options = {
 
 ## Reading theme
 
+The no-reload behavior applies to observed theme attributes, system color-scheme changes and the Vanilla core theme update path. Framework component and toolbar/controller option updates may reinitialize the preview.
+
 EPUB chapters and navigation follow `options.theme`, including `system` and live changes. Dark reading overrides text and solid backgrounds without inverting images or reloading the chapter. Set `epub.darkMode: false` to retain the book's authored colors, or `true` to force dark reading. UMD and FB2 rendering are unchanged.
 
 ## Migration Note

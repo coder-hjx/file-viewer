@@ -40,6 +40,8 @@ const options = {
 
 ## 深色阅读
 
+无需重载的行为适用于观察到的主题属性、系统配色变化及 Vanilla core 的主题更新路径。框架组件与工具栏/controller 的选项更新可能重新初始化预览。
+
 EPUB 正文与目录跟随 `options.theme`，支持 `system` 与实时切换。深色阅读覆盖文字和纯色背景，不反相图片，也不重新加载章节。设置 `epub.darkMode: false` 保留书籍原始配色，设为 `true` 可强制深色阅读。UMD、FB2 的渲染不受影响。
 
 ## 迁移说明

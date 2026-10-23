@@ -27,6 +27,8 @@ const options = {
 
 ## 深色阅读
 
+无需重载的实时更新适用于 renderer 观察到的主题属性、系统配色及 Vanilla core 的主题更新路径。框架组件与工具栏/controller 的选项更新可能重新初始化预览。
+
 PDF 正文跟随 `options.theme`（`light`、`dark`、`system`），支持实时切换。深色阅读只在预览画布上应用颜色滤镜，图片颜色也会随之变化；需要保持原始配色时设置 `pdf.darkMode: false`，设为 `true` 则可独立强制深色阅读。原文件下载、打印和导出的画布像素仍保持原始颜色。
 
 ## 离线资源
