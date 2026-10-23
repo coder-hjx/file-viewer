@@ -749,6 +749,7 @@ export {
   resolveFileViewerLifecycleHookErrorMessage,
   resolveFileViewerBeforeOperationErrorMessage,
   resolveFileViewerOperationAvailability,
+  resolveFileViewerToolbarZoomButtons,
   resolveFileViewerToolbarOrder,
   resolveFileViewerToolbarState,
   resolveFileViewerToolbarPosition,

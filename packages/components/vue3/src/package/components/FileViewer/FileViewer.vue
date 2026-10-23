@@ -429,6 +429,7 @@ const {
 
 const {
   operationAvailability,
+  zoomButtons,
   visibleToolbar,
   toolbarOrder,
   showToolbar: showBuiltInToolbar,
@@ -827,7 +828,7 @@ useViewerPreviewLifecycle({
             :aria-label='viewerLabels.zoomGroup'
           >
             <button
-              v-if='operationAvailability.zoomOut'
+              v-if='zoomButtons.zoomOut'
               type='button'
               class='viewer-icon-button'
               part='button zoom-out-button'
@@ -839,7 +840,7 @@ useViewerPreviewLifecycle({
               <ZoomOut :size='15' :stroke-width='2.4' />
             </button>
             <button
-              v-if='operationAvailability.zoomReset'
+              v-if='zoomButtons.zoomReset'
               type='button'
               class='viewer-zoom-meter'
               part='button zoom-meter'
@@ -859,7 +860,7 @@ useViewerPreviewLifecycle({
               {{ zoomState.label }}
             </span>
             <button
-              v-if='operationAvailability.zoomIn'
+              v-if='zoomButtons.zoomIn'
               type='button'
               class='viewer-icon-button'
               part='button zoom-in-button'
@@ -871,7 +872,7 @@ useViewerPreviewLifecycle({
               <ZoomIn :size='15' :stroke-width='2.4' />
             </button>
             <button
-              v-if='operationAvailability.zoomReset'
+              v-if='zoomButtons.zoomReset'
               type='button'
               class='viewer-icon-button'
               part='button zoom-reset-button'

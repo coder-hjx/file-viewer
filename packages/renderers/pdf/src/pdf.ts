@@ -602,7 +602,9 @@ export default async function renderPdf(
   if (navigationEnabled) {
     toolbar.append(navToggleButton);
   }
-  toolbar.append(pageGroup, zoomGroup, rotateGroup);
+  toolbar.append(pageGroup);
+  if (options?.zoomToolbar !== false) toolbar.append(zoomGroup);
+  toolbar.append(rotateGroup);
 
   const content = createElement(documentRef, 'div', 'pdf-content');
   const navPane = createElement(documentRef, 'aside', 'pdf-nav-pane');

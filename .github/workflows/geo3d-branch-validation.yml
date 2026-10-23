@@ -87,9 +87,14 @@ jobs:
         id: focused
         run: bash "$RUNNER_TEMP/geo3d-record.sh" geo3d-entry pnpm test:geo3d-entry
 
+      - name: Configure bounded Ubuntu archive downloads
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: sudo python3 .github/scripts/prepare-browser-apt.py
+
       - name: Install Chromium and WebKit
         id: browsers
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        timeout-minutes: 10
         run: bash "$RUNNER_TEMP/geo3d-record.sh" playwright-install pnpm exec playwright install --with-deps chromium webkit
 
       - name: Focused Geo3D browser smoke

@@ -681,6 +681,8 @@ export interface FileViewerPdfOptions {
   /** Opt-in mouse hand-tool panning. Touch/pinch, links and form fields remain native. Default: false. */
   handTool?: boolean
   toolbar?: boolean
+  /** Hides only the PDF renderer's zoom controls; navigation and rotation remain available. Default: true. */
+  zoomToolbar?: boolean
   navigation?: boolean
   defaultNavigationVisible?: boolean
   thumbnails?: boolean

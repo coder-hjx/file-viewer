@@ -56,9 +56,14 @@ jobs:
         if: steps.impact.outputs.runtime != 'false'
         run: pnpm --filter @file-viewer/core --filter @file-viewer/renderer-text --filter @file-viewer/capability-mermaid --filter @file-viewer/renderer-drawing --filter @file-viewer/renderer-dicom build
 
+      - name: Configure bounded Ubuntu archive downloads
+        if: steps.impact.outputs.runtime != 'false'
+        run: sudo python3 .github/scripts/prepare-browser-apt.py
+
       - name: Install Chromium and WebKit
         id: browsers
         if: steps.impact.outputs.runtime != 'false'
+        timeout-minutes: 10
         run: pnpm exec playwright install --with-deps chromium webkit
 
       - name: Verify DICOM cold consumers, six transfer syntaxes and visible PNGs
@@ -200,8 +205,13 @@ jobs:
         if: steps.impact.outputs.runtime != 'false'
         run: pnpm type-check
 
+      - name: Configure bounded Ubuntu archive downloads
+        if: steps.impact.outputs.runtime != 'false'
+        run: sudo python3 .github/scripts/prepare-browser-apt.py
+
       - name: Install Chromium, Firefox and WebKit
         if: steps.impact.outputs.runtime != 'false'
+        timeout-minutes: 10
         run: pnpm exec playwright install --with-deps chromium firefox webkit
 
       - name: Run the issue regression gates
@@ -279,17 +289,24 @@ jobs:
         if: steps.impact.outputs.runtime != 'false'
         run: pnpm --filter @file-viewer/vite-plugin verify:lite-consumer
 
-      - name: Verify PDF hand tool and native DOC font table in Chromium and WebKit
+      - name: Install the Noto CJK font cohort
         if: steps.impact.outputs.runtime != 'false'
+        timeout-minutes: 10
         run: |
           # WenQuanYi's CJK vertical advances can be zero in Chromium. The
           # geometry contract needs the same reviewed Noto cohort as DOCX CI.
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          if ! dpkg-query -W -f='${Status}' fonts-noto-cjk 2>/dev/null | grep -Fxq 'install ok installed'; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          fi
           mkdir -p output/doc-font-table
           fc-match -f '%{family}\n' 'Noto Serif CJK SC' | tee output/doc-font-table/font-cohort.log
           grep -q 'Noto Serif CJK SC' output/doc-font-table/font-cohort.log
           dpkg-query -W fonts-noto-cjk >> output/doc-font-table/font-cohort.log
+
+      - name: Verify PDF hand tool and native DOC font table in Chromium and WebKit
+        if: steps.impact.outputs.runtime != 'false'
+        run: |
           pnpm --filter @file-viewer/renderer-pdf verify:hand-tool
           pnpm --filter @file-viewer/doc verify:font-table-browser
 
@@ -376,9 +393,17 @@ jobs:
         if: steps.impact.outputs.runtime != 'false'
         run: pnpm verify:chm-renderer
 
-      - name: Verify Vue 3 toolbar in Chromium
+      - name: Verify Vue 3 and Web toolbar in Chromium and WebKit
         if: steps.impact.outputs.runtime != 'false'
         run: pnpm verify:vue3-toolbar-browser
+
+      - name: Retain zoom toolbar browser evidence
+        if: always() && steps.impact.outputs.runtime != 'false'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: zoom-toolbar-${{ github.sha }}
+          path: output/zoom-toolbar-browser/**
+          retention-days: 7
 
       - name: Verify untrusted renderer markup sanitization
         if: steps.impact.outputs.runtime != 'false'

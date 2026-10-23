@@ -86,6 +86,15 @@ const viewer = createViewer(document.querySelector('#viewer')!, {
 await viewer.load({ url: '/files/report.pdf' })
 ```
 
+缩放按钮在达到边界时保持位置并禁用。使用现有的 `toolbar.items` 配置隐藏重置入口，`resetZoom()` API 仍然可用。设置 `pdf.zoomToolbar: false` 可仅隐藏 PDF 渲染器内部的缩放组，同时保留翻页和旋转控件：
+
+```ts
+const options = {
+  toolbar: { items: { 'zoom-reset': false } },
+  pdf: { zoomToolbar: false }
+}
+```
+
 HTML document builders live in the opt-in export entry so ordinary previews do
 not download the sanitizer. The viewer's `exportHtml()` and `print()` methods
 load this entry only when invoked. For v3, migrate direct builder imports from
