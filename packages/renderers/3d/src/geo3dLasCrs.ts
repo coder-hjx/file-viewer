@@ -54,6 +54,16 @@ export async function inspectLasCrsRangeSource(getter: Geo3dRangeGetter): Promis
   if (offset < 227 || end < offset || count > 4096) throw new Error('Invalid LAS VLR metadata bounds.')
   let crs: string | undefined
   let hasCrsMetadata = false
+  const inspectPayload = async (userId: string, id: number, begin: number, end: number) => {
+    if (userId !== 'LASF_Projection' || ![2112, 34735, 34736, 34737].includes(id) || end === begin) return
+    const payload = await exact(begin, end)
+    hasCrsMetadata ||= id === 34735 || id === 34736 || !!text(payload)
+    if (id === 34735) {
+      const candidate = parseLasGeoKeys(payload)
+      if (crs && candidate && crs !== candidate) throw new Error('Conflicting LAS GeoKey CRS directories.')
+      crs = candidate ?? crs
+    }
+  }
   for (let i = 0; i < count; i++) {
     if (offset + 54 > end) throw new Error('LAS VLR header exceeds the point-data offset.')
     const vlr = await exact(offset, offset + 54)
@@ -62,16 +72,25 @@ export async function inspectLasCrsRangeSource(getter: Geo3dRangeGetter): Promis
     const next = offset + 54 + length
     if (next > end) throw new Error('LAS VLR payload exceeds the point-data offset.')
     const id = fields.getUint16(18, true)
-    if (text(vlr.subarray(2, 18)) === 'LASF_Projection' && [2112, 34735, 34736, 34737].includes(id) && length) {
-      const payload = await exact(offset + 54, next)
-      hasCrsMetadata ||= id === 34735 || id === 34736 || !!text(payload)
-      if (id === 34735) {
-        const candidate = parseLasGeoKeys(payload)
-        if (crs && candidate && crs !== candidate) throw new Error('Conflicting LAS GeoKey CRS directories.')
-        crs = candidate ?? crs
-      }
-    }
+    await inspectPayload(text(vlr.subarray(2, 18)), id, offset + 54, next)
     offset = next
+  }
+  if (header[25] === 4) {
+    if (data.getUint16(94, true) < 375) throw new Error('Invalid LAS 1.4 header length.')
+    const extended = view(await exact(227, 375))
+    offset = Number(extended.getBigUint64(8, true))
+    const evlrCount = extended.getUint32(16, true)
+    if (evlrCount > 4096 || (evlrCount && (!Number.isSafeInteger(offset) || offset < end)))
+      throw new Error('Invalid LAS EVLR metadata bounds.')
+    for (let i = 0; i < evlrCount; i++) {
+      const evlr = await exact(offset, offset + 60)
+      const fields = view(evlr)
+      const length = Number(fields.getBigUint64(20, true))
+      const next = offset + 60 + length
+      if (!Number.isSafeInteger(length) || !Number.isSafeInteger(next)) throw new Error('Invalid LAS EVLR payload length.')
+      await inspectPayload(text(evlr.subarray(2, 18)), fields.getUint16(18, true), offset + 60, next)
+      offset = next
+    }
   }
   return { crs, hasCrsMetadata }
 }

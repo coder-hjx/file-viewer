@@ -44,7 +44,7 @@ test('reporter LAS twins expose matching declared-CRS decisions without reading 
     assert.ok(reads.every(([a, b]) => a >= 0 && b <= end))
   }
 })
-test('LAS 1.4 EVLR-only WKT remains available for the pinned engine fallback', async () => {
+test('LAS 1.4 sole/final EVLR metadata is detected without reading point data', async () => {
   const source = await readFile(new URL('../test/fixtures/github-406-crs-wkt.las', import.meta.url))
   for (const preceding of [false, true]) {
     const bytes = las14EvlrWkt(source, preceding)
@@ -57,8 +57,22 @@ test('LAS 1.4 EVLR-only WKT remains available for the pinned engine fallback', a
       offset += 60 + Number(bytes.readBigUInt64LE(offset + 20))
     }
     assert.equal(offset, bytes.length, 'Final WKT must end at EOF without trailing dummy bytes or records')
-    assert.deepEqual(await inspectLasCrsRangeSource(async (a, b) => bytes.subarray(a, b)), { crs: undefined, hasCrsMetadata: false })
+    const reads = []
+    assert.deepEqual(await inspectLasCrsRangeSource(async (a, b) => {
+      reads.push([a, b]); return bytes.subarray(a, b)
+    }), { crs: undefined, hasCrsMetadata: true })
+    const evlrOffset = Number(bytes.readBigUInt64LE(235))
+    assert.ok(reads.every(([a, b]) => b <= 375 || a >= evlrOffset))
   }
+})
+test('EVLR headers and CRS payloads retain strict range and allocation bounds', async () => {
+  const source = await readFile(new URL('../test/fixtures/github-406-crs-wkt.las', import.meta.url))
+  const bytes = las14EvlrWkt(source)
+  const evlr = Number(bytes.readBigUInt64LE(235))
+  bytes.writeBigUInt64LE(5n * 1024n * 1024n, evlr + 20)
+  await assert.rejects(() => inspectLasCrsRangeSource(async (a, b) => bytes.subarray(a, b)), /inspection budget/)
+  bytes.writeBigUInt64LE(2n ** 63n, 235)
+  await assert.rejects(() => inspectLasCrsRangeSource(async (a, b) => bytes.subarray(a, b)), /EVLR metadata bounds/)
 })
 test('truncated VLRs fail closed instead of treating the cloud as unreferenced', async () => {
   const bytes = await readFile(new URL('../test/fixtures/github-406-crs-geokeys-only.las', import.meta.url))

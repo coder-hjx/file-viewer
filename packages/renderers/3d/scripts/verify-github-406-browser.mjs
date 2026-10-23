@@ -18,6 +18,10 @@ for (const name of ['crs-geokeys-only', 'crs-wkt']) files[name] = await readFile
 const wktFile = files['crs-wkt']
 files['evlr-wkt'] = las14EvlrWkt(wktFile)
 files['evlr-wkt-final'] = las14EvlrWkt(wktFile, true)
+files['evlr-unresolved'] = Buffer.from(files['evlr-wkt'])
+const invalidWktStart = Number(files['evlr-unresolved'].readBigUInt64LE(235)) + 60
+files['evlr-unresolved'].fill(0, invalidWktStart)
+files['evlr-unresolved'].write('UNRESOLVED_CRS', invalidWktStart)
 const wktStart = wktFile.readUInt16LE(94) + 54
 const wkt = wktFile.subarray(wktStart, wktStart + wktFile.readUInt16LE(wktStart - 34)).toString('utf8').replace(/\0/g, '')
 const unresolved = Buffer.from(files['crs-geokeys-only'])
@@ -97,10 +101,10 @@ try {
   assert.equal(baseline['crs-wkt'].crs,'ETRS89 / Poland CS2000 zone 6')
   for(const name of ['evlr-wkt','evlr-wkt-final']) assert.deepEqual(baseline[name],{stage:'metadata',error:'Error'},'Unmodified pinned SDK rejects a complete WKT ending exactly at EOF')
   const results=[]
-  for(const worker of [false,true]) for(const name of ['crs-geokeys-only','crs-wkt','evlr-wkt','evlr-wkt-final','unresolved']) {
+  for(const worker of [false,true]) for(const name of ['crs-geokeys-only','crs-wkt','evlr-wkt','evlr-wkt-final','unresolved','evlr-unresolved']) {
     const result=await page.evaluate(({name,worker})=>window.check(name,worker),{name,worker})
     assert.equal(result.status,'rejected',JSON.stringify(result))
-    assert.match(result.error,name==='unresolved'?/authoritative EPSG GeoKey or WKT/:/instance CRS must match its dataset CRS/)
+    assert.match(result.error,name.includes('unresolved')?/authoritative EPSG GeoKey or WKT/:/instance CRS must match its dataset CRS/)
     assert.equal(result.hooks,0,'No application scene hook may see mislabelled points')
     results.push(result)
   }
