@@ -42,6 +42,7 @@ import {
 import { demoWelcomeCopy, dismissDemoWelcome, shouldShowDemoWelcome } from '@/composables/useDemoWelcome'
 import DemoViewerSettingsPanel from '@/components/demo/DemoViewerSettingsPanel.vue'
 import { useDemoCopy } from '@/composables/useDemoCopy'
+import { useDemoIntegrationSnippet } from '@/composables/useDemoIntegrationSnippet'
 import { resolveDemoFileCapsuleMergeBounds, useDemoFileCapsuleMotion } from '@/composables/useDemoFileCapsuleMotion'
 import { useDemoFileTypes } from '@/composables/useDemoFileTypes'
 import { useDemoFloatingPanels } from '@/composables/useDemoFloatingPanels'
@@ -195,7 +196,6 @@ const {
   samplesTrigger: sampleRailButtonRef,
   fileTrigger: fileIdentityButtonRef
 })
-const snippetCopied = ref(false)
 const snippetDialogOpen = ref(false)
 const snippetCloseRef = ref<HTMLButtonElement | null>(null)
 const snippetDialogRef = ref<HTMLElement | null>(null)
@@ -381,20 +381,8 @@ const {
 
 // The snippet reflects the currently active input path. Local files cannot be
 // represented as a URL, so that branch demonstrates the `file` prop instead.
-const integrationSnippet = computed(() => {
-  if (file.value) {
-    return `import FileViewer from '@file-viewer/react-full'
-
-export function Preview({ file }: { file: File }) {
-  return <FileViewer file={file} locale="${demoLocale.value}" style={{ height: 720 }} />
-}`
-  }
-  const sampleUrl = preview.value || url.value || DEFAULT_DEMO_URL_BY_LOCALE[demoLocale.value]
-  return `import FileViewer from '@file-viewer/react-full'
-
-export function Preview() {
-  return <FileViewer url="${sampleUrl}" locale="${demoLocale.value}" style={{ height: 720 }} />
-}`
+const { integrationSnippet, snippetCopied, copyIntegrationSnippet } = useDemoIntegrationSnippet({
+  file, preview, url, locale: demoLocale
 })
 
 const activeIconMeta = computed(() => {
@@ -650,9 +638,6 @@ async function applySettingsAndRestoreFocus() {
   }
 }
 
-let copyResetTimer: number | undefined
-const clipboardWriteTimeoutMs = 800
-
 // ── Integration snippet dialog and clipboard fallback ──────────────────────
 //
 // Clipboard access can stall or be denied in embedded/private contexts. The
@@ -672,60 +657,6 @@ function closeSnippetDialog() {
   }
   snippetDialogOpen.value = false
   void nextTick(focusActionsTrigger)
-}
-
-function copyIntegrationSnippetFallback() {
-  const textarea = document.createElement('textarea')
-  textarea.value = integrationSnippet.value
-  textarea.setAttribute('readonly', 'true')
-  textarea.style.position = 'fixed'
-  textarea.style.opacity = '0'
-  document.body.appendChild(textarea)
-  textarea.select()
-  const copied = document.execCommand('copy')
-  textarea.remove()
-  if (!copied) {
-    throw new Error('Clipboard copy was rejected')
-  }
-}
-
-async function writeIntegrationSnippetToClipboard() {
-  if (!navigator.clipboard?.writeText) {
-    copyIntegrationSnippetFallback()
-    return
-  }
-  let timeoutId: number | undefined
-  try {
-    await Promise.race([
-      navigator.clipboard.writeText(integrationSnippet.value),
-      new Promise<never>((_, reject) => {
-        timeoutId = window.setTimeout(() => reject(new Error('Clipboard write timed out')), clipboardWriteTimeoutMs)
-      })
-    ])
-  } catch {
-    copyIntegrationSnippetFallback()
-  } finally {
-    if (timeoutId) {
-      window.clearTimeout(timeoutId)
-    }
-  }
-}
-
-async function copyIntegrationSnippet() {
-  snippetCopied.value = true
-  if (copyResetTimer) {
-    window.clearTimeout(copyResetTimer)
-  }
-  copyResetTimer = window.setTimeout(() => {
-    snippetCopied.value = false
-    copyResetTimer = undefined
-  }, 1600)
-
-  try {
-    await writeIntegrationSnippetToClipboard()
-  } catch {
-    snippetCopied.value = false
-  }
 }
 
 async function toggleDesktopActions() {
@@ -944,9 +875,6 @@ onBeforeUnmount(() => {
   desktopFileCapsuleMotionQuery?.removeEventListener?.('change', handleFileCapsuleMotionPreferenceChange)
   reducedFileCapsuleMotionQuery?.removeEventListener?.('change', handleFileCapsuleMotionPreferenceChange)
   stopDemoFileHandoff()
-  if (copyResetTimer) {
-    window.clearTimeout(copyResetTimer)
-  }
   recentLocalFiles.clear()
 })
 

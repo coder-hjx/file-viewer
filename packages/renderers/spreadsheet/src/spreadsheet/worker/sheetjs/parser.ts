@@ -272,28 +272,27 @@ const RANGE_GROWTH_FACTOR = 4;
 /** Drop sparse far outliers once the gap dwarfs the dense cluster near A1. */
 const CONTENT_GAP_ROW_MULTIPLIER = 4;
 const CONTENT_GAP_COL_MULTIPLIER = 4;
-/** Hard caps keep virtual-grid setup responsive even if content is huge. */
-const DISPLAY_ROW_HARD_CAP = 100_000;
-const DISPLAY_COL_HARD_CAP = 1_024;
 
 /**
  * Keep the dense cell cluster that starts nearest A1.
  * Nearby style-only stubs still count (needed for formatted empty tables, see #175),
  * but a huge gap before far ghost cells near Excel max is treated as an outlier (#405).
  */
-const compactSparseExtent = (indices: number[], slack: number, gapMultiplier: number): number => {
+const compactSparseExtent = (indices: number[], slack: number, gapMultiplier: number, contentExtent: number): number => {
   if (indices.length === 0) return 0;
   const sorted = [...new Set(indices)].sort((a, b) => a - b);
   const originThreshold = Math.max(slack * gapMultiplier, RANGE_GROWTH_FACTOR);
   // A workbook whose only sheet entries sit absurdly far from A1 has no usable near cluster.
-  if (sorted[0]! > originThreshold) return 0;
+  if (!contentExtent && sorted[0]! > originThreshold) return 0;
 
-  let end = sorted[0]!;
+  // All meaningful cells are mandatory, even across gaps or far from A1.
+  // Only blank formatting beyond the last content cell may be compacted.
+  let end = Math.max(sorted[0]!, contentExtent - 1);
   for (let i = 1; i < sorted.length; i += 1) {
     const current = sorted[i]!;
-    const previous = sorted[i - 1]!;
+    if (current <= end) continue;
     const currentExtent = end + 1;
-    const gap = current - previous;
+    const gap = current - end;
     const threshold = Math.max(slack * gapMultiplier, currentExtent * RANGE_GROWTH_FACTOR);
     if (gap > threshold) break;
     end = current;
@@ -307,6 +306,22 @@ const getCellBounds = (worksheet: WorksheetRangeLike | undefined) => {
 
   const rowIndices: number[] = [];
   const colIndices: number[] = [];
+  let contentRows = 0;
+  let contentCols = 0;
+  const observe = (row: number, col: number, value: unknown) => {
+    rowIndices.push(row);
+    colIndices.push(col);
+    const cell = value as Record<string, unknown>;
+    // Do not test truthiness: zero, false and an explicitly stored empty string
+    // are content too. Uncached formulas have no v but must remain reachable.
+    const meaningful = typeof value !== 'object' || cell.v != null || cell.f != null
+      || cell.F != null || !!cell.w || !!cell.r || !!cell.h || !!cell.l
+      || (Array.isArray(cell.c) && cell.c.length > 0);
+    if (meaningful) {
+      contentRows = Math.max(contentRows, row + 1);
+      contentCols = Math.max(contentCols, col + 1);
+    }
+  };
 
   const denseRows = Array.isArray(worksheet)
     ? worksheet as Array<Array<unknown> | undefined>
@@ -319,8 +334,7 @@ const getCellBounds = (worksheet: WorksheetRangeLike | undefined) => {
       for (const colKey of Object.keys(row)) {
         const colIndex = Number(colKey);
         if (!Number.isInteger(colIndex) || colIndex < 0 || row[colIndex] == null) continue;
-        rowIndices.push(rowIndex);
-        colIndices.push(colIndex);
+        observe(rowIndex, colIndex, row[colIndex]);
       }
     }
   } else {
@@ -328,16 +342,15 @@ const getCellBounds = (worksheet: WorksheetRangeLike | undefined) => {
       if (key.startsWith('!') || !/^[A-Z]+[1-9][0-9]*$/i.test(key) || worksheet[key] == null) continue;
       try {
         const cell = utils.decode_cell(key);
-        rowIndices.push(cell.r);
-        colIndices.push(cell.c);
+        observe(cell.r, cell.c, worksheet[key]);
       } catch {
         // Ignore non-cell extension keys exposed by third-party workbook producers.
       }
     }
   }
 
-  bounds.rowCount = compactSparseExtent(rowIndices, RANGE_ROW_SLACK, CONTENT_GAP_ROW_MULTIPLIER);
-  bounds.colCount = compactSparseExtent(colIndices, RANGE_COLUMN_SLACK, CONTENT_GAP_COL_MULTIPLIER);
+  bounds.rowCount = compactSparseExtent(rowIndices, RANGE_ROW_SLACK, CONTENT_GAP_ROW_MULTIPLIER, contentRows);
+  bounds.colCount = compactSparseExtent(colIndices, RANGE_COLUMN_SLACK, CONTENT_GAP_COL_MULTIPLIER, contentCols);
   return bounds;
 };
 
@@ -412,8 +425,8 @@ export const getWorksheetDisplayBounds = (
     RANGE_COLUMN_SLACK,
     EMPTY_RANGE_COLUMN_LIMIT
   );
-  const rowCount = Math.min(reconciledRowCount, DISPLAY_ROW_HARD_CAP);
-  const colCount = Math.min(reconciledColCount, DISPLAY_COL_HARD_CAP);
+  const rowCount = reconciledRowCount;
+  const colCount = reconciledColCount;
   const trimmed = (
     rowCount < declaredRowCount
     || colCount < declaredColCount

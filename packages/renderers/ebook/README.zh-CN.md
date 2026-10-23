@@ -38,6 +38,10 @@ const options = {
 - 不绑定任何在线服务或公共 CDN，适合内网知识库、培训资料和长文档附件预览。
 - 随包的 `dist/vendor/epubjs.NOTICE.txt` 记录引擎及所有内联依赖的版本、来源和许可证文本。
 
+## 深色阅读
+
+EPUB 正文与目录跟随 `options.theme`，支持 `system` 与实时切换。深色阅读覆盖文字和纯色背景，不反相图片，也不重新加载章节。设置 `epub.darkMode: false` 保留书籍原始配色，设为 `true` 可强制深色阅读。UMD、FB2 的渲染不受影响。
+
 ## 迁移说明
 
 `@file-viewer/core` 已不再内置 EPUB / UMD renderer，也不再直接安装 `epubjs` 或 `pako`。需要电子书预览时，请显式安装本包，或直接使用 `@file-viewer/preset-all` 聚合能力；`epubjs` 已作为本包的离线懒加载产物随包发布，不会进入应用的外部生产依赖树。

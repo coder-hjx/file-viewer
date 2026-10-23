@@ -25,6 +25,10 @@ const options = {
 }
 ```
 
+## 深色阅读
+
+PDF 正文跟随 `options.theme`（`light`、`dark`、`system`），支持实时切换。深色阅读只在预览画布上应用颜色滤镜，图片颜色也会随之变化；需要保持原始配色时设置 `pdf.darkMode: false`，设为 `true` 则可独立强制深色阅读。原文件下载、打印和导出的画布像素仍保持原始颜色。
+
 ## 离线资源
 
 PDF 预览依赖 PDF.js worker、cMaps、WASM、standard fonts，以及未嵌入中文字体的离线回退资源。资源路径沿用 `@file-viewer/core` 的统一 options：

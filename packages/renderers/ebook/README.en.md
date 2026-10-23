@@ -38,6 +38,10 @@ const options = {
 - Does not depend on any online service or public CDN, making it suitable for intranet knowledge bases, training materials, and long-form attachment preview.
 - `dist/vendor/epubjs.NOTICE.txt` records the versions, sources, and license texts for the engine and every inlined dependency.
 
+## Reading theme
+
+EPUB chapters and navigation follow `options.theme`, including `system` and live changes. Dark reading overrides text and solid backgrounds without inverting images or reloading the chapter. Set `epub.darkMode: false` to retain the book's authored colors, or `true` to force dark reading. UMD and FB2 rendering are unchanged.
+
 ## Migration Note
 
 The core package no longer bundles the EPUB / UMD renderer and no longer installs `epubjs` or `pako` directly. Install this renderer explicitly, or use `@file-viewer/preset-all`, when ebook preview is required. The EPUB engine ships as an offline, lazy-loaded artifact inside this package and does not enter the application's external production dependency tree.
