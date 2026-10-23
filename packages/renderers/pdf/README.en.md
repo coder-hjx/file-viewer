@@ -30,6 +30,12 @@ const options = {
 }
 ```
 
+## Reading theme
+
+Live updates without reloading apply to the renderer's observed theme attributes, system color scheme and the Vanilla core theme update path. Framework component and toolbar/controller option updates may reinitialize the preview.
+
+PDF pages follow `options.theme` (`light`, `dark`, or `system`), including live theme changes. Dark reading uses a preview-only canvas color filter; it also changes image colors. Set `pdf.darkMode: false` to keep the document's original colors, or `true` to force dark reading independently of the toolbar. Original downloads, printed pages, and exported canvas bytes retain their source colors.
+
 ## Offline Assets
 
 PDF preview depends on the PDF.js worker, cMaps, WASM helpers, standard fonts, and an offline fallback for unembedded CJK fonts. Asset paths use the same unified options as `@file-viewer/core`:

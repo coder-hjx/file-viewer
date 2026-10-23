@@ -49,6 +49,9 @@ import {
 import { FORMAT_CATALOG_SUMMARY } from './formatCatalog.generated'
 import FormatExperience from './components/FormatExperience.vue'
 import ProductResources from './components/ProductResources.vue'
+import serviceQrImage from './assets/contact/wecom.webp'
+import updatesQrImage from './assets/contact/updates.webp'
+import communityQrImage from './assets/contact/community.webp'
 
 type Locale = 'zh' | 'en'
 type SiteTheme = 'light' | 'dark'
@@ -932,26 +935,54 @@ const donationQrItems: QrItem[] = [
 const chineseContactItems: ChineseContactItem[] = [
   {
     id: 'service',
-    label: '客服微信',
+    label: '客服企业微信',
     note: '商务咨询、商业授权与优先技术支持',
-    image: '/contact.jpg',
+    image: serviceQrImage,
     icon: MessageCircle
   },
   {
     id: 'updates',
     label: '微信公众号',
     note: '获取版本更新与文件预览实践文章',
-    image: '/wechat-mp.png',
+    image: updatesQrImage,
     icon: Newspaper
   },
   {
     id: 'community',
     label: '用户交流群',
     note: '与开发者和 File Viewer 用户交流',
-    image: '/invite.webp',
+    image: communityQrImage,
     icon: Users
   }
 ]
+
+const contactQrStates = ref<Record<ChineseContactId, 'loading' | 'ready' | 'error'>>({
+  service: 'loading',
+  updates: 'loading',
+  community: 'loading'
+})
+const contactQrPreloads = new Map<ChineseContactId, HTMLImageElement>()
+
+function preloadContactQrs() {
+  if (!isZh.value) return
+  for (const item of chineseContactItems) {
+    if (contactQrPreloads.has(item.id)) continue
+    const image = new Image()
+    image.decoding = 'async'
+    image.onload = () => {
+      void image.decode().catch(() => undefined)
+    }
+    image.onerror = () => contactQrPreloads.delete(item.id)
+    contactQrPreloads.set(item.id, image)
+    image.src = item.image
+  }
+}
+
+function retryContactQr(item: ChineseContactItem) {
+  contactQrStates.value[item.id] = 'loading'
+  contactQrPreloads.delete(item.id)
+  preloadContactQrs()
+}
 
 const activeChineseContact = computed(
   () =>
@@ -1523,6 +1554,7 @@ let supportDialogReturnFocusElement: HTMLButtonElement | null = null
 function openSupportDialog(view: SupportDialogView) {
   if (supportDialogOpen.value) return
 
+  if (view === 'contact') preloadContactQrs()
   navExplorerOpen.value = false
   supportDialogView.value = view
   activeChineseContactId.value = 'service'
@@ -1696,6 +1728,7 @@ onMounted(async () => {
     syncBrowserPathForLocale(locale.value)
   }
   updateDocumentMetadata(locale.value)
+  preloadContactQrs()
   void loadGithubStarCount()
   await nextTick()
   topbarResizeObserver = new ResizeObserver(requestPageNavStateUpdate)
@@ -2479,6 +2512,8 @@ onBeforeUnmount(() => {
           aria-haspopup="dialog"
           :aria-expanded="supportDialogOpen && supportDialogView === 'contact'"
           aria-controls="support-dialog"
+          @pointerenter="preloadContactQrs"
+          @focus="preloadContactQrs"
           @click="openSupportDialog('contact')"
         >
           <MessageCircle :size="20" aria-hidden="true" />
@@ -2591,7 +2626,7 @@ onBeforeUnmount(() => {
               {{
                 supportDialogView === 'contact'
                   ? isZh
-                    ? '客服微信用于商务与优先支持；公众号和交流群用于获取更新与社区交流。'
+                    ? '企业微信用于商务与优先支持；公众号和交流群用于获取更新与社区交流。'
                     : 'Reach the File Viewer team through WhatsApp or Telegram.'
                   : isZh
                     ? '扫描微信或支付宝二维码，也可以使用 GitHub Sponsors 或小铺直链。'
@@ -2675,14 +2710,34 @@ onBeforeUnmount(() => {
 
             <article class="support-contact-preview" aria-live="polite">
               <div
+                v-for="item in chineseContactItems"
+                v-show="activeChineseContactId === item.id"
+                :key="item.id"
                 class="support-contact-preview-image"
-                :class="{ 'is-portrait': activeChineseContact.id === 'service' }"
+                :aria-busy="contactQrStates[item.id] === 'loading'"
               >
                 <img
-                  :src="activeChineseContact.image"
-                  :alt="`${activeChineseContact.label}二维码`"
+                  v-if="contactQrStates[item.id] !== 'error'"
+                  v-show="contactQrStates[item.id] === 'ready'"
+                  :src="item.image"
+                  :alt="`${item.label}二维码`"
+                  width="624"
+                  height="624"
                   decoding="async"
+                  @load="contactQrStates[item.id] = 'ready'"
+                  @error="contactQrStates[item.id] = 'error'"
                 />
+                <span
+                  v-if="contactQrStates[item.id] === 'loading'"
+                  class="support-contact-loading"
+                  role="status"
+                >
+                  正在加载{{ item.label }}二维码…
+                </span>
+                <div v-else-if="contactQrStates[item.id] === 'error'" class="support-contact-error">
+                  <span>二维码加载失败</span>
+                  <button type="button" @click="retryContactQr(item)">重新加载</button>
+                </div>
               </div>
               <strong>{{ activeChineseContact.label }}</strong>
               <span>{{ activeChineseContact.note }}</span>

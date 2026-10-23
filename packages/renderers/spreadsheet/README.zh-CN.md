@@ -40,13 +40,13 @@ const options = {
 
 ## 小内容 Excel 填满视口
 
-`options.spreadsheet.fillViewport` 默认 `false`。仅 Excel 格式（XLSX / XLSM / XLSB / XLS 及其模板）有效；开启后以工作表默认行高、列宽补充空白列标题（A / B / …）、行号和网格，让小表或空 Sheet 填满当前预览区域。容器 resize、缩放和切 Sheet 时会重新计算，补充部分沿用虚拟画布，不生成整张 Excel 空表，也不拉伸已有单元格。
+`options.spreadsheet.fillViewport` 默认 `true`，适用于 Excel、CSV / TSV 等表格格式。按工作表默认行高、列宽补充空白列标题（A / B / …）、行号和网格，让小表或空 Sheet 填满当前预览区域。容器 resize、缩放和切 Sheet 时重新计算，补充部分沿用虚拟画布，不生成整张 Excel 空表，不拉伸已有单元格，也不改变工作簿数据。设为 `false` 可只显示已用区域。
 
 ```ts
 const options = {
   rendererMode: 'replace',
   renderers: spreadsheetRenderer,
-  spreadsheet: { fillViewport: true },
+  spreadsheet: { fillViewport: false }, // 可选：只显示已用区域。
 }
 ```
 
