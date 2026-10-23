@@ -17,6 +17,7 @@ const files = {}
 for (const name of ['crs-geokeys-only', 'crs-wkt']) files[name] = await readFile(rendererFile(`test/fixtures/github-406-${name}.las`))
 const wktFile = files['crs-wkt']
 files['evlr-wkt'] = las14EvlrWkt(wktFile)
+files['evlr-wkt-final'] = las14EvlrWkt(wktFile, true)
 const wktStart = wktFile.readUInt16LE(94) + 54
 const wkt = wktFile.subarray(wktStart, wktStart + wktFile.readUInt16LE(wktStart - 34)).toString('utf8').replace(/\0/g, '')
 const unresolved = Buffer.from(files['crs-geokeys-only'])
@@ -35,12 +36,12 @@ setLazPerfPath('/vendor/geo3d/laz-perf/');
 const wkt = ${JSON.stringify(wkt)};
 window.results=[];window.hooks=0;
 const data = async name => (await fetch('/'+name+'.las')).arrayBuffer();
-window.baseline = async name => { const buffer=await data(name);const source=new LASSource({url:()=>Promise.resolve(buffer),enableWorkers:false});try{await source.initialize();const metadata=await source.getMetadata();return {crs:metadata.crs?.id,points:metadata.pointCount}}finally{source.dispose()} };
+window.baseline = async name => { const buffer=await data(name);const source=new LASSource({url:()=>Promise.resolve(buffer),enableWorkers:false});let stage='initialize';try{await source.initialize();stage='metadata';const metadata=await source.getMetadata();return {crs:metadata.crs?.id,points:metadata.pointCount}}catch(error){return {stage,error:String(error)}}finally{source.dispose()} };
 window.check = async (name,worker,matching=false,remote=false) => {
  const buffer=remote?new ArrayBuffer(0):await data(name);let app;let observed;
  try {
   app=await renderFileViewerGeo3d(buffer,document.getElementById('viewer'),'las',{filename:name+'.las',url:remote?'/'+name+'.las':undefined},
-   {assetBaseUrl:'/vendor/geo3d/',crsDefinitions:{'EPSG:2177':wkt},giro3d:{instance:{crs:matching?(name==='evlr-wkt'?{id:'ETRS89 / Poland CS2000 zone 6',definition:wkt}:'EPSG:2177'):'EPSG:3857'},view:{controls:false},sources:{las:{enableWorkers:worker}}},
+   {assetBaseUrl:'/vendor/geo3d/',crsDefinitions:{'EPSG:2177':wkt},giro3d:{instance:{crs:matching?(name.startsWith('evlr-wkt')?{id:'ETRS89 / Poland CS2000 zone 6',definition:wkt}:'EPSG:2177'):'EPSG:3857'},view:{controls:false},sources:{las:{enableWorkers:worker}}},
     configureInstance(context){hooks++;observed=context.metadata?.crs?.id}});
   return {name,worker,matching,status:'rendered',crs:observed,canvases:document.querySelectorAll('canvas').length};
  }catch(error){return {name,worker,matching,status:'rejected',error:String(error),hooks}}
@@ -89,14 +90,14 @@ try {
   await page.goto(origin)
   await page.waitForFunction(()=>window.ready)
   const baseline={}
-  for(const name of ['crs-geokeys-only','crs-wkt','evlr-wkt']) baseline[name]=await page.evaluate(name=>window.baseline(name),name)
+  for(const name of ['crs-geokeys-only','crs-wkt','evlr-wkt','evlr-wkt-final']) baseline[name]=await page.evaluate(name=>window.baseline(name),name)
   assert.equal(baseline['crs-geokeys-only'].crs,undefined,'Pinned engine ignores GeoKey CRS before the viewer correction')
   // The reporter's WKT has no AUTHORITY node. The pinned engine identifies it
   // by its WKT name, which still correctly differs from the EPSG:3857 scene.
   assert.equal(baseline['crs-wkt'].crs,'ETRS89 / Poland CS2000 zone 6')
-  assert.deepEqual(baseline['evlr-wkt'],baseline['crs-wkt'],'Pinned copc VLR walker must retain EVLR-only WKT')
+  for(const name of ['evlr-wkt','evlr-wkt-final']) assert.deepEqual(baseline[name],{stage:'metadata',error:'Error'},'Unmodified pinned SDK rejects a complete WKT ending exactly at EOF')
   const results=[]
-  for(const worker of [false,true]) for(const name of ['crs-geokeys-only','crs-wkt','evlr-wkt','unresolved']) {
+  for(const worker of [false,true]) for(const name of ['crs-geokeys-only','crs-wkt','evlr-wkt','evlr-wkt-final','unresolved']) {
     const result=await page.evaluate(({name,worker})=>window.check(name,worker),{name,worker})
     assert.equal(result.status,'rejected',JSON.stringify(result))
     assert.match(result.error,name==='unresolved'?/authoritative EPSG GeoKey or WKT/:/instance CRS must match its dataset CRS/)
@@ -117,9 +118,9 @@ try {
   assert.match(aborted.status,/AbortError/);assert.equal(aborted.canvases,0)
   while (!slowDownload.closed) { assert.ok(Date.now()<deadline,'Cancelled raw LAS download remained open');await new Promise(resolve=>setTimeout(resolve,10)) }
   results.push({name:'raw-LAS-abort-during-metadata',...aborted,requestClosed:true})
-  for(const name of ['crs-geokeys-only','evlr-wkt']) {
+  for(const name of ['crs-geokeys-only','evlr-wkt','evlr-wkt-final']) {
     const result=await page.evaluate(name=>window.check(name,false,true),name)
-    assert.equal(result.status,'rendered',JSON.stringify(result));assert.equal(result.crs,name==='evlr-wkt'?'ETRS89 / Poland CS2000 zone 6':'EPSG:2177');assert.ok(result.canvases>0)
+    assert.equal(result.status,'rendered',JSON.stringify(result));assert.equal(result.crs,name.startsWith('evlr-wkt')?'ETRS89 / Poland CS2000 zone 6':'EPSG:2177');assert.ok(result.canvases>0)
     results.push(result)
   }
   assert.deepEqual(errors,[]);assert.deepEqual(external,[])

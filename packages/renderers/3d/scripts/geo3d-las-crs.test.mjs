@@ -45,10 +45,20 @@ test('reporter LAS twins expose matching declared-CRS decisions without reading 
   }
 })
 test('LAS 1.4 EVLR-only WKT remains available for the pinned engine fallback', async () => {
-  const bytes = las14EvlrWkt(await readFile(new URL('../test/fixtures/github-406-crs-wkt.las', import.meta.url)))
-  assert.equal(bytes.readUInt32LE(100), 0)
-  assert.equal(bytes.readUInt32LE(243), 2)
-  assert.deepEqual(await inspectLasCrsRangeSource(async (a, b) => bytes.subarray(a, b)), { crs: undefined, hasCrsMetadata: false })
+  const source = await readFile(new URL('../test/fixtures/github-406-crs-wkt.las', import.meta.url))
+  for (const preceding of [false, true]) {
+    const bytes = las14EvlrWkt(source, preceding)
+    assert.equal(bytes.readUInt32LE(100), 0)
+    const count = bytes.readUInt32LE(243)
+    assert.equal(count, preceding ? 2 : 1)
+    let offset = Number(bytes.readBigUInt64LE(235))
+    for (let i = 0; i < count; i++) {
+      if (i === count - 1) assert.equal(bytes.readUInt16LE(offset + 18), 2112)
+      offset += 60 + Number(bytes.readBigUInt64LE(offset + 20))
+    }
+    assert.equal(offset, bytes.length, 'Final WKT must end at EOF without trailing dummy bytes or records')
+    assert.deepEqual(await inspectLasCrsRangeSource(async (a, b) => bytes.subarray(a, b)), { crs: undefined, hasCrsMetadata: false })
+  }
 })
 test('truncated VLRs fail closed instead of treating the cloud as unreferenced', async () => {
   const bytes = await readFile(new URL('../test/fixtures/github-406-crs-geokeys-only.las', import.meta.url))

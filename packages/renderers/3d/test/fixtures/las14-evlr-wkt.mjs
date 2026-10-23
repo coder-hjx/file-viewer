@@ -1,5 +1,5 @@
 /** Derive a synthetic LAS 1.4 file with WKT only in an EVLR, never a VLR. */
-export function las14EvlrWkt(source) {
+export function las14EvlrWkt(source, precedingRecord = false) {
   const headerSize = source.readUInt16LE(94)
   const length = source.readUInt16LE(headerSize + 20)
   const wkt = source.subarray(headerSize + 54, headerSize + 54 + length)
@@ -14,7 +14,7 @@ export function las14EvlrWkt(source) {
   header.writeUInt32LE(header.length, 96)
   header.writeUInt32LE(0, 100)
   header.writeBigUInt64LE(BigInt(header.length + points.length), 235)
-  header.writeUInt32LE(2, 243)
+  header.writeUInt32LE(precedingRecord ? 2 : 1, 243)
   header.writeBigUInt64LE(BigInt(pointCount), 247)
   for (let i = 0; i < 5; i++) header.writeBigUInt64LE(BigInt(source.readUInt32LE(111 + i * 4)), 255 + i * 8)
   const record = (user, id, payload) => {
@@ -24,7 +24,7 @@ export function las14EvlrWkt(source) {
     bytes.writeBigUInt64LE(BigInt(payload.length), 20)
     return Buffer.concat([bytes, payload])
   }
-  // A second application EVLR keeps WKT away from the pinned SDK's unrelated
-  // end-equals-file-length reader boundary, while both records remain complete.
-  return Buffer.concat([header, points, record('LASF_Projection', 2112, wkt), record('file-viewer', 65000, Buffer.from([0]))])
+  // WKT always ends at EOF: test it as the sole record and after another EVLR.
+  const prefix = precedingRecord ? [record('file-viewer', 65000, Buffer.from([0]))] : []
+  return Buffer.concat([header, points, ...prefix, record('LASF_Projection', 2112, wkt)])
 }
