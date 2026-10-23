@@ -79,6 +79,12 @@ test('missing members, ranges and prerelease versions are rejected', () => {
   delete changed.devDependencies['@angular/compiler-cli']
   assert.throws(() => angularCohort(changed), /Missing Angular/)
 })
+test('thumbnail declares and physically installs the reviewed happy-dom security runtime', () => {
+  const manifest = JSON.parse(read('packages/thumbnail/package.json'))
+  assert.equal(manifest.devDependencies['happy-dom'], '^21.0.4')
+  const require = createRequire(new URL('../../packages/thumbnail/package.json', import.meta.url))
+  assert.equal(require('happy-dom/package.json').version, '21.0.4')
+})
 test('root and thumbnail declarations agree with the reviewed workspace Vitest cohort', () => {
   const root = JSON.parse(read('package.json'))
   const thumbnail = JSON.parse(read('packages/thumbnail/package.json'))

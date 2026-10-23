@@ -67,6 +67,7 @@ None of the Apache-2.0 dependencies in this closure publishes a top-level `NOTIC
 ### CC-BY-4.0
 
 - `caniuse-lite@1.0.30001815` — https://github.com/browserslist/caniuse-lite
+- `caniuse-lite@1.0.30001816` — https://github.com/browserslist/caniuse-lite
 
 ### ISC
 

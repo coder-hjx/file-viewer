@@ -947,6 +947,11 @@
             "notice": "Reviewed runtime/SDK source caniuse-lite@1.0.30001815; repository https://github.com/browserslist/caniuse-lite; complete license and notice filenames are recorded in THIRD_PARTY_LICENSES.json."
           },
           {
+            "packageName": "caniuse-lite",
+            "spdx": "CC-BY-4.0",
+            "notice": "Reviewed runtime/SDK source caniuse-lite@1.0.30001816; repository https://github.com/browserslist/caniuse-lite; complete license and notice filenames are recorded in THIRD_PARTY_LICENSES.json."
+          },
+          {
             "packageName": "comlink",
             "spdx": "Apache-2.0",
             "notice": "Reviewed runtime/SDK source comlink@4.4.2; repository https://github.com/GoogleChromeLabs/comlink; complete license and notice filenames are recorded in THIRD_PARTY_LICENSES.json."
