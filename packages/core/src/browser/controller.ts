@@ -66,6 +66,8 @@ import {
   type RendererSession,
 } from '../index';
 
+import { resolveFileViewerToolbarZoomButtons } from '../lifecycle/operations';
+
 export type FileRef = FileViewerFileRef;
 
 export type ViewerWatermarkOptions = FileViewerWatermarkOptions;
@@ -817,11 +819,18 @@ export const mountViewer = (
     const toolbar = normalizeFileViewerToolbar(options);
     const availability = getToolbarAvailability();
     const showSearchToolbar = isSearchToolbarVisible(toolbar, options);
+    const zoomState = getToolbarZoomState();
+    const zoomButtons = resolveFileViewerToolbarZoomButtons({
+      toolbar,
+      zoomState,
+      renderedReady: state.ready,
+      hasError: !!state.error,
+    });
     const visibleToolbar = resolveVisibleFileViewerToolbar(toolbar, availability, showSearchToolbar);
+    visibleToolbar.zoom = zoomButtons.zoomIn || zoomButtons.zoomOut || zoomButtons.zoomReset;
     const showToolbar = hasVisibleFileViewerToolbarActions(visibleToolbar);
     const toolbarPosition = resolveFileViewerToolbarPosition(options, getCurrentExtension());
     const toolbarDisabled = state.loading || !!state.error;
-    const zoomState = getToolbarZoomState();
     const t = createFileViewerTranslator(options);
     toolbarEl.hidden = !showToolbar;
     toolbarEl.dataset.toolbarPosition = toolbarPosition;
@@ -910,7 +919,7 @@ export const mountViewer = (
       addPart(group, 'toolbar-group');
       group.setAttribute('aria-label', t('toolbar.zoomGroup'));
 
-      if (availability.zoomOut) {
+      if (zoomButtons.zoomOut) {
         const button = createButton(documentRef, '-', 'file-viewer-web-icon-button', () => controller?.zoomOut());
         button.title = t('toolbar.zoomOut');
         button.setAttribute('aria-label', t('toolbar.zoomOut'));
@@ -923,7 +932,7 @@ export const mountViewer = (
         group.appendChild(button);
       }
 
-      if (availability.zoomReset) {
+      if (zoomButtons.zoomReset) {
         const meter = createButton(documentRef, zoomState.label, 'file-viewer-web-zoom-meter', () => controller?.resetZoom());
         meter.title = t('toolbar.zoomReset');
         meter.disabled = isFileViewerZoomButtonDisabled({
@@ -941,7 +950,7 @@ export const mountViewer = (
         ));
       }
 
-      if (availability.zoomReset) {
+      if (zoomButtons.zoomReset) {
         // Placed before the zoom-in button (not after) so that toggling this
         // button's visibility never shifts the zoom-in button's position: the
         // toolbar group is right-aligned, and both icon buttons share the same
@@ -960,7 +969,7 @@ export const mountViewer = (
         group.appendChild(button);
       }
 
-      if (availability.zoomIn) {
+      if (zoomButtons.zoomIn) {
         const button = createButton(documentRef, '+', 'file-viewer-web-icon-button', () => controller?.zoomIn());
         button.title = t('toolbar.zoomIn');
         button.setAttribute('aria-label', t('toolbar.zoomIn'));

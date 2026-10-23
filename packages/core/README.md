@@ -86,6 +86,15 @@ const viewer = createViewer(document.querySelector('#viewer')!, {
 await viewer.load({ url: '/files/report.pdf' })
 ```
 
+Zoom buttons keep their positions and become disabled at their limits. Configure the existing `toolbar.items` map to hide reset controls while retaining the `resetZoom()` API. Set `pdf.zoomToolbar` to `false` to hide the PDF renderer's zoom group while keeping its page navigation and rotation controls:
+
+```ts
+const options = {
+  toolbar: { items: { 'zoom-reset': false } },
+  pdf: { zoomToolbar: false }
+}
+```
+
 HTML document builders live in the opt-in export entry so ordinary previews do
 not download the sanitizer. The viewer's `exportHtml()` and `print()` methods
 load this entry only when invoked. For v3, migrate direct builder imports from

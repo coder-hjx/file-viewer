@@ -202,6 +202,7 @@ export {
   resolveFileViewerLifecycleFallbackSource,
   resolveFileViewerLifecycleHookErrorMessage,
   resolveFileViewerOperationAvailability,
+  resolveFileViewerToolbarZoomButtons,
   resolveFileViewerToolbarPosition,
   resolveFileViewerToolbarOrder,
   resolveFileViewerToolbarState,

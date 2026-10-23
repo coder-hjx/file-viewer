@@ -376,9 +376,17 @@ jobs:
         if: steps.impact.outputs.runtime != 'false'
         run: pnpm verify:chm-renderer
 
-      - name: Verify Vue 3 toolbar in Chromium
+      - name: Verify Vue 3 and Web toolbar in Chromium and WebKit
         if: steps.impact.outputs.runtime != 'false'
         run: pnpm verify:vue3-toolbar-browser
+
+      - name: Retain zoom toolbar browser evidence
+        if: always() && steps.impact.outputs.runtime != 'false'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: zoom-toolbar-${{ github.sha }}
+          path: output/zoom-toolbar-browser/**
+          retention-days: 7
 
       - name: Verify untrusted renderer markup sanitization
         if: steps.impact.outputs.runtime != 'false'
