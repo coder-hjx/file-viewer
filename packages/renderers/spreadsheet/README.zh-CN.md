@@ -63,3 +63,9 @@ const options = {
 ## 迁移说明
 
 表格预览已经从 `@file-viewer/core` 中彻底移出，core 只保留资产 manifest、类型和兼容错误提示，不再默认安装 `styled-exceljs`、`e-virt-table` 或 `tinycolor2`。完整表格能力请安装本包并传入 `renderers`，或直接使用 `@file-viewer/preset-all`。
+
+## 未保存计算结果的公式
+
+优先保留文件已保存的公式结果，包括真实的零值。导出器未保存计算结果时，预览可在离线、受限的运算预算内补算本表/跨表引用、区域、算术/比较，以及 `IF`、`ROUND`、`ROW`、`SUM`，并保留单元格数字格式；主线程和 Worker 使用同一逻辑。
+
+这不是完整的 Excel 计算引擎。循环引用、外部引用、不支持或超出预算的公式，会直接显示原始 `=公式` 文本，不再伪装成零。不会执行 JavaScript 或请求远程公式资源。

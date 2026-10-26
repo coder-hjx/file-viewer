@@ -1323,3 +1323,4 @@ export type {
 export { resolveFileViewerCopiedAssetUrl } from './platform/copiedAssets';
 
 export type { FileViewerSpreadsheetRange, FileViewerSpreadsheetNavigationStatus } from './contracts/types';
+export { installFileViewerImageHandTool } from './features/document/imageHandTool';

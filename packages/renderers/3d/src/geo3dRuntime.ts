@@ -32,7 +32,7 @@ import {
   type Geo3d3tzPreparedDataset
 } from './geo3dArchive.js'
 import { byteLimit, checkAbort, createRangeGetter, readBoundedResponse } from './geo3dRange.js'
-import { resolveGeo3dCrs, type Geo3dCrsInput } from './geo3dCrs.js'
+import { resolveGeo3dCrs, resolveLasSourceCrs, type Geo3dCrsInput } from './geo3dCrs.js'
 import { inspectLasCrsRangeSource } from './geo3dLasCrs.js'
 import { createGeo3dLasWorkers } from './geo3dLasWorkers.js'
 import { createGeo3dRasterWorkers } from './geo3dRasterWorkers.js'
@@ -56,7 +56,10 @@ export interface Geo3dCopcOptions {
   /** Zero retains Giro3D automatic sizing. */ pointSize?: number
   subdivisionThreshold?: number
 }
-export interface Geo3dLasOptions extends Geo3dCopcOptions {}
+export interface Geo3dLasOptions extends Geo3dCopcOptions {
+  /** Verified source CRS for unresolved raw LAS/LAZ only; never overrides a conflicting file CRS. */
+  sourceCrs?: Geo3dCrsInput
+}
 export interface Geo3dTilesOptions {
   errorTarget?: number
   pointCloudAttributeMapping?: PointCloudBatchTableAttributeMapping
@@ -434,14 +437,10 @@ export async function renderGeo3d(
       lasBytes = undefined
       checkAbort(signal)
       metadata = (await pointSource.getMetadata()) as unknown as Geo3dMetadataLike
-      let native =
+      const decodedCrs =
         typeof metadata?.crs === 'string' ? await resolveGeo3dCrs(metadata.crs) : metadata?.crs
-      if (!native || native.isUnknown()) {
-        if (lasCrs.crs) native = await resolveGeo3dCrs(lasCrs.crs)
-        else if (lasCrs.hasCrsMetadata) throw new Error(
-          'LAS CRS metadata cannot be resolved. Add an authoritative EPSG GeoKey or WKT definition before loading; coordinates are not silently relabelled.'
-        )
-      }
+      const native = await resolveLasSourceCrs(decodedCrs, lasCrs,
+        format === 'copc' ? undefined : options.giro3d?.sources?.las?.sourceCrs)
       if (native && !native.isUnknown()) metadata = { ...metadata, crs: native }
       const scene = await resolveGeo3dCrs(instanceCrs, native)
       // Giro3D PointCloud keeps source coordinates; unlike Map it does not

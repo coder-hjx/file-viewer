@@ -8,6 +8,7 @@ import {
 } from './textEncoding.js';
 import type { SheetCellImage, SheetChartDefinition, SheetDefinition } from '../type.js';
 import { parseSpreadsheetCellImages } from './richDataParser.js';
+import { recoverUncachedFormulaValues } from './formulaValues.js';
 
 interface DrawingMarkerLike {
   row?: number;
@@ -486,6 +487,7 @@ export const parseSpreadsheetWorkbook = async (
   try {
     const input = prepareSpreadsheetReadInput(data, source);
     context.workbook = readWorkbookWithMergeRecovery(input);
+    recoverUncachedFormulaValues(context.workbook);
     const signature = data.byteLength >= 2 ? new DataView(data).getUint16(0, false) : 0;
     if (signature === 0x504b) {
       const [charts, cellImages] = await Promise.all([

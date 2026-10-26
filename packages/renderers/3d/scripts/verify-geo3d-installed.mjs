@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto'
 import { createWriteStream, existsSync } from 'node:fs'
 import {
   copyFile,
+  cp,
   lstat,
   mkdir,
   mkdtemp,
@@ -349,7 +350,7 @@ console.log('Both public entries imported with all optional specialist peers abs
   const browserRunner = join(consumer, 'run-browser-suites.mjs')
   await writeFile(
     browserRunner,
-    `await import(${JSON.stringify(new URL('./verify-geo3d-browser-scenarios.mjs', import.meta.url).href)});\nawait import(${JSON.stringify(new URL('./verify-geo3d-concurrent.mjs', import.meta.url).href)});\nawait import(${JSON.stringify(new URL('./verify-geo3d-archive-browser.mjs', import.meta.url).href)});\n`
+    `await import(${JSON.stringify(new URL('./verify-geo3d-browser-scenarios.mjs', import.meta.url).href)});\nawait import(${JSON.stringify(new URL('./verify-geo3d-concurrent.mjs', import.meta.url).href)});\nawait import(${JSON.stringify(new URL('./verify-geo3d-archive-browser.mjs', import.meta.url).href)});\nawait import(${JSON.stringify(new URL('./verify-github-406-browser.mjs', import.meta.url).href)});\n`
   )
   await run('installed-browser-suites', process.execPath, [browserRunner], consumer, {
     ...env,
@@ -364,13 +365,19 @@ console.log('Both public entries imported with all optional specialist peers abs
   assert.equal(browser.concurrency.cases.length, 10)
   assert.equal(browser.archiveSchemas?.status, 'passed')
   assert.equal(browser.archiveSchemas.cases.length, 8)
+  const lasCrs = JSON.parse(await readFile(join(childOutput, 'las-crs/report.json'), 'utf8'))
+  assert.equal(lasCrs.results.length, 27)
+  assert.equal(lasCrs.sourceCrsContracts.length, 15)
+  assert.ok(lasCrs.sourceCrsContracts.every(Boolean))
+  assert.deepEqual(lasCrs.externalRequests, [])
+  assert.deepEqual(lasCrs.pageErrors, [])
   for (const name of ['headless-blob-las', 'headless-blob-copc']) {
     const scenario = browser.cases.find((item) => item.name === name)
     assert.equal(scenario?.status, 'passed', `Missing public Blob integration: ${name}`)
     assert.equal(scenario.loaded.blobSource, true)
   }
   assert.deepEqual(browser.concurrency.notRun, [])
-  for (const suite of ['datasets', 'concurrent', 'archive-schema']) {
+  for (const suite of ['datasets', 'concurrent', 'archive-schema', 'las-crs']) {
     const graph = JSON.parse(
       await readFile(join(childOutput, `${suite}-module-graph.json`), 'utf8')
     )
@@ -383,6 +390,10 @@ console.log('Both public entries imported with all optional specialist peers abs
     concurrencyCases: 10,
     workspaceRuntimeModules: 0
   })
+  passed('installed explicit LAS source CRS, conflict guards and retained evidence', {
+    browserScenarios: lasCrs.results.length,
+    resolverContracts: lasCrs.sourceCrsContracts.length
+  })
   report.status = 'passed'
 } catch (error) {
   report.status = 'failed'
@@ -393,6 +404,8 @@ console.log('Both public entries imported with all optional specialist peers abs
     if (existsSync(join(childOutput, 'report.json')))
       report.browser = JSON.parse(await readFile(join(childOutput, 'report.json'), 'utf8'))
     if (existsSync(childOutput)) {
+      if (existsSync(join(childOutput, 'las-crs')))
+        await cp(join(childOutput, 'las-crs'), join(proof, 'las-crs'), { recursive: true })
       for (const filename of await readdir(childOutput)) {
         if (filename.endsWith('.png'))
           await copyFile(join(childOutput, filename), join(output, `installed-${filename}`))

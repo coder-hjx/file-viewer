@@ -11,6 +11,29 @@ function directory(entries) {
 }
 const inline = (key, code) => [key, 0, 1, code]
 
+test('citation-only projected LAS metadata never becomes WGS84 or an inferred EPSG', async () => {
+  // Metadata-only synthetic probe matching the reported key/units layout.
+  // No compressed points are present: this is not original-file decoder evidence.
+  for (const explicit of [false, true]) {
+    const citation = Buffer.from('WGS84, WGS84, ETRS89 / Poland CS2000 zone 6\0')
+    const keys = directory([inline(1024, 1), [1026, 34737, citation.length, 0], inline(2052, 9001), inline(2054, 9102), inline(3076, 9001), ...(explicit ? [inline(3072, 2177)] : [])])
+    const vlr = (user, id, payload) => {
+      const header = Buffer.alloc(54); header.write(user, 2, 16); header.writeUInt16LE(id, 18); header.writeUInt16LE(payload.length, 20)
+      return Buffer.concat([header, payload])
+    }
+    const records = Buffer.concat([vlr('LASF_Projection', 34735, keys), vlr('LASF_Projection', 34737, citation), vlr('laszip encoded', 22204, Buffer.alloc(2))])
+    const header = Buffer.alloc(227); header.write('LASF'); header[24] = 1; header[25] = 2
+    header.writeUInt16LE(227, 94); header.writeUInt32LE(227 + records.length, 96); header.writeUInt32LE(3, 100)
+    header[104] = 131; header.writeUInt16LE(34, 105); header.writeUInt32LE(5_677_589, 107)
+    for (const offset of [131, 139, 147]) header.writeDoubleLE(.00025, offset)
+    for (const [index, value] of [6483522, 5589361, 226].entries()) header.writeDoubleLE(value, 155 + index * 8)
+    const bytes = Buffer.concat([header, records]), reads = []
+    const inspection = await inspectLasCrsRangeSource(async (begin, end) => { reads.push([begin, end]); return bytes.subarray(begin, end) })
+    assert.deepEqual(inspection, { hasCrsMetadata: true, crs: explicit ? 'EPSG:2177' : undefined })
+    assert.ok(reads.every(([begin, end]) => begin >= 0 && end <= bytes.length))
+  }
+})
+
 test('projected GeoKey EPSG wins over its underlying geographic CRS in any key order', () => {
   for (const entries of [
     [inline(1024, 1), inline(2048, 4258), inline(3072, 2177)],
