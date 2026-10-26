@@ -73,23 +73,41 @@ try {
             await scope.waitForFunction(() => window.messageMounted || window.messageFailure)
             assert.equal(await scope.evaluate(() => window.messageFailure), null)
           } else await scope.evaluate(config => window.mountSelection(config), input)
-          await scope.waitForFunction(() => selectionHost.querySelector('.textLayer span')?.textContent.trim())
+          await scope.waitForFunction(() => selectionHost.querySelector('.textLayer .endOfContent') &&
+            selectionHost.querySelector('.textLayer span[role="presentation"]')?.textContent.trim())
           await scope.evaluate(async () => { await document.fonts.ready; await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))) })
         }
         await mount()
         let text
-        const spans = scope.locator('.textLayer span')
+        // Marked-content groups use display:contents and are not text targets.
+        const spans = scope.locator('.textLayer span[role="presentation"]:not(.markedContent)')
         for (let i = 0; i < Math.min(await spans.count(), 100); i++) {
           const candidate = spans.nth(i), box = await candidate.boundingBox(), content = await candidate.textContent()
           if (box && box.width > 100 && box.y > 0 && box.y + box.height < 850 && content.trim().length > 6) { text = candidate; break }
         }
         assert.ok(text, 'Expected actual visible selectable PDF text')
+        await text.click({ trial: true })
         const originalPixels = PNG.sync.read(await text.screenshot())
         const box = await text.boundingBox()
+        // A half-pixel span edge can hit a shadow-tree caret boundary in Linux
+        // WebKit. Read glyph geometry only; Selection is changed by real mouse
+        // events, never by a programmatically installed range.
+        const glyphs = await text.evaluate(element => {
+          const node = element.firstChild
+          if (node?.nodeType !== Node.TEXT_NODE || !node.textContent.length) throw Error('Expected a real text leaf')
+          const rect = element.getBoundingClientRect(), range = document.createRange()
+          range.setStart(node, 0); range.setEnd(node, 1)
+          const first = range.getBoundingClientRect()
+          range.setStart(node, node.textContent.length - 1); range.setEnd(node, node.textContent.length)
+          const last = range.getBoundingClientRect()
+          if (!first.width || !last.width || !rect.width) throw Error('Expected laid-out text glyphs')
+          return { first: first.x - rect.x + first.width / 4, last: last.x - rect.x + last.width * 3 / 4,
+            y: first.y - rect.y + first.height / 2, text: node.textContent }
+        })
         const drag = async () => {
-          await page.mouse.move(box.x + .5, box.y + box.height / 2)
+          await page.mouse.move(box.x + glyphs.first, box.y + glyphs.y)
           await page.mouse.down()
-          await page.mouse.move(box.x + box.width + .5, box.y + box.height / 2, { steps: 12 })
+          await page.mouse.move(box.x + glyphs.last, box.y + glyphs.y, { steps: 12 })
         }
         await drag()
         const during = await scope.evaluate(() => getSelection().toString())
@@ -109,8 +127,9 @@ try {
         let changedPixels = 0
         for (let i = 0; i < selectedPixels.data.length; i += 4)
           if ([0, 1, 2].some(c => Math.abs(selectedPixels.data[i + c] - originalPixels.data[i + c]) > 8)) changedPixels++
-        const row = { browser: browserName, version: h.browser.version(), ...config, during, after, copied, changedPixels }
+        const row = { browser: browserName, version: h.browser.version(), ...config, during, after, copied, changedPixels, glyphs }
         report.cases.push(row)
+        assert.ok(glyphs.text.includes(during.trim()), key + ' must select the targeted text leaf')
         assert.ok(during.trim(), key + ' must actually select text')
         assert.equal(after, during, key + ' mouseup must preserve native selection')
         assert.ok(copied.handled && copied.text.trim(), key + ' actual PDF copy handler')
