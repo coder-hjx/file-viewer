@@ -63,3 +63,9 @@ For private deployments, override it with `options.spreadsheet.workerUrl`. The o
 ## Migration Note
 
 Spreadsheet preview has moved completely out of `@file-viewer/core`. Core now only keeps the asset manifest, shared types, and a compatibility error message, and it no longer installs `styled-exceljs`, `e-virt-table`, or `tinycolor2` by default. Install this package and pass it through `renderers`, or use `@file-viewer/preset-all` for the complete spreadsheet experience.
+
+## Formulas without saved results
+
+Saved formula results, including zero, remain authoritative. When an exporter omits the saved result, the preview can recover local/cross-sheet references, ranges, arithmetic/comparisons, `IF`, `ROUND`, `ROW` and `SUM` with a bounded offline evaluator. Cell number formats are retained.
+
+This is not a full Excel calculation engine. Cyclic, external, unsupported or over-budget formulas are displayed as their original `=formula` text instead of a fabricated zero. No JavaScript or remote formula resources are evaluated. Main-thread and Worker paths use the same recovery logic.

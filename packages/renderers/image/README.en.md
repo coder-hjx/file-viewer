@@ -38,3 +38,9 @@ const options = {
 ## Migration Note
 
 `@file-viewer/core` still keeps lightweight native image preview for browser-supported PNG / JPEG / SVG / WebP formats, but it no longer installs `heic2any` by default. Install this package explicitly, or use `@file-viewer/preset-all`, when HEIC / HEIF conversion or the full standalone image renderer is required.
+
+## Mouse drag panning
+
+Set `image: { handTool: true }` in the viewer options to pan a zoomed image with the primary mouse button. The default is `false`. The setting applies to the core native-image path, this renderer and multipage TIFF. Both image edges remain reachable when zoomed.
+
+Ordinary image clicks and keyboard activation still open the lightbox (TIFF uses double-click or keyboard activation). A completed drag suppresses its accidental click. Controls, scrollbars and native touch scrolling/pinch retain their normal behavior; pointer cancellation, blur, source abort and unmount release the drag.

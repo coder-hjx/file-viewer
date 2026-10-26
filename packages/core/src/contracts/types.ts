@@ -1685,6 +1685,8 @@ export interface FileViewerOptions {
   spreadsheet?: FileViewerSpreadsheetOptions
   /** Image renderer controls; also applies to multipage TIFF previews. */
   image?: {
+    /** Enable mouse drag panning of overflowing images. Defaults to false; touch scrolling and lightbox clicks are preserved. */
+    handTool?: boolean
     /**
      * Show rotation controls and allow view-state rotation. Defaults to true.
      * Set false for compact previews. Decoder/EXIF orientation is unchanged.

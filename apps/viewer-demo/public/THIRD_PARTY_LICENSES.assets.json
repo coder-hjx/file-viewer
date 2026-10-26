@@ -21814,9 +21814,9 @@
     },
     {
       "path": "vendor/xlsx/sheet.worker.js",
-      "bytes": 904101,
-      "sha256": "51cb9b73150d72e53f40adf66274d01a4ce8c4cd9a9c8b760c40fe9f24db8bcc",
-      "sourceSha256": "51cb9b73150d72e53f40adf66274d01a4ce8c4cd9a9c8b760c40fe9f24db8bcc",
+      "bytes": 914448,
+      "sha256": "516c1cc9b0dbf4dfd3e0e3aa701decd8db61371db6aeafe8dbf2c24bc0dfc308",
+      "sourceSha256": "516c1cc9b0dbf4dfd3e0e3aa701decd8db61371db6aeafe8dbf2c24bc0dfc308",
       "sourceTransform": "none"
     },
     {

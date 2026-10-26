@@ -405,6 +405,16 @@ jobs:
           path: output/zoom-toolbar-browser/**
           retention-days: 7
 
+      - name: Retain spreadsheet formula and image hand-tool evidence
+        if: always() && steps.impact.outputs.runtime != 'false'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: formula-and-image-interactions-${{ github.sha }}
+          path: |
+            output/issue-414/**
+            output/issue-392/**
+          retention-days: 7
+
       - name: Verify untrusted renderer markup sanitization
         if: steps.impact.outputs.runtime != 'false'
         run: pnpm verify:renderer-sanitization
