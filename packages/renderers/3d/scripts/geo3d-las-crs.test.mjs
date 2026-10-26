@@ -13,7 +13,7 @@ const inline = (key, code) => [key, 0, 1, code]
 
 test('citation-only projected LAS metadata never becomes WGS84 or an inferred EPSG', async () => {
   // Metadata-only synthetic probe matching the reported key/units layout.
-  // No compressed points are present: this is not the missing original LAZ.
+  // No compressed points are present: this is not original-file decoder evidence.
   for (const explicit of [false, true]) {
     const citation = Buffer.from('WGS84, WGS84, ETRS89 / Poland CS2000 zone 6\0')
     const keys = directory([inline(1024, 1), [1026, 34737, citation.length, 0], inline(2052, 9001), inline(2054, 9102), inline(3076, 9001), ...(explicit ? [inline(3072, 2177)] : [])])
