@@ -168,6 +168,8 @@ const numeric = (value: Value): number => {
   return number
 }
 const scalar = (value: Value | Value[]): Value => (Array.isArray(value) ? unavailable() : value)
+const textValue = (value: Value): string =>
+  typeof value === 'boolean' ? (value ? 'TRUE' : 'FALSE') : String(value ?? '')
 const needsValue = (cell: CellObject) =>
   !!cell.f && (cell.t === 'z' || cell.v === undefined || cell.v === null)
 
@@ -271,7 +273,7 @@ export function recoverUncachedFormulaValues(workbook: WorkBook) {
     if (node.kind === 'binary') {
       const left = scalar(run(node.left)),
         right = scalar(run(node.right))
-      if (node.op === '&') return `${left ?? ''}${right ?? ''}`
+      if (node.op === '&') return textValue(left) + textValue(right)
       if (['=', '<>', '<', '>', '<=', '>='].includes(node.op)) {
         // Excel compares text without case sensitivity. Different value types
         // are ordered number < text < logical; empty cells take the other type.

@@ -72,9 +72,16 @@ try {
           await writeFile(join(output,'failure.json'),JSON.stringify(await page.evaluate(()=>({painted:[...window.painted],messages:window.messages,state:window.provider.getState(),text:document.body.innerText})),null,2)+'\n')
           throw error
         })
+        if(!original) {
+          for(const expected of ['ATRUE','TRUE:ATRUE','authored','authored:FALSE']) {
+            await page.waitForFunction(expected=>window.painted.has(expected)||[...document.querySelectorAll('.excel-wrapper span,.excel-wrapper div')].some(element=>element.children.length===0&&element.textContent?.trim()===expected&&element.getBoundingClientRect().width>0&&element.getBoundingClientRect().height>0&&getComputedStyle(element).visibility==='visible'),expected,{timeout:15000})
+          }
+        }
         if(worker){
           const values=await page.evaluate(()=>window.messages.filter(m=>m.type==='parseSheet').flatMap(m=>m.payload.sheetData.data).flat())
           assert.ok(values.some(value=>Number(value)===1123),'real Worker must return the recovered cross-sheet value')
+          if(!original) for(const expected of ['ATRUE','TRUE:ATRUE','authored','authored:FALSE'])
+            assert.ok(values.includes(expected),'Real Worker must preserve logical text and authored cache: '+expected)
           assert.ok(workerResponses.length>0&&workerResponses.every(r=>r.status===200&&r.mime.includes('javascript')))
         }
         const rapid=await page.evaluate(async()=>{await Promise.all([window.jump('费用测算表'),window.jump('功能点计数表',1)]);return window.provider.getState()})

@@ -322,6 +322,8 @@ jobs:
             output/vite-lite-consumer/*.png
             output/pdf-hand-tool/**/report.json
             output/pdf-hand-tool/**/*.png
+            output/pdf-text-selection/**/report.json
+            output/pdf-text-selection/**/*.png
             output/doc-font-table/*.json
             output/doc-font-table/*.png
             output/doc-font-table/font-cohort.log

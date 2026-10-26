@@ -11,6 +11,61 @@ const number = (v: number) => ({ t: 'n', v })
 
 describe('uncached spreadsheet formula preview (#414)', () => {
   it.each(['sparse', 'array', 'data'])(
+    'converts logical values to Excel text during concatenation in %s storage',
+    (shape) => {
+      // Microsoft calculation operators: ="A"&TRUE yields ATRUE, not Atrue.
+      const flags = { A1: { t: 'b', v: true }, A2: { t: 'b', v: false } }
+      const cells = {
+        A1: formula('"A"&TRUE'),
+        A2: formula('FALSE&""'),
+        A3: formula('Flags!A1&""'),
+        A4: formula('Flags!A2&""'),
+        A5: formula('IF(Flags!A1,TRUE,FALSE)&"X"'),
+        A6: formula('IF(Flags!A2,TRUE,FALSE)&""'),
+        A7: formula('A1&":"&A4'),
+        A8: formula('"true"&FALSE'),
+        A9: { t: 's', f: 'TRUE&""', v: 'authored', w: 'authored' },
+        A10: formula('A9&Flags!A1'),
+        A11: formula('IF(TRUE,"lower",UNKNOWN())&FALSE'),
+        A12: formula('0&":"&Z1')
+      }
+      const deps = {
+        A1: formula('Values!A7&Flags!A2'),
+        A2: formula('IF(Values!A3="TRUE","yes","no")')
+      }
+      const storage = (source: Record<string, any>) => {
+        const rows = [] as any[][]
+        for (const [address, cell] of Object.entries(source))
+          rows[Number(address.slice(1)) - 1] = [cell]
+        return shape === 'sparse' ? source : shape === 'array' ? rows : { '!data': rows }
+      }
+      const cached = structuredClone(cells.A9),
+        originalFlags = structuredClone(flags)
+      expect(
+        recoverUncachedFormulaValues(
+          workbook({ Flags: storage(flags), Values: storage(cells), Deps: storage(deps) })
+        )
+      ).toEqual({ calculated: 13, unavailable: 0 })
+      expect(Object.values(cells).map((cell) => cell.v)).toEqual([
+        'ATRUE',
+        'FALSE',
+        'TRUE',
+        'FALSE',
+        'TRUEX',
+        'FALSE',
+        'ATRUE:FALSE',
+        'trueFALSE',
+        'authored',
+        'authoredTRUE',
+        'lowerFALSE',
+        '0:'
+      ])
+      expect([deps.A1.v, deps.A2.v]).toEqual(['ATRUE:FALSEFALSE', 'yes'])
+      expect(cells.A9).toEqual(cached)
+      expect(flags).toEqual(originalFlags)
+    }
+  )
+  it.each(['sparse', 'array', 'data'])(
     'preserves Excel zero-power errors and dependent formulas in %s storage',
     (shape) => {
       // Office MS-OI29500 section18.17.7.255: POWER(0,0) returns #NUM!.
