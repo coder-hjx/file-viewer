@@ -84,6 +84,12 @@ const options = { preset: officePreset }
 
 `options.preset` also accepts an array. See [presets and renderers](https://doc.file-viewer.app/guide/on-demand-renderers) for the available combinations.
 
+## Flutter development preview
+
+The independent [file-viewer-flutter](https://github.com/flyfish-dev/file-viewer-flutter) repository provides a Flutter widget with bundled offline assets, application-scoped prewarming and reusable viewer sessions. Integrate the root with `FileViewerHost(child: MyApp())` and display a document with `FileViewer(source: source)` after the initial platform setup.
+
+Android, iOS, Web, Windows, macOS and Linux are the delivery targets. This is a development preview; follow the repository's qualification matrix for measured support, package availability and remaining work. Background prewarming retains an instance while the application process lives and recovers after system reclamation. See [Flutter integration](docs/guide/quickstart-flutter.md).
+
 ## Formats and limits
 
 The [format matrix](https://doc.file-viewer.app/guide/formats) lists extensions, renderer packages, support levels and evidence. It covers common documents and media as well as specialist formats such as engineering drawings, 3D models and design files. An extension in the matrix does not mean every file of that type has identical fidelity.
