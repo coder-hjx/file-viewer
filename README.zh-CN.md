@@ -118,6 +118,12 @@
 
 如果这个方向刚好对你有用，也欢迎收藏项目。比起单纯 Star，我更希望收到真实场景下的兼容性反馈。
 
+## Flutter 开发预览
+
+独立仓库 [file-viewer-flutter](https://github.com/flyfish-dev/file-viewer-flutter) 提供 Flutter 组件，目标覆盖 Android、iOS、Web、Windows、macOS 和 Linux。采用内置离线资源、应用级预热与会话复用；完成一次平台配置后，根节点使用 `FileViewerHost(child: MyApp())`，页面使用 `FileViewer(source: source)`。
+
+当前为开发预览，各端实测状态、软件包可用性和待完成事项以独立仓库的兼容矩阵为准。后台预热表示应用进程存活期间保留实例，并在系统回收后恢复；不承诺操作系统永久后台运行。详见 [Flutter 接入](docs/zh/guide/quickstart-flutter.md)。
+
 ## 快速开始
 
 新项目可以用 CLI 生成示例，已有项目可按提示添加组件和资产配置：
