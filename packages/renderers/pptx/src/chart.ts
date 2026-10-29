@@ -522,7 +522,7 @@ const renderChart = async (message: ChartMessage, root: ParentNode) => {
     // automatic measurement uses transformed screen rectangles (or a visible
     // ancestor for hidden slides), which applies presentation scaling twice.
     // Keep fractional authored dimensions; the viewer scales the whole slide.
-    const logicalSize = [chartTarget.style.width, chartTarget.style.height]
+    const logicalSize = [chartTarget.style?.width || '', chartTarget.style?.height || '']
       .map(value => /^\d+(?:\.\d+)?px$/.test(value) ? Number.parseFloat(value) : NaN);
     if (logicalSize.every(value => Number.isFinite(value) && value > 0)) {
       chart.size = { width: logicalSize[0], height: logicalSize[1] };
