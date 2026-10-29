@@ -120,9 +120,9 @@
 
 ## Flutter 开发预览
 
-独立仓库 [file-viewer-flutter](https://github.com/flyfish-dev/file-viewer-flutter) 提供 Flutter 组件，目标覆盖 Android、iOS、Web、Windows、macOS 和 Linux。采用内置离线资源、应用级预热与会话复用；完成一次平台配置后，根节点使用 `FileViewerHost(child: MyApp())`，页面使用 `FileViewer(source: source)`。
+[File Viewer Flutter](https://flutter.file-viewer.app) 已在 [pub.dev](https://pub.dev/packages/file_viewer_flutter) 发布 `0.1.0-dev.1` 开发预览版，提供随包分发的离线资源、应用级预热与会话复用。主文档提供 [Flutter 快速开始](docs/zh/guide/quickstart-flutter.md)，完整接入说明见 [Flutter 开发者站](https://flutter.file-viewer.app/zh/docs/quickstart/)。
 
-当前为开发预览，各端实测状态、软件包可用性和待完成事项以独立仓库的兼容矩阵为准。后台预热表示应用进程存活期间保留实例，并在系统回收后恢复；不承诺操作系统永久后台运行。详见 [Flutter 接入](docs/zh/guide/quickstart-flutter.md)。
+目标平台包括 Android、iOS、Web、Windows、macOS 和 Linux，实测范围与待完成验收见 [平台配置](https://flutter.file-viewer.app/zh/docs/platforms/)。会话保留在应用进程中，操作系统仍可能挂起或终止进程，不承诺永久后台运行。SDK 源码与可运行示例见 [Flutter 独立仓库](https://github.com/flyfish-dev/file-viewer-flutter)。
 
 ## 快速开始
 
