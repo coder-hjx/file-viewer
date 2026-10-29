@@ -1,40 +1,58 @@
-# Flutter integration
+# Flutter quick start
 
-The independent [file-viewer-flutter repository](https://github.com/flyfish-dev/file-viewer-flutter) contains the Flutter API, platform adapters, offline asset packages and runnable example. It consumes the immutable public File Viewer distribution; it does not require customers to build the JavaScript source.
+[File Viewer Flutter](https://flutter.file-viewer.app/en/) is an independently maintained Flutter component with application-scoped warm-up, reusable sessions and bundled offline resources. The pub.dev release is development preview `0.1.0-dev.1`. Customer applications need no Node.js or JavaScript source build.
 
-This is a development preview. Android, iOS, Web, Windows, macOS and Linux are the delivery targets. Consult the repository's qualification matrix and release notes before selecting a target. Declaring a plugin platform does not establish that every device, format or native engine has passed testing.
+## 1. Install and configure
 
-## Application integration
+Use Flutter 3.47+ / Dart 3.13+. Add to your application's `pubspec.yaml`:
 
-Use the complete local SDK bundle while pub.dev publication is pending. The repository README documents the current available installation path. Run the supplied setup command once for the application:
+```yaml
+dependencies:
+  file_viewer_flutter: 0.1.0-dev.1
+```
 
 ```sh
+flutter pub get
 dart run file_viewer_flutter:setup --project . --check
 dart run file_viewer_flutter:setup --project . --apply
 ```
 
-The check prints proposed changes. Applying preserves existing configuration and adds scoped local networking and platform initialization. Then import the package and wrap the application root:
+Run from the application root. `--check` previews host changes; only `--apply` writes them. Web needs no native host changes. Fully rebuild the application afterward.
+
+## 2. Add and display a document
+
+Place a PDF at `assets/example.pdf` and declare it in the same `pubspec.yaml`:
+
+```yaml
+flutter:
+  assets:
+    - assets/example.pdf
+```
+
+Application entry:
 
 ```dart
+import 'package:flutter/material.dart';
 import 'package:file_viewer_flutter/file_viewer_flutter.dart';
 
-runApp(FileViewerHost(child: MyApp()));
+void main() {
+  runApp(const FileViewerHost(
+    child: MaterialApp(
+      home: Scaffold(
+        body: FileViewer(
+          source: FileViewerSource.asset('assets/example.pdf'),
+        ),
+      ),
+    ),
+  ));
+}
 ```
 
-Place the viewer in a bounded Flutter layout:
+`FileViewerHost` warms up after the first frame and `Scaffold.body` provides bounded layout. Use an explicit size or `Expanded` in other layouts.
 
-```dart
-FileViewer(source: FileViewerSource.asset('assets/example.pdf'))
-```
+## Continue reading
 
-Declare the example document in the host application's assets. Native file paths, bytes and HTTP(S) URLs have corresponding source factories. Web uses bytes or URLs rather than arbitrary local paths. Customer integration needs Flutter tooling; Node.js is used only to maintain the packaged runtime.
+- [Complete Flutter documentation](https://flutter.file-viewer.app/en/docs/quickstart/): platform setup, sources, controllers, session reuse and offline delivery.
+- [pub.dev package](https://pub.dev/packages/file_viewer_flutter) and [independent Flutter repository](https://github.com/flyfish-dev/file-viewer-flutter).
 
-## Prewarming and offline behavior
-
-The host starts warming after the first Flutter frame. It retains one spare viewer and reuses a released document session. Concurrent viewers use separate native views. `FileViewerRuntime.instance.preload(source)` can parse a known upcoming file before navigation. Module readiness and actual document rendering are separate measurements.
-
-All four version-locked asset packages are installed together, including Worker, WASM, fonts and vendor resources. This increases application size. Windows bundles WebView2 Fixed Version; Linux bundles CEF. Native build machines need the locked archives or a populated cache; the installed application does not download rendering engines.
-
-Backgrounding pauses unnecessary work while retaining an instance where the operating system permits. The process may be suspended or reclaimed. On return, the SDK resumes or recreates the viewer. It does not promise a permanent background service. Memory pressure trims idle instances, and logout should call `clearSessions()`.
-
-See the independent repository's architecture and qualification documents for current limitations, reproducible checks, license notices and release gates.
+Targets include Android, iOS, Web, Windows, macOS and Linux. Consult the Flutter site's qualification notes for measured device, OS and format scope. Background retention remains subject to OS suspension and reclamation; perpetual background operation and universal device qualification are not promised.
