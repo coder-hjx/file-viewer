@@ -518,6 +518,16 @@ const renderChart = async (message: ChartMessage, root: ParentNode) => {
     surface.style.cssText = 'width:100%;height:100%;min-width:0;min-height:0;flex:1 1 auto';
     chartTarget.replaceChildren(surface);
     chart.bindto = surface;
+    // DrawingML fixes the chart's size in slide coordinates. Billboard's
+    // automatic measurement uses transformed screen rectangles (or a visible
+    // ancestor for hidden slides), which applies presentation scaling twice.
+    // Keep fractional authored dimensions; the viewer scales the whole slide.
+    const logicalSize = [chartTarget.style.width, chartTarget.style.height]
+      .map(value => /^\d+(?:\.\d+)?px$/.test(value) ? Number.parseFloat(value) : NaN);
+    if (logicalSize.every(value => Number.isFinite(value) && value > 0)) {
+      chart.size = { width: logicalSize[0], height: logicalSize[1] };
+      chart.resize = { auto: false };
+    }
     try {
       const instance = bb.generate(chart) as BillboardChart;
       return {

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Keep native PPTX charts at their authored slide-coordinate size during slideshow scaling, hidden-slide navigation and return to preview (#385). This addresses chart enlargement and clipping; the remaining document-specific typography reports are still open.
+
 ## File Viewer v3.3.0 — Candidate (not yet published)
 
 - Adopt the published `@file-viewer/docx@0.3.39` engine for DrawingML source-rectangle cropping and bounded inline-picture pagination (#413). Normal pictures keep their dimensions when continuous sections move onto a fresh page. Main-thread and offline Worker assets use the same engine.
