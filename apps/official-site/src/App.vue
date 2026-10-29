@@ -2,6 +2,7 @@
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch, type Component } from 'vue'
 import hljs from 'highlight.js/lib/core'
 import bash from 'highlight.js/lib/languages/bash'
+import dart from 'highlight.js/lib/languages/dart'
 import javascript from 'highlight.js/lib/languages/javascript'
 import typescript from 'highlight.js/lib/languages/typescript'
 import xml from 'highlight.js/lib/languages/xml'
@@ -57,7 +58,7 @@ type Locale = 'zh' | 'en'
 type SiteTheme = 'light' | 'dark'
 type SupportDialogView = 'sponsor' | 'contact'
 type ChineseContactId = 'service' | 'updates' | 'community'
-type HighlightLanguage = 'bash' | 'javascript' | 'typescript' | 'xml'
+type HighlightLanguage = 'bash' | 'dart' | 'javascript' | 'typescript' | 'xml'
 type HeroPreviewId = 'word' | 'cad' | 'sheet' | 'slide'
 type HeroPreviewPhase = 'idle' | 'entering' | 'active' | 'leaving'
 type HeroPreviewShield = {
@@ -188,6 +189,7 @@ const siteMetadata = {
 } satisfies Record<Locale, SiteMetadata>
 
 hljs.registerLanguage('bash', bash)
+hljs.registerLanguage('dart', dart)
 hljs.registerLanguage('javascript', javascript)
 hljs.registerLanguage('typescript', typescript)
 hljs.registerLanguage('xml', xml)
@@ -774,6 +776,38 @@ export function Preview() {
     />
   )
 }`
+  },
+  {
+    label: 'Flutter',
+    packageName: 'file_viewer_flutter',
+    install: 'flutter pub add file_viewer_flutter:0.1.0-dev.2',
+    title: isZh.value ? 'Flutter 文件预览与应用级预热' : 'Flutter previews with application warm-up',
+    summary: isZh.value
+      ? '开发预览版已在 pub.dev 发布。离线资源随应用分发，统一 Dart API 面向移动、桌面与 Web；实测范围与平台配置见 Flutter 文档。'
+      : 'The development preview is on pub.dev. Bundled offline resources and one Dart API target mobile, desktop and Web; check measured scope and host setup in the Flutter docs.',
+    language: 'Dart',
+    highlightLanguage: 'dart',
+    href: `https://flutter.file-viewer.app/${isZh.value ? 'zh' : 'en'}/docs/quickstart/`,
+    tone: 'blue',
+    icon: PanelTop,
+    code: `import 'package:flutter/material.dart';
+import 'package:file_viewer_flutter/file_viewer_flutter.dart';
+
+void main() {
+  runApp(const FileViewerHost(
+    child: MaterialApp(
+      home: Scaffold(
+        body: FileViewer(
+          source: FileViewerSource.asset('assets/example.pdf'),
+        ),
+      ),
+    ),
+  ));
+}
+
+// Declare your PDF in pubspec.yaml and configure the host once.
+// dart run file_viewer_flutter:setup --project . --check
+// dart run file_viewer_flutter:setup --project . --apply`
   },
   {
     label: 'Svelte',

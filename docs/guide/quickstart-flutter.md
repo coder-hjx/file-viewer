@@ -1,6 +1,6 @@
 # Flutter quick start
 
-[File Viewer Flutter](https://flutter.file-viewer.app/en/) is an independently maintained Flutter component with application-scoped warm-up, reusable sessions and bundled offline resources. The pub.dev release is development preview `0.1.0-dev.1`. Customer applications need no Node.js or JavaScript source build.
+[File Viewer Flutter](https://flutter.file-viewer.app/en/) is an independently maintained Flutter component with application-scoped warm-up, reusable sessions and bundled offline resources. The pub.dev release is development preview `0.1.0-dev.2`. Customer applications need no Node.js or JavaScript source build.
 
 ## 1. Install and configure
 
@@ -8,7 +8,7 @@ Use Flutter 3.47+ / Dart 3.13+. Add to your application's `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  file_viewer_flutter: 0.1.0-dev.1
+  file_viewer_flutter: 0.1.0-dev.2
 ```
 
 ```sh
@@ -49,6 +49,8 @@ void main() {
 ```
 
 `FileViewerHost` warms up after the first frame and `Scaffold.body` provides bounded layout. Use an explicit size or `Expanded` in other layouts.
+
+macOS has passed native validation on both Apple Silicon and Intel devices, including PPTX/Excel viewport fitting and retained-session reuse. Exact systems and checks are recorded in the [qualification matrix](https://github.com/flyfish-dev/file-viewer-flutter/blob/main/docs/qualification.md).
 
 ## Continue reading
 

@@ -1,6 +1,6 @@
 # Flutter 快速开始
 
-[File Viewer Flutter](https://flutter.file-viewer.app) 是独立维护的 Flutter 组件，提供应用级预热、会话复用和随包分发的离线资源。当前 pub.dev 版本为 `0.1.0-dev.1` 开发预览，客户无需 Node.js 或 JavaScript 源码构建。
+[File Viewer Flutter](https://flutter.file-viewer.app) 是独立维护的 Flutter 组件，提供应用级预热、会话复用和随包分发的离线资源。当前 pub.dev 版本为 `0.1.0-dev.2` 开发预览，客户无需 Node.js 或 JavaScript 源码构建。
 
 ## 1. 安装并配置
 
@@ -8,7 +8,7 @@
 
 ```yaml
 dependencies:
-  file_viewer_flutter: 0.1.0-dev.1
+  file_viewer_flutter: 0.1.0-dev.2
 ```
 
 ```sh
@@ -49,6 +49,8 @@ void main() {
 ```
 
 `FileViewerHost` 在首帧后启动预热，`Scaffold.body` 提供有界布局。其他布局中请使用明确尺寸或 `Expanded`。
+
+macOS 已通过 Apple Silicon 与 Intel 双架构实机验证，覆盖 PPTX/Excel 视图适配与会话复用。具体系统与检查范围见[兼容性矩阵](https://github.com/flyfish-dev/file-viewer-flutter/blob/main/docs/qualification.md)。
 
 ## 继续阅读
 

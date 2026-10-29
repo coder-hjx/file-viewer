@@ -86,7 +86,7 @@ const options = { preset: officePreset }
 
 ## Flutter development preview
 
-The independent [File Viewer Flutter](https://flutter.file-viewer.app/en/) SDK is available on [pub.dev](https://pub.dev/packages/file_viewer_flutter) as development preview `0.1.0-dev.1`. It provides bundled offline assets, application-scoped warm-up and reusable viewer sessions. Start with the [Flutter quick start](docs/guide/quickstart-flutter.md), or read the [complete integration guides](https://flutter.file-viewer.app/en/docs/quickstart/).
+The independent [File Viewer Flutter](https://flutter.file-viewer.app/en/) SDK is available on [pub.dev](https://pub.dev/packages/file_viewer_flutter) as development preview `0.1.0-dev.2`. It provides bundled offline assets, application-scoped warm-up and reusable viewer sessions. Start with the [Flutter quick start](docs/guide/quickstart-flutter.md), or read the [complete integration guides](https://flutter.file-viewer.app/en/docs/quickstart/).
 
 Android, iOS, Web, Windows, macOS and Linux are the delivery targets. Follow the [platform guide](https://flutter.file-viewer.app/en/docs/platforms/) for measured support and remaining qualification. Sessions stay within the application process; operating systems can suspend or terminate it. The [Flutter repository](https://github.com/flyfish-dev/file-viewer-flutter) contains the SDK source and runnable example.
 

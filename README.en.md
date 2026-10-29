@@ -86,7 +86,7 @@ const options = { preset: officePreset }
 
 ## Flutter development preview
 
-The independent [file-viewer-flutter](https://github.com/flyfish-dev/file-viewer-flutter) repository provides a Flutter widget with bundled offline assets, application-scoped prewarming and reusable viewer sessions. Integrate the root with `FileViewerHost(child: MyApp())` and display a document with `FileViewer(source: source)` after the initial platform setup.
+The independent [File Viewer Flutter](https://flutter.file-viewer.app/en/) SDK is available on [pub.dev](https://pub.dev/packages/file_viewer_flutter) as development preview `0.1.0-dev.2`, with bundled offline assets, application-scoped prewarming and reusable viewer sessions. Integrate the root with `FileViewerHost(child: MyApp())` and display a document with `FileViewer(source: source)` after the initial platform setup.
 
 Android, iOS, Web, Windows, macOS and Linux are the delivery targets. This is a development preview; follow the repository's qualification matrix for measured support, package availability and remaining work. Background prewarming retains an instance while the application process lives and recovers after system reclamation. See [Flutter integration](docs/guide/quickstart-flutter.md).
 
